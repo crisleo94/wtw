@@ -1,87 +1,11 @@
-<div>
-  <form class="main" [formGroup]="dataForm" (ngSubmit)="onSubmit()">
-    <div>
-      <label for="year">Primary Release Year:</label>
-      <input
-        type="number"
-        id="year"
-        name="year"
-        formControlName="year"
-        max="{{ currentYear }}"
-        min="1900"
-        required
-        [ngClass]="{
-          error: dataForm.get('year')?.invalid && dataForm.get('year')?.touched
-        }"
-      />
-      <div
-        *ngIf="
-          dataForm.get('year')?.invalid &&
-          (dataForm.get('year')?.dirty || dataForm.get('year')?.touched)
-        "
-        class="text-error"
-      >
-        <span *ngIf="dataForm.get('year')?.errors?.['required']"
-          >Release year is a required value</span
-        >
-        <span *ngIf="dataForm.get('year')?.errors?.['min']"
-          >Release year cannot be less than 1900</span
-        >
-        <span *ngIf="dataForm.get('year')?.errors?.['max']"
-          >Release year cannot be greater than the current year
-          {{ currentYear }}</span
-        >
-      </div>
-    </div>
-    <div>
-      <label for="genre">Select your Genre:</label>
-      <select name="genre" id="genre" formControlName="genre" required>
-        <option value=""></option>
-        <option *ngFor="let genre of genres" value="{{ genre.id }}">
-          {{ genre.name }}
-        </option>
-      </select>
-      <div
-        *ngIf="
-          dataForm.get('genre')?.invalid &&
-          (dataForm.get('genre')?.dirty || dataForm.get('genre')?.touched)
-        "
-        class="text-error"
-      >
-        <span *ngIf="dataForm.get('genre')?.errors?.['required']"
-          >Genre is a required value</span
-        >
-      </div>
-    </div>
-    <div>
-      <label for="rating">Enter the desire rating:</label>
-      <span class="rating">{{ dataForm.get("rating")?.value || 1 }}</span>
-      <input
-        type="range"
-        id="rating"
-        name="rating"
-        min="1"
-        max="10"
-        formControlName="rating"
-        required
-      />
-      <div
-        *ngIf="
-          dataForm.get('rating')?.invalid &&
-          (dataForm.get('rating')?.dirty || dataForm.get('rating')?.touched)
-        "
-        class="text-error"
-      >
-        <span *ngIf="dataForm.get('rating')?.errors?.['required']"
-          >Rating is a required value</span
-        >
-      </div>
-    </div>
-    <button type="submit" [disabled]="!dataForm.valid || !dataForm.touched">Generate Movie</button>
-    <button type="button" onclick="reset()">Reset Controls</button>
-  </form>
-  <div *ngIf="randomizedMovie">
-    Randomized Movie:
-    <app-movie-card [movie]="randomizedMovie"></app-movie-card>
-  </div>
+<div class="container">
+  <ng-container>
+    <app-form (movieEvent)="recieveMovie($event)" (isLoadingEvent)="recieveIsLoading($event)"></app-form>
+  </ng-container>
+  @if (isLoading) {
+    <mat-spinner></mat-spinner>
+  }
+  @else {
+    <app-movie-card [movie]="movie"></app-movie-card>
+  }
 </div>

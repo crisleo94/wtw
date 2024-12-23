@@ -1,0 +1,70 @@
+<form class="main" [formGroup]="dataForm" (ngSubmit)="onSubmit()">
+  <div>
+    <mat-form-field>
+      <mat-label for="year">Primary Release Year:</mat-label>
+      <input
+        matInput
+        type="number"
+        id="year"
+        name="year"
+        formControlName="year"
+      />
+      @if (dataForm.get('year')?.invalid && dataForm.get('year')?.touched) {
+      <mat-error>
+        <span *ngIf="dataForm.get('year')?.errors?.['required']"
+          >Release year is a required value</span
+        >
+        <span *ngIf="dataForm.get('year')?.errors?.['min']"
+          >Release year cannot be less than 1900</span
+        >
+        <span *ngIf="dataForm.get('year')?.errors?.['max']"
+          >Release year cannot be greater than the current year
+          {{ currentYear }}</span
+        >
+      </mat-error>
+      }
+    </mat-form-field>
+  </div>
+  <div>
+    <mat-form-field>
+      <mat-label for="genre">Select Genre:</mat-label>
+      <mat-select name="genre" id="genre" formControlName="genre">
+        <mat-option [value]="">--</mat-option>
+        <mat-option *ngFor="let genre of genres" [value]="genre.id">
+          {{ genre.name }}
+        </mat-option>
+      </mat-select>
+      @if (dataForm.get('genre')?.invalid && dataForm.get('genre')?.touched) {
+      <mat-error>
+        <span *ngIf="dataForm.get('genre')?.errors?.['required']"
+          >Genre is a required value</span
+        >
+      </mat-error>
+      }
+    </mat-form-field>
+  </div>
+  <div>
+    <mat-label for="rating">Enter the desire rating:</mat-label>
+    <mat-slider min="1" max="10" step="1" showTickMarks discrete>
+      <input matSliderThumb formControlName="rating" />
+    </mat-slider>
+    @if (dataForm.get('rating')?.invalid && dataForm.get('rating')?.touched) {
+    <mat-error>
+      <span *ngIf="dataForm.get('rating')?.errors?.['required']"
+        >Rating is a required value</span
+      >
+    </mat-error>
+    }
+  </div>
+  <button
+    mat-flat-button
+    color="primary"
+    type="submit"
+    [disabled]="!dataForm.valid || !dataForm.touched"
+  >
+    Generate Movie
+  </button>
+  <button mat-flat-button color="warn" type="button" onclick="reset()">
+    Reset Controls
+  </button>
+</form>

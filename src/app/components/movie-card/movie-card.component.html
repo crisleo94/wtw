@@ -1,7 +1,16 @@
-<div class="card">
-  <img class="card-img-top" [src]="buildImageUrl(movie.poster_path)" [alt]="movie.title">
-  <div class="card-body">
-    <h5 class="card-title">{{ movie.title }}</h5>
-    <p class="card-text">{{ movie.overview }}</p>
-  </div>
-</div>
+<mat-card class="card" *ngIf="movie">
+  <mat-card-header>
+    <mat-card-title-group>
+      <mat-card-title>{{ movie.title }}</mat-card-title>
+      <mat-card-subtitle>Popularity: {{ movie.popularity }}</mat-card-subtitle>
+    </mat-card-title-group>
+  </mat-card-header>
+  <mat-card-content>
+    <b>Synopsis: </b> {{ movie.overview }}
+  </mat-card-content>
+  <img mat-card-image class="poster" [src]="buildImageUrl(movie.poster_path)" [alt]="movie.title">
+  <mat-card-actions>
+    <button mat-button>LIKE</button>
+    <button mat-button>SHARE</button>
+  </mat-card-actions>
+</mat-card>
