@@ -1,24 +1,24 @@
-import { NgFor, NgIf } from '@angular/common';
-import { Component, EventEmitter, Output } from '@angular/core';
+import { NgFor, NgIf } from "@angular/common";
+import { Component, EventEmitter, Output } from "@angular/core";
 import {
   FormBuilder,
   FormsModule,
   ReactiveFormsModule,
   Validators,
-} from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatSliderModule } from '@angular/material/slider';
-import { debounceTime, Subject } from 'rxjs';
-import { Genre } from '../../interfaces/genre.interface';
-import { Movie } from '../../interfaces/movie.interface';
-import { GenresService } from '../../services/genres.service';
-import { MoviesService } from '../../services/movies.service';
+} from "@angular/forms";
+import { MatButtonModule } from "@angular/material/button";
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatInputModule } from "@angular/material/input";
+import { MatSelectModule } from "@angular/material/select";
+import { MatSliderModule } from "@angular/material/slider";
+import { debounceTime, Subject } from "rxjs";
+import { Genre } from "../../interfaces/genre.interface";
+import { Movie } from "../../interfaces/movie.interface";
+import { GenresService } from "../../services/genres.service";
+import { MoviesService } from "../../services/movies.service";
 
 @Component({
-  selector: 'app-form',
+  selector: "app-form",
   standalone: true,
   imports: [
     NgIf,
@@ -31,8 +31,8 @@ import { MoviesService } from '../../services/movies.service';
     MatSliderModule,
     MatButtonModule,
   ],
-  templateUrl: './form.component.html',
-  styleUrl: './form.component.sass',
+  templateUrl: "./form.component.html",
+  styleUrl: "./form.component.sass",
 })
 export class FormComponent {
   debounceSubmit$ = new Subject<void>();
@@ -62,7 +62,7 @@ export class FormComponent {
   constructor(
     private fBuilder: FormBuilder,
     private genreService: GenresService,
-    private movieService: MoviesService
+    private movieService: MoviesService,
   ) {}
 
   ngOnInit(): void {
@@ -76,6 +76,8 @@ export class FormComponent {
   }
 
   onSubmit(): void {
+    this.isLoading = true;
+    this.isLoadingEvent.emit(this.isLoading);
     this.debounceSubmit$.next();
   }
 
@@ -91,7 +93,15 @@ export class FormComponent {
 
         if (this.generatedMovies.length > 0) {
           this.randomizeMovie();
-          this.onMovieSelected(this.randomizedMovie);
+          setTimeout(() => {
+            this.isLoading = false;
+            this.isLoadingEvent.emit(this.isLoading);
+            this.onMovieSelected(this.randomizedMovie);
+          }, 1000);
+        } else {
+          this.isLoading = false;
+          this.isLoadingEvent.emit(this.isLoading);
+          this.onMovieSelected(null);
         }
       });
   }
@@ -114,7 +124,5 @@ export class FormComponent {
 
   onMovieSelected(movie: Movie | null): void {
     this.movieEvent.emit(movie);
-    this.isLoading = false;
-    this.isLoadingEvent.emit(this.isLoading);
   }
 }

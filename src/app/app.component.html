@@ -1,11 +1,19 @@
+
 <div class="container">
-  <ng-container>
-    <app-form (movieEvent)="recieveMovie($event)" (isLoadingEvent)="recieveIsLoading($event)"></app-form>
-  </ng-container>
-  @if (isLoading) {
-    <mat-spinner></mat-spinner>
-  }
-  @else {
-    <app-movie-card [movie]="movie"></app-movie-card>
-  }
+  <div class="menu">
+    <h1>WtW</h1>
+    <app-form
+      (movieEvent)="recieveMovie($event)"
+      (isLoadingEvent)="recieveIsLoading($event)"
+    ></app-form>
+  </div>
+  <div class="content">
+    @if (isLoading) {
+      <div class="spinner-container">
+        <mat-spinner></mat-spinner>
+      </div>
+    } @else {
+      <app-movie-card [movie]="movie"></app-movie-card>
+    }
+  </div>
 </div>
