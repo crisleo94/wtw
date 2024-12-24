@@ -1,1 +1,7 @@
-<p>movies-overview works!</p>
+<ng-container>
+  <ul>
+    @for (movie of recentMovies; track movie.title) {
+      <li>{{ movie.title }}</li>
+    }
+  </ul>
+</ng-container>

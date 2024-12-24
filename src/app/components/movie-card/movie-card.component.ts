@@ -4,7 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
-import { IMAGE_URL } from '../../constants';
+import { IMAGE_URL, PLACEHOLDER_IMG } from '../../constants';
 import { Movie } from '../../interfaces/movie.interface';
 import { GenresService } from '../../services/genres.service';
 
@@ -32,7 +32,7 @@ export class MovieCardComponent implements OnInit {
   }
 
   buildImageUrl(path: string): string {
-    return path ? `${IMAGE_URL}/${path}` : '';
+    return path ? `${IMAGE_URL}/${path}` : PLACEHOLDER_IMG;
   }
 
   getMovieGenres(): void {

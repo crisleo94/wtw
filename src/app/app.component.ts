@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FormComponent } from './components/form/form.component';
 import { MovieCardComponent } from './components/movie-card/movie-card.component';
+import { MoviesOverviewComponent } from './components/movies-overview/movies-overview.component';
 import { Movie } from './interfaces/movie.interface';
 
 @Component({
@@ -11,6 +12,7 @@ import { Movie } from './interfaces/movie.interface';
   imports: [
     HttpClientModule,
     MovieCardComponent,
+    MoviesOverviewComponent,
     FormComponent,
     MatProgressSpinnerModule,
   ],
@@ -20,8 +22,13 @@ import { Movie } from './interfaces/movie.interface';
 export class AppComponent {
   movie: Movie | null = null;
   isLoading = false;
+  movies: Movie[] = [];
 
   recieveMovie($event: Movie | null): void {
+    if ($event) {
+      this.movies.push($event);
+      localStorage.setItem('movies', JSON.stringify(this.movies));
+    }
     this.movie = $event;
   }
 
