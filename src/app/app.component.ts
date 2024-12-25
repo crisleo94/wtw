@@ -1,5 +1,6 @@
 import { HttpClientModule } from '@angular/common/http';
 import { Component } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FormComponent } from './components/form/form.component';
 import { MovieCardComponent } from './components/movie-card/movie-card.component';
@@ -11,11 +12,12 @@ import { MoviesService } from './services/movies.service';
   selector: 'app-root',
   standalone: true,
   imports: [
-    HttpClientModule,
     MovieCardComponent,
     MoviesOverviewComponent,
     FormComponent,
+    HttpClientModule,
     MatProgressSpinnerModule,
+    MatIconModule,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.sass',

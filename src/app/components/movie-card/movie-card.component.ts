@@ -63,13 +63,11 @@ export class MovieCardComponent implements OnInit {
 
   addToFavorite(): void {
     if (this.movie) {
-      const newMovie = this.movie;
-      this.favoriteMovies.push(newMovie);
+      this.favoriteMovies = [...this.favoriteMovies, this.movie];
     }
     this._snackBar.open('Movie added to favorites!', 'Dismiss', {
       duration: 1000,
     });
-    console.log('TRIGGER FAV', [...this.favoriteMovies]);
 
     this._moviesService.updateFavoriteMovies(this.favoriteMovies);
   }
