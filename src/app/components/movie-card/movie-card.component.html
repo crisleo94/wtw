@@ -1,15 +1,22 @@
-<mat-card class="card" *ngIf="movie">
+@if (movie && variant === 'simple') {
+<mat-card class="card">
   <div class="card-content">
     <mat-card-header>
       <mat-card-title-group>
         <mat-card-title>{{ movie.title }}</mat-card-title>
-        <mat-card-subtitle>Popularity: {{ movie.popularity }}</mat-card-subtitle>
-        <mat-card-subtitle class="average">Average: {{ movie.vote_average }}</mat-card-subtitle>
-        <mat-card-subtitle class="count">Votes Count: {{ movie.vote_count }}</mat-card-subtitle>
+        <mat-card-subtitle
+          >Popularity: {{ movie.popularity }}</mat-card-subtitle
+        >
+        <mat-card-subtitle class="average"
+          >Average: {{ movie.vote_average }}</mat-card-subtitle
+        >
+        <mat-card-subtitle class="count"
+          >Votes Count: {{ movie.vote_count }}</mat-card-subtitle
+        >
       </mat-card-title-group>
       <mat-chip-listbox disabled>
         @for (genre of movieGenres; track genre) {
-          <mat-chip-option class="genre" disabled>{{ genre }}</mat-chip-option>
+        <mat-chip-option class="genre" disabled>{{ genre }}</mat-chip-option>
         }
       </mat-chip-listbox>
     </mat-card-header>
@@ -18,10 +25,66 @@
     </mat-card-content>
   </div>
   <div>
-    <img mat-card-image class="poster" [src]="buildImageUrl(movie.poster_path)" [alt]="movie.title">
+    <img
+      mat-card-image
+      class="poster"
+      [src]="buildImageUrl(movie.poster_path)"
+      [alt]="movie.title"
+    />
     <mat-card-actions>
-      <button mat-button>LIKE</button>
-      <button mat-button>SHARE</button>
+      <button
+        mat-icon-button
+        color="primary"
+        matTooltip="Add this movie to your favorites list."
+        (click)="addToFavorite()"
+      >
+        <mat-icon>favorite</mat-icon>
+      </button>
     </mat-card-actions>
   </div>
 </mat-card>
+}
+<!-- COMPOSED VARIANT FOR OVERVIEW COMPONENT -->
+@if (movie && variant === 'composed') {
+<mat-card class="card-composed">
+  <div>
+    <img
+      mat-card-image
+      class="poster-composed"
+      [src]="buildImageUrl(movie.poster_path)"
+      [alt]="movie.title"
+    />
+    <mat-card-header>
+      <mat-card-title-group>
+        <mat-card-title>{{ movie.title }}</mat-card-title>
+        <mat-card-subtitle
+          >Popularity: {{ movie.popularity }}</mat-card-subtitle
+        >
+        <mat-card-subtitle class="average"
+          >Average: {{ movie.vote_average }}</mat-card-subtitle
+        >
+        <mat-card-subtitle class="count"
+          >Votes Count: {{ movie.vote_count }}</mat-card-subtitle
+        >
+      </mat-card-title-group>
+    </mat-card-header>
+    <mat-card-content>
+      @if (!showMore) {
+      <b>Synopsis: </b> {{ movie.overview.slice(0, 80) }}
+      } @if (showMore) {
+      <b>Synopsis: </b> {{ movie.overview }}
+      }
+      <button mat-stroked-button (click)="toggleReadMore()">
+        {{ showMore ? "Less" : "More" }}
+      </button>
+    </mat-card-content>
+  </div>
+  <div>
+    <mat-card-actions>
+      <button mat-icon-button color="warn">
+        <mat-icon>delete</mat-icon>
+      </button>
+    </mat-card-actions>
+  </div>
+</mat-card>
+}

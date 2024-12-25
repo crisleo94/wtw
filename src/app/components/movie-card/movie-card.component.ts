@@ -1,12 +1,16 @@
-import { NgIf } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { IMAGE_URL, PLACEHOLDER_IMG } from '../../constants';
 import { Movie } from '../../interfaces/movie.interface';
 import { GenresService } from '../../services/genres.service';
+import { MoviesService } from '../../services/movies.service';
+import { CARD_VARIANT } from '../../types/components.types';
 
 @Component({
   selector: 'app-movie-card',
@@ -14,18 +18,26 @@ import { GenresService } from '../../services/genres.service';
   imports: [
     MatCardModule,
     MatButtonModule,
-    NgIf,
     MatDividerModule,
     MatChipsModule,
+    MatIconModule,
+    MatTooltipModule,
   ],
   templateUrl: './movie-card.component.html',
   styleUrl: './movie-card.component.sass',
 })
 export class MovieCardComponent implements OnInit {
+  @Input() variant: CARD_VARIANT = 'simple';
   @Input() movie: Movie | null = null;
+  favoriteMovies: Movie[] = [];
   movieGenres: string[] = [];
+  showMore = false;
 
-  constructor(private _genreService: GenresService) {}
+  constructor(
+    private _genreService: GenresService,
+    private _moviesService: MoviesService,
+    private _snackBar: MatSnackBar
+  ) {}
 
   ngOnInit(): void {
     this.getMovieGenres();
@@ -43,5 +55,22 @@ export class MovieCardComponent implements OnInit {
       });
       this.movieGenres = genres;
     }
+  }
+
+  toggleReadMore(): void {
+    this.showMore = !this.showMore;
+  }
+
+  addToFavorite(): void {
+    if (this.movie) {
+      const newMovie = this.movie;
+      this.favoriteMovies.push(newMovie);
+    }
+    this._snackBar.open('Movie added to favorites!', 'Dismiss', {
+      duration: 1000,
+    });
+    console.log('TRIGGER FAV', [...this.favoriteMovies]);
+
+    this._moviesService.updateFavoriteMovies(this.favoriteMovies);
   }
 }

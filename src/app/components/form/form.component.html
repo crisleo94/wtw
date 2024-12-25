@@ -11,16 +11,16 @@
       />
       @if (dataForm.get('year')?.invalid && dataForm.get('year')?.touched) {
       <mat-error>
-        <span *ngIf="dataForm.get('year')?.errors?.['required']"
-          >Release year is a required value</span
-        >
-        <span *ngIf="dataForm.get('year')?.errors?.['min']"
-          >Release year cannot be less than 1900</span
-        >
-        <span *ngIf="dataForm.get('year')?.errors?.['max']"
+        @if (dataForm.get('year')?.errors?.['required']) {
+        <span>Release year is a required value</span>
+        } @if(dataForm.get('year')?.errors?.['min']) {
+        <span>Release year cannot be less than 1900</span>
+        } @if (dataForm.get('year')?.errors?.['max']) {
+        <span
           >Release year cannot be greater than the current year
           {{ currentYear }}</span
         >
+        }
       </mat-error>
       }
     </mat-form-field>
@@ -30,15 +30,17 @@
       <mat-label for="genre">Select Genre:</mat-label>
       <mat-select name="genre" id="genre" formControlName="genre">
         <mat-option [value]="">--</mat-option>
-        <mat-option *ngFor="let genre of genres" [value]="genre.id">
-          {{ genre.name }}
-        </mat-option>
+        @for (genre of genres; track genre.id) {
+          <mat-option [value]="genre.id">
+            {{ genre.name }}
+          </mat-option>
+        }
       </mat-select>
       @if (dataForm.get('genre')?.invalid && dataForm.get('genre')?.touched) {
       <mat-error>
-        <span *ngIf="dataForm.get('genre')?.errors?.['required']"
-          >Genre is a required value</span
-        >
+        @if (dataForm.get('genre')?.errors?.['required']) {
+        <span>Genre is a required value</span>
+        }
       </mat-error>
       }
     </mat-form-field>
@@ -50,9 +52,9 @@
     </mat-slider>
     @if (dataForm.get('rating')?.invalid && dataForm.get('rating')?.touched) {
     <mat-error>
-      <span *ngIf="dataForm.get('rating')?.errors?.['required']"
-        >Rating is a required value</span
-      >
+      @if (dataForm.get('rating')?.errors?.['required']) {
+      <span>Rating is a required value</span>
+      }
     </mat-error>
     }
   </div>

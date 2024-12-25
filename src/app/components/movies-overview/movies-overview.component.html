@@ -1,7 +1,16 @@
-<ng-container>
-  <ul>
-    @for (movie of recentMovies; track movie.title) {
-      <li>{{ movie.title }}</li>
-    }
-  </ul>
-</ng-container>
+<mat-tab-group @insertOverview>
+  <mat-tab label="History">
+    <div class="history-container">
+      @for (movie of recentMovies; track movie?.title) {
+      <app-movie-card [movie]="movie" variant="composed"></app-movie-card>
+      }
+    </div>
+  </mat-tab>
+  <mat-tab label="Favorites">
+    <div class="favorites-container">
+      @for (movie of favoriteMovies; track movie?.title) {
+      <app-movie-card [movie]="movie" variant="composed"></app-movie-card>
+      }
+    </div>
+  </mat-tab>
+</mat-tab-group>
