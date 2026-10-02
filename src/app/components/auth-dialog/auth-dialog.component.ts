@@ -10,7 +10,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTabsModule } from '@angular/material/tabs';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Observable } from 'rxjs';
 import { User } from '../../interfaces/user.interface';
 import { AuthStore } from '../../stores/auth.store';
@@ -51,6 +51,7 @@ const PASSWORD_MAX_LENGTH = 72;
 export class AuthDialogComponent {
   private fBuilder = inject(FormBuilder);
   private authStore = inject(AuthStore);
+  private transloco = inject(TranslocoService);
   private dialogRef =
     inject<MatDialogRef<AuthDialogComponent, AuthDialogResult>>(MatDialogRef);
   data = inject<AuthDialogData | null>(MAT_DIALOG_DATA, { optional: true });
@@ -124,7 +125,7 @@ export class AuthDialogComponent {
       error: (error) => {
         this.dialogRef.disableClose = false;
         this.isSubmitting.set(false);
-        this.errorMessage.set(apiErrorMessage(error, messages));
+        this.errorMessage.set(apiErrorMessage(error, this.transloco, messages));
       },
     });
   }

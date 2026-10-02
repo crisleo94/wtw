@@ -114,7 +114,7 @@ export class UserPanelComponent {
   logout(): void {
     this.authStore.logout().subscribe({
       next: () => this.notify('You have logged out.'),
-      error: (error) => this.notify(apiErrorMessage(error)),
+      error: (error) => this.notify(apiErrorMessage(error, this.transloco)),
     });
   }
 
