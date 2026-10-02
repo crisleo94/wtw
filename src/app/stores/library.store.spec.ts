@@ -153,4 +153,27 @@ describe('LibraryStore', () => {
     expect(body.history[0].movie).toEqual({ tmdbId: 7, title: 'Alien', posterPath: '/a.jpg' } as Movie);
     expect(body.movies['7'].overview).toBe('long');
   });
+
+  it('should reject duplicates and remove guest history', () => {
+    library.addToWatchlist(movie).subscribe();
+    let message = '';
+    library.addToWatchlist(movie).subscribe({ error: (error) => (message = error.message) });
+    expect(message).toContain('already in Watchlist');
+
+    library.recordGenerated(movie);
+    library.removeHistory(library.history()[0]).subscribe();
+    expect(library.history().length).toBe(0);
+  });
+
+  it('should treat an expired session (/me 401) as anonymous', () => {
+    auth.load().subscribe();
+    httpTesting
+      .expectOne('/api/auth/me')
+      .flush({ message: 'Unauthorized' }, { status: 401, statusText: 'Unauthorized' });
+    TestBed.tick();
+    expect(auth.isLoggedIn()).toBeFalse();
+    library.recordGenerated(movie);
+    expect(session.data().history.length).toBe(1);
+    httpTesting.verify();
+  });
 });

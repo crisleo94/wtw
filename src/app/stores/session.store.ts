@@ -58,6 +58,16 @@ export class SessionStore {
     }));
   }
 
+  removeHistory(tmdbId: number, generatedAt: string): void {
+    this.commit((data) => ({
+      ...data,
+      history: data.history.filter(
+        (entry) =>
+          entry.movie.tmdbId !== tmdbId || entry.generatedAt !== generatedAt
+      ),
+    }));
+  }
+
   setWatched(movie: Movie, watched: boolean): void {
     this.commit((data) => ({
       ...data,

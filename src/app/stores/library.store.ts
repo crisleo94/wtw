@@ -28,14 +28,16 @@ import {
   ImportSummary,
   MovieList,
   SessionData,
-  WATCHLIST_NAME,
 } from '../interfaces/library.interface';
 import { MovieFilters } from '../interfaces/movie-filters.interface';
 import { Movie } from '../interfaces/movie.interface';
+import { LibraryError } from '../utils/api-error';
 import { AuthStore } from './auth.store';
 import { SessionStore } from './session.store';
 
 export const HISTORY_PAGE_SIZE = 50;
+export const MAX_LISTS = 50;
+export const MAX_LIST_ITEMS = 500;
 
 // Facade over the user library: the API when logged in, the session otherwise.
 @Injectable({
@@ -84,6 +86,10 @@ export class LibraryStore {
     this.lists().find((list) => list.isSystem)
   );
 
+  readonly watchlistIds = computed(
+    () => new Set(this.watchlist()?.items.map((item) => item.tmdbId) ?? [])
+  );
+
   constructor() {
     if (!isPlatformBrowser(inject(PLATFORM_ID))) {
       return;
@@ -106,11 +112,25 @@ export class LibraryStore {
       this.session.addHistory(movie, filters);
       return;
     }
-    // The API already saved it while generating.
-    this.remoteHistory.update((history) => [
-      { movie, filters, generatedAt: new Date().toISOString(), watched: false },
-      ...history,
-    ]);
+    // The API already saved it while generating; reload to get the entry id.
+    this.loadHistory().subscribe();
+  }
+
+  removeHistory(entry: HistoryEntry): Observable<void> {
+    if (!this.authStore.isLoggedIn()) {
+      this.session.removeHistory(entry.movie.tmdbId, entry.generatedAt);
+      return of(undefined);
+    }
+    if (!entry.id) {
+      return throwError(() => new LibraryError('Please try again in a moment.'));
+    }
+    return this.http.delete<void>(`${API_URL}/me/history/${entry.id}`).pipe(
+      tap(() =>
+        this.remoteHistory.update((history) =>
+          history.filter((item) => item.id !== entry.id)
+        )
+      )
+    );
   }
 
   setWatched(movie: Movie, watched: boolean): Observable<void> {
@@ -133,17 +153,34 @@ export class LibraryStore {
   }
 
   addToWatchlist(movie: Movie): Observable<void> {
+    const watchlist = this.watchlist();
+    if (!watchlist) {
+      return throwError(
+        () => new LibraryError('Your watchlist is still loading. Please try again.')
+      );
+    }
+    return this.addToList(watchlist, movie);
+  }
+
+  // The API resolves the movie from TMDB; it only accepts tmdbId (and position).
+  addToList(list: MovieList, movie: Movie): Observable<void> {
+    if (list.items.some((item) => item.tmdbId === movie.tmdbId)) {
+      return throwError(
+        () => new LibraryError(`"${movie.title}" is already in ${list.name}.`)
+      );
+    }
+    if (list.items.length >= MAX_LIST_ITEMS) {
+      return throwError(
+        () =>
+          new LibraryError(`${list.name} is full (${MAX_LIST_ITEMS} movies max).`)
+      );
+    }
     if (!this.authStore.isLoggedIn()) {
-      this.session.addToList(WATCHLIST_NAME, movie);
+      this.session.addToList(list.name, movie);
       return of(undefined);
     }
-    const watchlist = this.watchlist();
-    if (!watchlist?.id) {
-      return throwError(() => new Error('The watchlist is not loaded yet'));
-    }
-    // The API resolves the movie from TMDB; it only accepts tmdbId (and position).
     return this.http
-      .post<unknown>(`${API_URL}/me/lists/${watchlist.id}/items`, {
+      .post<unknown>(`${API_URL}/me/lists/${list.id}/items`, {
         tmdbId: movie.tmdbId,
       })
       .pipe(switchMap(() => this.loadLists()));
@@ -211,6 +248,18 @@ export class LibraryStore {
       },
       error: () => this.notify('We could not load your library. Please reload the page.'),
     });
+  }
+
+  private loadHistory(): Observable<void> {
+    return this.http
+      .get<HistoryPage>(`${API_URL}/me/history`, {
+        params: { limit: HISTORY_PAGE_SIZE },
+      })
+      .pipe(
+        tap((page) => this.remoteHistory.set(page.items)),
+        map(() => undefined),
+        catchError(() => of(undefined))
+      );
   }
 
   private loadLists(): Observable<void> {
