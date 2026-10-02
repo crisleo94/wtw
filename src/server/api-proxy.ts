@@ -1,10 +1,11 @@
-import express, { Request, Response, Router } from 'express';
+import express, { NextFunction, Request, Response, Router } from 'express';
 import {
   clearTokenCookie,
   parseCookies,
   serializeTokenCookie,
   TOKEN_COOKIE,
 } from './cookies';
+import { NOT_FOUND, resolveApiUrl, toProxyError } from './proxy-rules';
 
 export interface ApiProxyOptions {
   apiUrl: string;
@@ -27,10 +28,15 @@ export function apiProxy(options: ApiProxyOptions): Router {
   });
 
   router.use(async (req, res) => {
+    const target = resolveApiUrl(req.url, options.apiUrl);
+    if (!target) {
+      res.status(NOT_FOUND.statusCode).json(NOT_FOUND);
+      return;
+    }
     const token = parseCookies(req.headers.cookie)[TOKEN_COOKIE];
     let apiResponse: globalThis.Response;
     try {
-      apiResponse = await fetch(new URL(`/api${req.url}`, options.apiUrl), {
+      apiResponse = await fetch(target, {
         method: req.method,
         headers: buildHeaders(req, token),
         body: hasBody(req) ? new Uint8Array(req.body) : undefined,
@@ -61,6 +67,11 @@ export function apiProxy(options: ApiProxyOptions): Router {
       .send(Buffer.from(await apiResponse.arrayBuffer()));
   });
 
+  // Body too large, unreadable API responses and other failures answer JSON, not HTML.
+  router.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
+    sendProxyError(res, error);
+  });
+
   return router;
 }
 
@@ -87,11 +98,15 @@ function hasBody(req: Request): boolean {
 }
 
 function sendProxyError(res: Response, error: unknown): void {
-  const timedOut = error instanceof Error && error.name === 'TimeoutError';
-  const statusCode = timedOut ? 504 : 502;
-  const message = timedOut ? 'API did not respond in time' : 'API is unavailable';
-  console.error(`[bff] ${message}:`, error);
-  res.status(statusCode).json({ statusCode, message });
+  const body = toProxyError(error);
+  if (body.statusCode >= 500) {
+    console.error(`[bff] ${body.message}:`, error);
+  }
+  if (res.headersSent) {
+    res.end();
+    return;
+  }
+  res.status(body.statusCode).json(body);
 }
 
 // Moves the token from the login/register body into the cookie.
