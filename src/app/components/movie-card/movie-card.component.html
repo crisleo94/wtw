@@ -40,7 +40,7 @@
     @if (removable()) {
     <button
       mat-icon-button
-      color="warn"
+      class="warn-button"
       [matTooltip]="removeLabel()"
       [attr.aria-label]="removeLabel()"
       (click)="remove.emit()"
@@ -67,14 +67,14 @@
           >Votes Count: {{ movie.voteCount }}</mat-card-subtitle
         >
       </mat-card-title-group>
-      <mat-chip-listbox disabled>
+      <mat-chip-set>
         @if (isWatched()) {
-        <mat-chip-option class="watched" disabled>Watched</mat-chip-option>
+        <mat-chip class="watched">Watched</mat-chip>
         }
         @for (genre of movieGenres(); track genre) {
-        <mat-chip-option class="genre" disabled>{{ genre }}</mat-chip-option>
+        <mat-chip class="genre">{{ genre }}</mat-chip>
         }
-      </mat-chip-listbox>
+      </mat-chip-set>
     </mat-card-header>
     <mat-card-content>
       <b>Synopsis: </b> {{ movie.overview }}
