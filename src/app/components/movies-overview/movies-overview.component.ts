@@ -1,4 +1,3 @@
-import { animate, style, transition, trigger } from '@angular/animations';
 import { Component, OnInit } from '@angular/core';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -11,14 +10,6 @@ import { MovieCardComponent } from '../movie-card/movie-card.component';
   imports: [MovieCardComponent, MatGridListModule, MatTabsModule],
   templateUrl: './movies-overview.component.html',
   styleUrl: './movies-overview.component.sass',
-  animations: [
-    trigger('insertOverview', [
-      transition(':enter', [
-        style({ opacity: 0 }),
-        animate('100ms', style({ opacity: 1 })),
-      ]),
-    ]),
-  ],
 })
 export class MoviesOverviewComponent implements OnInit {
   recentMovies: Movie[] = [];

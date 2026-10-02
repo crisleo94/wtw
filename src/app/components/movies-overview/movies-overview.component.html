@@ -1,4 +1,4 @@
-<mat-tab-group @insertOverview>
+<mat-tab-group animate.enter="insert-overview">
   <mat-tab label="History">
     <div class="history-container">
       @for (movie of recentMovies; track movie?.title) {
