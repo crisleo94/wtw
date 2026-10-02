@@ -1,0 +1,20 @@
+{
+  "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
+  "entry": [
+    "server.ts",
+    "src/main.server.ts",
+    "src/**/*.spec.ts"
+  ],
+  "ignoreDependencies": [
+    "@angular/platform-server",
+    "jasmine-core",
+    "karma",
+    "karma-*"
+  ],
+  "usedClassMembers": [
+    "getTranslation"
+  ],
+  "typeAware": {
+    "enabled": true
+  }
+}
