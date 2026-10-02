@@ -76,7 +76,6 @@ export class LibraryStore {
   private importInProgress = signal(false);
   private remoteLoaded = signal(false);
 
-  readonly importing = this.importInProgress.asReadonly();
   // False while a logged user's library is being imported or loaded.
   readonly ready = computed(
     () => !this.authStore.isLoggedIn() || this.remoteLoaded()
