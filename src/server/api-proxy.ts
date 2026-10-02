@@ -1,8 +1,9 @@
 import express, { NextFunction, Request, Response, Router } from 'express';
 import {
-  clearTokenCookie,
+  clearSessionCookies,
   parseCookies,
-  serializeTokenCookie,
+  serializeSessionCookies,
+  SESSION_COOKIE,
   TOKEN_COOKIE,
 } from './cookies';
 import { NOT_FOUND, resolveApiUrl, toProxyError } from './proxy-rules';
@@ -23,7 +24,7 @@ export function apiProxy(options: ApiProxyOptions): Router {
   router.use(express.raw({ type: () => true, limit: '1mb' }));
 
   router.post('/auth/logout', (_req, res) => {
-    res.setHeader('Set-Cookie', clearTokenCookie(options.secureCookie));
+    res.setHeader('Set-Cookie', clearSessionCookies(options.secureCookie));
     res.status(204).end();
   });
 
@@ -33,7 +34,8 @@ export function apiProxy(options: ApiProxyOptions): Router {
       res.status(NOT_FOUND.statusCode).json(NOT_FOUND);
       return;
     }
-    const token = parseCookies(req.headers.cookie)[TOKEN_COOKIE];
+    const cookies = parseCookies(req.headers.cookie);
+    const token = cookies[TOKEN_COOKIE];
     let apiResponse: globalThis.Response;
     try {
       apiResponse = await fetch(target, {
@@ -48,8 +50,8 @@ export function apiProxy(options: ApiProxyOptions): Router {
       return;
     }
 
-    if (apiResponse.status === 401 && token) {
-      res.setHeader('Set-Cookie', clearTokenCookie(options.secureCookie));
+    if (apiResponse.status === 401 && (token || cookies[SESSION_COOKIE])) {
+      res.setHeader('Set-Cookie', clearSessionCookies(options.secureCookie));
     }
     if (TOKEN_ROUTES.has(req.path) && apiResponse.ok) {
       await sendWithoutToken(res, apiResponse, options.secureCookie);
@@ -119,7 +121,7 @@ async function sendWithoutToken(
     token?: string;
   };
   if (token) {
-    res.setHeader('Set-Cookie', serializeTokenCookie(token, secureCookie));
+    res.setHeader('Set-Cookie', serializeSessionCookies(token, secureCookie));
   }
   res.status(apiResponse.status).json(body);
 }

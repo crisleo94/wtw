@@ -1,6 +1,8 @@
 import {
+  clearSessionCookies,
   clearTokenCookie,
   parseCookies,
+  serializeSessionCookies,
   serializeTokenCookie,
   tokenMaxAge,
 } from './cookies';
@@ -36,5 +38,17 @@ describe('cookies', () => {
     expect(tokenMaxAge(jwt({ exp: now / 1000 - 10 }), now)).toBe(0);
     expect(tokenMaxAge('not-a-jwt', now)).toBe(60 * 60 * 24 * 7);
     expect(tokenMaxAge(jwt({ id: 'u1' }), now)).toBe(60 * 60 * 24 * 7);
+  });
+
+  it('should pair the token with a readable wtw_session cookie', () => {
+    const token = jwt({ exp: Date.now() / 1000 + 3600 });
+    const [tokenCookie, sessionCookie] = serializeSessionCookies(token, true);
+    expect(tokenCookie).toContain('HttpOnly');
+    expect(sessionCookie).toMatch(/^wtw_session=1; Path=\/; SameSite=Lax; Max-Age=\d+; Secure$/);
+    expect(sessionCookie).not.toContain('HttpOnly');
+    const maxAge = (cookie: string) => cookie.match(/Max-Age=(\d+)/)?.[1];
+    expect(maxAge(sessionCookie)).toBe(maxAge(tokenCookie));
+    expect(clearSessionCookies(false).every((cookie) => cookie.includes('Max-Age=0'))).toBeTrue();
+    expect(clearSessionCookies(false)[1]).toContain('wtw_session=;');
   });
 });

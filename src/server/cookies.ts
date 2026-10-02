@@ -1,4 +1,6 @@
 export const TOKEN_COOKIE = 'wtw_token';
+// Not sensitive and readable by the client: only says that a token cookie exists.
+export const SESSION_COOKIE = 'wtw_session';
 const FALLBACK_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 
 export function parseCookies(header: string | undefined): Record<string, string> {
@@ -19,11 +21,17 @@ export function parseCookies(header: string | undefined): Record<string, string>
   return cookies;
 }
 
-function serializeCookie(value: string, maxAge: number, secure: boolean): string {
+function serializeCookie(
+  name: string,
+  value: string,
+  maxAge: number,
+  secure: boolean,
+  httpOnly = true,
+): string {
   const attributes = [
-    `${TOKEN_COOKIE}=${encodeURIComponent(value)}`,
+    `${name}=${encodeURIComponent(value)}`,
     'Path=/',
-    'HttpOnly',
+    ...(httpOnly ? ['HttpOnly'] : []),
     'SameSite=Lax',
     `Max-Age=${maxAge}`,
   ];
@@ -48,9 +56,22 @@ export function tokenMaxAge(token: string, now = Date.now()): number {
 }
 
 export function serializeTokenCookie(token: string, secure: boolean): string {
-  return serializeCookie(token, tokenMaxAge(token), secure);
+  return serializeCookie(TOKEN_COOKIE, token, tokenMaxAge(token), secure);
 }
 
 export function clearTokenCookie(secure: boolean): string {
-  return serializeCookie('', 0, secure);
+  return serializeCookie(TOKEN_COOKIE, '', 0, secure);
+}
+
+// Token cookie plus the readable `wtw_session=1`, with the same lifetime.
+export function serializeSessionCookies(token: string, secure: boolean): string[] {
+  const maxAge = tokenMaxAge(token);
+  return [
+    serializeCookie(TOKEN_COOKIE, token, maxAge, secure),
+    serializeCookie(SESSION_COOKIE, '1', maxAge, secure, false),
+  ];
+}
+
+export function clearSessionCookies(secure: boolean): string[] {
+  return [clearTokenCookie(secure), serializeCookie(SESSION_COOKIE, '', 0, secure, false)];
 }
