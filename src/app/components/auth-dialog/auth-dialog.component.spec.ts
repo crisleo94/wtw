@@ -7,6 +7,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { AuthStore } from '../../stores/auth.store';
 import { AuthDialogComponent } from './auth-dialog.component';
+import { getTranslocoTestingModule } from '../../testing/transloco-testing';
 
 describe('AuthDialogComponent', () => {
   let component: AuthDialogComponent;
@@ -17,7 +18,7 @@ describe('AuthDialogComponent', () => {
   beforeEach(async () => {
     dialogRef = jasmine.createSpyObj('MatDialogRef', ['close']);
     await TestBed.configureTestingModule({
-      imports: [AuthDialogComponent],
+      imports: [AuthDialogComponent, getTranslocoTestingModule()],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
