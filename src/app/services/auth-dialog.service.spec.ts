@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { of } from 'rxjs';
 import { AuthStore } from '../stores/auth.store';
 import { AuthDialogService } from './auth-dialog.service';
@@ -39,6 +40,21 @@ describe('AuthDialogService', () => {
     spyOn(authStore, 'isLoggedIn').and.returnValue(true);
     service.open().subscribe((result) => {
       expect(result).toBe('authenticated');
+      done();
+    });
+  });
+
+  it('should confirm the guest mode with a message', (done) => {
+    dialog.open.and.returnValue({ afterClosed: () => of('guest') } as never);
+    const snackBar = TestBed.inject(MatSnackBar);
+    spyOn(snackBar, 'open');
+    service.open().subscribe((result) => {
+      expect(result).toBe('guest');
+      expect(snackBar.open).toHaveBeenCalledWith(
+        jasmine.stringContaining('browsing as a guest'),
+        'OK',
+        jasmine.anything()
+      );
       done();
     });
   });

@@ -1,11 +1,15 @@
 import { inject, Injectable } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { from, map, Observable, of, switchMap } from 'rxjs';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { from, map, Observable, of, switchMap, tap } from 'rxjs';
 import type {
   AuthDialogData,
   AuthDialogResult,
 } from '../components/auth-dialog/auth-dialog.component';
 import { AuthStore } from '../stores/auth.store';
+
+const GUEST_MESSAGE =
+  'You are browsing as a guest. Your lists stay in this tab until you log in.';
 
 @Injectable({
   providedIn: 'root',
@@ -13,6 +17,7 @@ import { AuthStore } from '../stores/auth.store';
 export class AuthDialogService {
   private dialog = inject(MatDialog);
   private authStore = inject(AuthStore);
+  private snackBar = inject(MatSnackBar);
 
   // Lazy loaded to keep the dialog out of the initial bundle; null when dismissed.
   open(data: AuthDialogData = {}): Observable<AuthDialogResult | null> {
@@ -32,7 +37,12 @@ export class AuthDialogService {
           )
           .afterClosed()
       ),
-      map((result) => result ?? (this.authStore.isLoggedIn() ? 'authenticated' : null))
+      map((result) => result ?? (this.authStore.isLoggedIn() ? 'authenticated' : null)),
+      tap((result) => {
+        if (result === 'guest') {
+          this.snackBar.open(GUEST_MESSAGE, 'OK', { duration: 4000 });
+        }
+      })
     );
   }
 
