@@ -1,6 +1,10 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
+import { Subject } from 'rxjs';
+import { AuthDialogResult } from '../auth-dialog/auth-dialog.component';
+import { AuthDialogService } from '../../services/auth-dialog.service';
 
 import { Movie } from '../../interfaces/movie.interface';
 import { AuthStore } from '../../stores/auth.store';
@@ -60,5 +64,47 @@ describe('MovieCardComponent', () => {
 
     sessionStorage.removeItem(SESSION_KEY);
     sessionStorage.removeItem('wtw.guest.v1');
+  });
+
+  describe('anonymous -> dialog -> login -> action', () => {
+    const heat = { tmdbId: 9, title: 'Heat', genreIds: [], overview: '', posterPath: '/h.jpg' } as unknown as Movie;
+    let httpTesting: HttpTestingController;
+    let dialogResult: Subject<AuthDialogResult | null>;
+
+    beforeEach(async () => {
+      httpTesting = TestBed.inject(HttpTestingController);
+      dialogResult = new Subject();
+      spyOn(TestBed.inject(AuthDialogService), 'ensureSession').and.returnValue(dialogResult);
+      fixture.componentRef.setInput('movie', heat);
+      await fixture.whenStable();
+    });
+
+    function loginAndLoad(lists: object[]): void {
+      TestBed.inject(AuthStore).login({ email: 'a@b.co', password: '12345678' }).subscribe();
+      httpTesting.expectOne('/api/auth/login').flush({ user: { id: 'u1' } });
+      TestBed.tick();
+      dialogResult.next('authenticated');
+      httpTesting.expectNone((req) => req.url.includes('/items'));
+      httpTesting.expectOne((req) => req.url === '/api/me/history').flush({ items: [] });
+      httpTesting.expectOne('/api/me/lists').flush(lists);
+      httpTesting.expectOne('/api/me/movies').flush({ watched: [] });
+      TestBed.tick();
+    }
+
+    it('should wait for the library and add to the account watchlist', () => {
+      component.toggleWatchlist();
+      loginAndLoad([{ id: 'w1', name: 'Watchlist', isSystem: true, position: 0, items: [] }]);
+      const req = httpTesting.expectOne('/api/me/lists/w1/items');
+      expect(req.request.body).toEqual({ tmdbId: 9 });
+    });
+
+    it('should resolve the chosen list again by name after logging in', () => {
+      component.addToList({ name: 'later', isSystem: false, position: 1, items: [] });
+      loginAndLoad([
+        { id: 'w1', name: 'Watchlist', isSystem: true, position: 0, items: [] },
+        { id: 'l2', name: 'Later', isSystem: false, position: 1, items: [] },
+      ]);
+      httpTesting.expectOne('/api/me/lists/l2/items');
+    });
   });
 });

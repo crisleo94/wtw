@@ -8,7 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Observable } from 'rxjs';
+import { Observable, switchMap, throwError } from 'rxjs';
 import { IMAGE_URL, PLACEHOLDER_IMG } from '../../constants';
 import { MovieList } from '../../interfaces/library.interface';
 import { Movie } from '../../interfaces/movie.interface';
@@ -16,7 +16,12 @@ import { AuthDialogService } from '../../services/auth-dialog.service';
 import { GenresService } from '../../services/genres.service';
 import { LibraryStore } from '../../stores/library.store';
 import { CARD_VARIANT } from '../../types/components.types';
-import { apiErrorMessage } from '../../utils/api-error';
+import { apiErrorMessage, LibraryError } from '../../utils/api-error';
+
+interface CardAction {
+  request: Observable<void>;
+  success: string;
+}
 
 const SESSION_REASON =
   'Log in to keep your watchlist, watched movies and lists, or continue as a guest.';
@@ -78,34 +83,49 @@ export class MovieCardComponent {
   }
 
   toggleWatchlist(): void {
-    const watchlist = this._library.watchlist();
-    const inWatchlist = this.inWatchlist();
-    this.run(
-      (movie) =>
-        inWatchlist && watchlist
-          ? this._library.removeFromList(watchlist, movie.tmdbId)
-          : this._library.addToWatchlist(movie),
-      inWatchlist ? 'Removed from your watchlist.' : 'Added to your watchlist!'
-    );
+    this.run((movie) => {
+      const watchlist = this._library.watchlist();
+      return watchlist && this._library.watchlistIds().has(movie.tmdbId)
+        ? {
+            request: this._library.removeFromList(watchlist, movie.tmdbId),
+            success: 'Removed from your watchlist.',
+          }
+        : {
+            request: this._library.addToWatchlist(movie),
+            success: 'Added to your watchlist!',
+          };
+    });
   }
 
   toggleWatched(): void {
-    const watched = !this.isWatched();
-    this.run(
-      (movie) => this._library.setWatched(movie, watched),
-      watched ? 'Marked as watched.' : 'Marked as not watched.'
-    );
+    this.run((movie) => {
+      const watched = !this._library.watchedIds().has(movie.tmdbId);
+      return {
+        request: this._library.setWatched(movie, watched),
+        success: watched ? 'Marked as watched.' : 'Marked as not watched.',
+      };
+    });
   }
 
+  // The menu list may be a session list; after logging in use the account's one.
   addToList(list: MovieList): void {
-    this.run(
-      (movie) => this._library.addToList(list, movie),
-      `Added to ${list.name}!`
-    );
+    this.run((movie) => {
+      const name = list.name.toLowerCase();
+      const target = this._library
+        .lists()
+        .find((candidate) => candidate.name.toLowerCase() === name);
+      return {
+        request: target
+          ? this._library.addToList(target, movie)
+          : throwError(() => new LibraryError(`The list "${list.name}" is no longer available.`)),
+        success: `Added to ${list.name}!`,
+      };
+    });
   }
 
-  // Every action asks for a session first (login or guest mode).
-  private run(action: (movie: Movie) => Observable<void>, success: string): void {
+  // Asks for a session, waits for the library (import + load after a login) and
+  // only then reads the current state to build the request.
+  private run(action: (movie: Movie) => CardAction): void {
     const movie = this.movie();
     if (!movie) {
       return;
@@ -114,10 +134,20 @@ export class MovieCardComponent {
       if (!result) {
         return;
       }
-      action(movie).subscribe({
-        next: () => this.notify(success),
-        error: (error) => this.notify(apiErrorMessage(error)),
-      });
+      let success = '';
+      this._library
+        .whenReady()
+        .pipe(
+          switchMap(() => {
+            const next = action(movie);
+            success = next.success;
+            return next.request;
+          })
+        )
+        .subscribe({
+          next: () => this.notify(success),
+          error: (error) => this.notify(apiErrorMessage(error)),
+        });
     });
   }
 

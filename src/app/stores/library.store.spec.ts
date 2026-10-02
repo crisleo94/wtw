@@ -197,4 +197,12 @@ describe('LibraryStore', () => {
       .subscribe({ error: (error) => (message = error.message) });
     expect(message).toContain('up to 2000');
   });
+
+  it('should be ready for guests and only after loading for users', () => {
+    expect(library.ready()).toBeTrue();
+    login();
+    expect(library.ready()).toBeFalse();
+    flushReload();
+    expect(library.ready()).toBeTrue();
+  });
 });

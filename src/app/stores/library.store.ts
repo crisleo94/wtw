@@ -9,15 +9,18 @@ import {
   signal,
   untracked,
 } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   catchError,
+  filter,
   finalize,
   forkJoin,
   map,
   Observable,
   of,
   switchMap,
+  take,
   tap,
   throwError,
 } from 'rxjs';
@@ -54,8 +57,14 @@ export class LibraryStore {
   private remoteLists = signal<MovieList[]>([]);
   private remoteWatched = signal<number[]>([]);
   private importInProgress = signal(false);
+  private remoteLoaded = signal(false);
 
   readonly importing = this.importInProgress.asReadonly();
+  // False while a logged user's library is being imported or loaded.
+  readonly ready = computed(
+    () => !this.authStore.isLoggedIn() || this.remoteLoaded()
+  );
+  private ready$ = toObservable(this.ready);
 
   readonly watchedIds = computed(
     () =>
@@ -100,6 +109,7 @@ export class LibraryStore {
       const user = this.authStore.user();
       untracked(() => {
         if (user) {
+          this.remoteLoaded.set(false);
           this.importSession().subscribe(() => this.reload());
         } else {
           this.clearRemote();
@@ -255,9 +265,25 @@ export class LibraryStore {
         this.remoteHistory.set(history);
         this.remoteLists.set(lists);
         this.remoteWatched.set(watched);
+        this.remoteLoaded.set(true);
       },
-      error: () => this.notify('We could not load your library. Please reload the page.'),
+      error: () => {
+        this.remoteLoaded.set(true);
+        this.notify('We could not load your library. Please reload the page.');
+      },
     });
+  }
+
+  // Emits once the library matches the current user (right away if it already does).
+  whenReady(): Observable<void> {
+    if (this.ready()) {
+      return of(undefined);
+    }
+    return this.ready$.pipe(
+      filter(Boolean),
+      take(1),
+      map(() => undefined)
+    );
   }
 
   private loadHistory(): Observable<void> {
@@ -280,6 +306,7 @@ export class LibraryStore {
   }
 
   private clearRemote(): void {
+    this.remoteLoaded.set(false);
     this.remoteHistory.set([]);
     this.remoteLists.set([]);
     this.remoteWatched.set([]);
