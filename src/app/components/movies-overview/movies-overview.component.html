@@ -1,15 +1,31 @@
 <mat-tab-group animate.enter="insert-overview">
   <mat-tab label="History">
     <div class="history-container">
-      @for (movie of recentMovies(); track movie?.title) {
-      <app-movie-card [movie]="movie" variant="composed"></app-movie-card>
+      @for (entry of history(); track entry.id ?? entry.generatedAt + entry.movie.tmdbId) {
+      <app-movie-card
+        [movie]="entry.movie"
+        variant="composed"
+        [removable]="true"
+        removeLabel="Remove from history"
+        (remove)="removeHistory(entry)"
+      ></app-movie-card>
+      } @empty {
+      <p class="empty">The movies you generate will show up here.</p>
       }
     </div>
   </mat-tab>
-  <mat-tab label="Favorites">
-    <div class="favorites-container">
-      @for (movie of favoriteMovies(); track movie?.title) {
-      <app-movie-card [movie]="movie" variant="composed"></app-movie-card>
+  <mat-tab label="Watchlist">
+    <div class="watchlist-container">
+      @for (item of watchlist()?.items ?? []; track item.tmdbId) {
+      <app-movie-card
+        [movie]="item.movie"
+        variant="composed"
+        [removable]="true"
+        removeLabel="Remove from watchlist"
+        (remove)="removeFromWatchlist(item)"
+      ></app-movie-card>
+      } @empty {
+      <p class="empty">Use the bookmark button on a movie to save it here.</p>
       }
     </div>
   </mat-tab>

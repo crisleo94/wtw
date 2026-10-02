@@ -1,4 +1,56 @@
 @if (movie(); as movie) {
+<ng-template #actions>
+  <mat-card-actions class="actions">
+    <button
+      mat-icon-button
+      color="primary"
+      [matTooltip]="inWatchlist() ? 'Remove from your watchlist' : 'Add to your watchlist'"
+      [attr.aria-label]="inWatchlist() ? 'Remove from your watchlist' : 'Add to your watchlist'"
+      [attr.aria-pressed]="inWatchlist()"
+      (click)="toggleWatchlist()"
+    >
+      <mat-icon>{{ inWatchlist() ? 'bookmark' : 'bookmark_border' }}</mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      color="primary"
+      [matTooltip]="isWatched() ? 'Mark as not watched' : 'Mark as watched'"
+      [attr.aria-label]="isWatched() ? 'Mark as not watched' : 'Mark as watched'"
+      [attr.aria-pressed]="isWatched()"
+      (click)="toggleWatched()"
+    >
+      <mat-icon>{{ isWatched() ? 'visibility' : 'visibility_off' }}</mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      color="primary"
+      matTooltip="Add to a list"
+      aria-label="Add to a list"
+      [matMenuTriggerFor]="listsMenu"
+    >
+      <mat-icon>playlist_add</mat-icon>
+    </button>
+    <mat-menu #listsMenu="matMenu">
+      @for (list of customLists(); track list.name) {
+      <button mat-menu-item (click)="addToList(list)">{{ list.name }}</button>
+      } @empty {
+      <button mat-menu-item disabled>No lists yet: create one in your panel</button>
+      }
+    </mat-menu>
+    @if (removable()) {
+    <button
+      mat-icon-button
+      color="warn"
+      [matTooltip]="removeLabel()"
+      [attr.aria-label]="removeLabel()"
+      (click)="remove.emit()"
+    >
+      <mat-icon>delete</mat-icon>
+    </button>
+    }
+  </mat-card-actions>
+</ng-template>
+
 @if (variant() === 'simple') {
 <mat-card class="card">
   <div class="card-content">
@@ -16,6 +68,9 @@
         >
       </mat-card-title-group>
       <mat-chip-listbox disabled>
+        @if (isWatched()) {
+        <mat-chip-option class="watched" disabled>Watched</mat-chip-option>
+        }
         @for (genre of movieGenres(); track genre) {
         <mat-chip-option class="genre" disabled>{{ genre }}</mat-chip-option>
         }
@@ -32,16 +87,7 @@
       [src]="buildImageUrl(movie.posterPath)"
       [alt]="movie.title"
     />
-    <mat-card-actions>
-      <button
-        mat-icon-button
-        color="primary"
-        matTooltip="Add this movie to your favorites list."
-        (click)="addToFavorite()"
-      >
-        <mat-icon>favorite</mat-icon>
-      </button>
-    </mat-card-actions>
+    <ng-container *ngTemplateOutlet="actions"></ng-container>
   </div>
 </mat-card>
 }
@@ -67,6 +113,9 @@
         <mat-card-subtitle class="count"
           >Votes Count: {{ movie.voteCount }}</mat-card-subtitle
         >
+        @if (isWatched()) {
+        <mat-card-subtitle class="watched-label">Watched</mat-card-subtitle>
+        }
       </mat-card-title-group>
     </mat-card-header>
     <mat-card-content>
@@ -81,11 +130,7 @@
     </mat-card-content>
   </div>
   <div>
-    <mat-card-actions>
-      <button mat-icon-button color="warn">
-        <mat-icon>delete</mat-icon>
-      </button>
-    </mat-card-actions>
+    <ng-container *ngTemplateOutlet="actions"></ng-container>
   </div>
 </mat-card>
 }

@@ -22,14 +22,6 @@ describe('MoviesService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should add recent and favorite movies', () => {
-    const movie = { tmdbId: 1, title: 'Alien' } as Movie;
-    service.addRecentMovie(movie);
-    service.addFavoriteMovie(movie);
-    expect(service.currentRecentMovies()).toEqual([movie]);
-    expect(service.currentFavoriteMovies()).toEqual([movie]);
-  });
-
   it('should send the filters as query params', () => {
     const httpTesting = TestBed.inject(HttpTestingController);
     let result: Movie | null | undefined;
