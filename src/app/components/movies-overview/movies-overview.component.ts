@@ -58,7 +58,7 @@ export class MoviesOverviewComponent {
   private run(action: Observable<void>, success: string): void {
     action.subscribe({
       next: () => this.notify(success),
-      error: (error) => this.notify(apiErrorMessage(error, {}, this._transloco)),
+      error: (error) => this.notify(apiErrorMessage(error, this._transloco)),
     });
   }
 

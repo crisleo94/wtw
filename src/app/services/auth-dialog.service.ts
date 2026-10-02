@@ -39,7 +39,7 @@ export class AuthDialogService {
       map((result) => result ?? (this.authStore.isLoggedIn() ? 'authenticated' : null)),
       tap((result) => {
         if (result === 'guest') {
-          this.snackBar.open(this.transloco.translate('auth_dialog_service.guestMessage'), 'OK', { duration: 4000 });
+          this.snackBar.open(this.transloco.translate('auth.guestMessage'), 'OK', { duration: 4000 });
         }
       })
     );

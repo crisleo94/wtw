@@ -55,14 +55,19 @@
     "loginButton": "Login",
     "createAccount": "Create account",
     "continueGuest": "Continue as guest",
-    "errorReasonContext": "auth-dialog-reason"
+    "guestMessage": "You are browsing as a guest. Your lists stay in this tab until you log in."
   },
   "card": {
     "inWatchlist": "In watchlist",
     "watchlist": "Watchlist",
+    "addedToWatchlist": "Added to your watchlist!",
+    "removedFromWatchlist": "Removed from your watchlist.",
+    "addedToList": "Added to {{list}}!",
     "watchedToggle": "You watched it: click to undo",
     "unwatchedToggle": "Mark as watched",
     "watched": "Watched",
+    "markedWatched": "Marked as watched.",
+    "markedNotWatched": "Marked as not watched.",
     "addToList": "Add to a list",
     "noLists": "No lists yet: create one in your panel",
     "releaseDate": "Release date:",
@@ -132,7 +137,4 @@
     "guestActivityFailed": "We could not save your guest activity. It stays in this tab and we will retry on your next login.",
     "libraryFailed": "We could not load your library. Please reload the page."
   },
-  "auth_dialog_service": {
-    "guestMessage": "You are browsing as a guest. Your lists stay in this tab until you log in."
-  }
 }

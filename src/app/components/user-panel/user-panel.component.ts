@@ -271,7 +271,7 @@ export class UserPanelComponent {
               this.notify(success);
             }
           },
-          error: (error) => this.notify(apiErrorMessage(error)),
+          error: (error) => this.notify(apiErrorMessage(error, this.transloco)),
         });
     });
   }

@@ -87,16 +87,14 @@ export class MovieCardComponent {
   toggleWatchlist(): void {
     this.run((movie) => {
       const watchlist = this._library.watchlist();
-      const removed = this._transloco.translate('card.inWatchlist');
-      const added = this._transloco.translate('card.inWatchlist');
       return watchlist && this._library.watchlistIds().has(movie.tmdbId)
         ? {
             request: this._library.removeFromList(watchlist, movie.tmdbId),
-            success: removed,
+            success: this._transloco.translate('card.removedFromWatchlist'),
           }
         : {
             request: this._library.addToWatchlist(movie),
-            success: added,
+            success: this._transloco.translate('card.addedToWatchlist'),
           };
     });
   }
@@ -104,10 +102,9 @@ export class MovieCardComponent {
   toggleWatched(): void {
     this.run((movie) => {
       const watched = !this._library.watchedIds().has(movie.tmdbId);
-      const marked = this._transloco.translate(watched ? 'card.watched' : 'card.unwatchedToggle');
       return {
         request: this._library.setWatched(movie, watched),
-        success: marked,
+        success: this._transloco.translate(watched ? 'card.markedWatched' : 'card.markedNotWatched'),
       };
     });
   }
@@ -119,12 +116,11 @@ export class MovieCardComponent {
       const target = this._library
         .lists()
         .find((candidate) => candidate.name.toLowerCase() === name);
-      const added = this._transloco.translate('card.inWatchlist');
       return {
         request: target
           ? this._library.addToList(target, movie)
           : throwError(() => new LibraryError(`The list "${list.name}" is no longer available.`)),
-        success: added,
+        success: this._transloco.translate('card.addedToList', { list: list.name }),
       };
     });
   }
@@ -152,7 +148,7 @@ export class MovieCardComponent {
         )
         .subscribe({
           next: () => this.notify(success),
-          error: (error) => this.notify(apiErrorMessage(error)),
+          error: (error) => this.notify(apiErrorMessage(error, this._transloco)),
         });
     });
   }
