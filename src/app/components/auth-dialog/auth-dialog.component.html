@@ -39,7 +39,7 @@
         @if (errorMessage() && selectedTab() === 0) {
         <p class="api-error" role="alert">{{ errorMessage() }}</p>
         }
-        <button mat-flat-button color="primary" type="submit" [disabled]="isSubmitting()">
+        <button mat-flat-button type="submit" [disabled]="isSubmitting()">
           Login
         </button>
       </form>
@@ -84,7 +84,7 @@
         @if (errorMessage() && selectedTab() === 1) {
         <p class="api-error" role="alert">{{ errorMessage() }}</p>
         }
-        <button mat-flat-button color="primary" type="submit" [disabled]="isSubmitting()">
+        <button mat-flat-button type="submit" [disabled]="isSubmitting()">
           Create account
         </button>
       </form>

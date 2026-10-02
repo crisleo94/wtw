@@ -3,7 +3,6 @@
   <mat-card-actions class="actions">
     <button
       mat-icon-button
-      color="primary"
       [matTooltip]="inWatchlist() ? 'Remove from your watchlist' : 'Add to your watchlist'"
       [attr.aria-label]="inWatchlist() ? 'Remove from your watchlist' : 'Add to your watchlist'"
       [attr.aria-pressed]="inWatchlist()"
@@ -13,7 +12,6 @@
     </button>
     <button
       mat-icon-button
-      color="primary"
       [matTooltip]="isWatched() ? 'Mark as not watched' : 'Mark as watched'"
       [attr.aria-label]="isWatched() ? 'Mark as not watched' : 'Mark as watched'"
       [attr.aria-pressed]="isWatched()"
@@ -23,7 +21,6 @@
     </button>
     <button
       mat-icon-button
-      color="primary"
       matTooltip="Add to a list"
       aria-label="Add to a list"
       [matMenuTriggerFor]="listsMenu"
