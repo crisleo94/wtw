@@ -7,9 +7,18 @@ import {
   RegisterData,
   User,
 } from '../interfaces/user.interface';
-import { injectSessionStorage } from '../utils/browser-storage';
-
-const GUEST_KEY = 'wtw.guest.v1';
+import {
+  injectLocalStorage,
+  injectSessionStorage,
+  onStorageChange,
+} from '../utils/browser-storage';
+import {
+  GUEST_ACTIVE_KEY,
+  GUEST_KEY,
+  isGuestExpired,
+  REJECTED_KEY,
+  SESSION_KEY,
+} from './guest-storage';
 
 interface AuthResponse {
   user: User;
@@ -20,13 +29,19 @@ interface AuthResponse {
 })
 export class AuthStore {
   private http = inject(HttpClient);
-  private storage = injectSessionStorage();
+  private local = injectLocalStorage();
+  private session = injectSessionStorage();
   private currentUser = signal<User | null>(null);
-  private guest = signal(this.storage.get(GUEST_KEY) === 'true');
+  // Guest mode lives in localStorage so it survives closing the tab or the browser.
+  private guest = signal(this.readGuest());
 
   readonly user = this.currentUser.asReadonly();
   readonly isLoggedIn = computed(() => this.currentUser() !== null);
   readonly isGuest = this.guest.asReadonly();
+
+  constructor() {
+    onStorageChange(GUEST_KEY, (value) => this.guest.set(value === 'true'));
+  }
 
   // Reads the session from the httpOnly cookie through the BFF.
   load(): Observable<User | null> {
@@ -57,7 +72,27 @@ export class AuthStore {
 
   continueAsGuest(): void {
     this.guest.set(true);
-    this.storage.set(GUEST_KEY, 'true');
+    this.local.set(GUEST_KEY, 'true');
+    this.local.set(GUEST_ACTIVE_KEY, String(Date.now()));
+  }
+
+  // Older builds kept the flag in sessionStorage; expired guest data is dropped.
+  private readGuest(): boolean {
+    if (this.session.get(GUEST_KEY) === 'true') {
+      this.session.remove(GUEST_KEY);
+      this.local.set(GUEST_KEY, 'true');
+      this.local.set(GUEST_ACTIVE_KEY, String(Date.now()));
+    }
+    if (this.local.get(GUEST_KEY) !== 'true') {
+      return false;
+    }
+    if (isGuestExpired(this.local.get(GUEST_ACTIVE_KEY))) {
+      for (const key of [GUEST_KEY, GUEST_ACTIVE_KEY, SESSION_KEY, REJECTED_KEY]) {
+        this.local.remove(key);
+      }
+      return false;
+    }
+    return true;
   }
 
   private authenticate(
@@ -69,7 +104,8 @@ export class AuthStore {
       tap((user) => {
         this.currentUser.set(user);
         this.guest.set(false);
-        this.storage.remove(GUEST_KEY);
+        this.local.remove(GUEST_KEY);
+        this.local.remove(GUEST_ACTIVE_KEY);
       })
     );
   }

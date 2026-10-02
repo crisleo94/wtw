@@ -15,13 +15,39 @@ const noopStorage: KeyValueStorage = {
 
 // sessionStorage in the browser; a no-op on the server or when storage is blocked.
 export function injectSessionStorage(): KeyValueStorage {
+  return injectBrowserStorage(() => sessionStorage);
+}
+
+// localStorage in the browser; a no-op on the server or when storage is blocked.
+export function injectLocalStorage(): KeyValueStorage {
+  return injectBrowserStorage(() => localStorage);
+}
+
+// Runs `callback` when another tab changes `key` in localStorage; returns a cleanup.
+export function onStorageChange(
+  key: string,
+  callback: (value: string | null) => void
+): () => void {
+  if (!isPlatformBrowser(inject(PLATFORM_ID)) || typeof window === 'undefined') {
+    return () => undefined;
+  }
+  const listener = (event: StorageEvent) => {
+    if (event.key === key || event.key === null) {
+      callback(event.key === null ? null : event.newValue);
+    }
+  };
+  window.addEventListener('storage', listener);
+  return () => window.removeEventListener('storage', listener);
+}
+
+function injectBrowserStorage(storage: () => Storage): KeyValueStorage {
   if (!isPlatformBrowser(inject(PLATFORM_ID))) {
     return noopStorage;
   }
   return {
-    get: (key) => attempt(() => sessionStorage.getItem(key), null),
-    set: (key, value) => attempt(() => sessionStorage.setItem(key, value), undefined),
-    remove: (key) => attempt(() => sessionStorage.removeItem(key), undefined),
+    get: (key) => attempt(() => storage().getItem(key), null),
+    set: (key, value) => attempt(() => storage().setItem(key, value), undefined),
+    remove: (key) => attempt(() => storage().removeItem(key), undefined),
   };
 }
 

@@ -1,4 +1,4 @@
-import { computed, Injectable, signal } from '@angular/core';
+import { computed, effect, inject, Injectable, signal, untracked } from '@angular/core';
 import {
   SessionData,
   SessionList,
@@ -6,10 +6,16 @@ import {
 } from '../interfaces/library.interface';
 import { MovieFilters } from '../interfaces/movie-filters.interface';
 import { Movie } from '../interfaces/movie.interface';
-import { injectSessionStorage } from '../utils/browser-storage';
+import {
+  injectLocalStorage,
+  injectSessionStorage,
+  KeyValueStorage,
+  onStorageChange,
+} from '../utils/browser-storage';
+import { AuthStore } from './auth.store';
+import { GUEST_ACTIVE_KEY, REJECTED_KEY, SESSION_KEY } from './guest-storage';
 
-export const SESSION_KEY = 'wtw.session.v1';
-const REJECTED_KEY = 'wtw.session.rejected.v1';
+export { SESSION_KEY } from './guest-storage';
 
 // Same limits as POST /api/me/import, so a session never grows past them.
 export const SESSION_LIMITS = {
@@ -26,18 +32,34 @@ export const emptySession = (): SessionData => ({
   movies: {},
 });
 
-// Library of the anonymous user, kept in sessionStorage (`wtw.session.v1`).
+// Library of the anonymous user (`wtw.session.v1`): localStorage for guests, else sessionStorage.
 @Injectable({
   providedIn: 'root',
 })
 export class SessionStore {
-  private storage = injectSessionStorage();
+  private authStore = inject(AuthStore);
+  private local = injectLocalStorage();
+  private session = injectSessionStorage();
   private state = signal<SessionData>(this.read());
   private rejected = signal(this.storage.get(REJECTED_KEY) === 'true');
 
   readonly data = this.state.asReadonly();
   // The API refused this exact session (4xx); it changes back on any new activity.
   readonly importRejected = this.rejected.asReadonly();
+  constructor() {
+    // Choosing guest mode moves what the tab already had to localStorage.
+    effect(() => {
+      if (this.authStore.isGuest()) {
+        untracked(() => this.promoteToLocal());
+      }
+    });
+    onStorageChange(SESSION_KEY, () => {
+      if (this.authStore.isGuest()) {
+        this.state.set(this.read());
+      }
+    });
+  }
+
   readonly isEmpty = computed(() => {
     const { history, watched, lists } = this.state();
     return (
@@ -159,15 +181,40 @@ export class SessionStore {
 
   clear(): void {
     this.state.set(emptySession());
-    this.storage.remove(SESSION_KEY);
-    this.clearRejected();
+    for (const storage of [this.local, this.session]) {
+      storage.remove(SESSION_KEY);
+      storage.remove(REJECTED_KEY);
+    }
+    this.rejected.set(false);
+  }
+
+  private get storage(): KeyValueStorage {
+    return this.authStore.isGuest() ? this.local : this.session;
   }
 
   private commit(updater: (data: SessionData) => SessionData): void {
     const data = withoutOrphanMovies(withinLimits(updater(this.state())));
     this.state.set(data);
     this.storage.set(SESSION_KEY, JSON.stringify(data));
+    this.touchGuest();
     this.clearRejected();
+  }
+
+  private promoteToLocal(): void {
+    const pending = this.session.get(SESSION_KEY);
+    if (pending && !this.local.get(SESSION_KEY)) {
+      this.local.set(SESSION_KEY, pending);
+    }
+    this.session.remove(SESSION_KEY);
+    this.session.remove(REJECTED_KEY);
+    this.state.set(this.read());
+  }
+
+  // Each guest change postpones the 30 day expiry.
+  private touchGuest(): void {
+    if (this.authStore.isGuest()) {
+      this.local.set(GUEST_ACTIVE_KEY, String(Date.now()));
+    }
   }
 
   private clearRejected(): void {
