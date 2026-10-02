@@ -1,0 +1,12 @@
+{
+  "header": {
+    "logo": "What to Watch logo"
+  },
+  "settings": {
+    "open": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark"
+  }
+}

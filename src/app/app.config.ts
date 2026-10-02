@@ -1,5 +1,6 @@
 import {
   ApplicationConfig,
+  isDevMode,
   inject,
   PLATFORM_ID,
   provideAppInitializer,
@@ -19,7 +20,11 @@ import { routes } from './app.routes';
 import { apiInterceptor } from './interceptors/api.interceptor';
 import { sessionExpiredInterceptor } from './interceptors/session-expired.interceptor';
 import { parseCookies, TOKEN_COOKIE } from '../server/cookies';
+import { provideTransloco } from '@jsverse/transloco';
+import { APP_LANGUAGES, DEFAULT_LANGUAGE } from './i18n/languages';
+import { JsonTranslocoLoader } from './i18n/transloco-loader';
 import { AuthStore } from './stores/auth.store';
+import { LanguageStore } from './stores/language.store';
 
 // On the server the user only exists for a real request that carries the token cookie.
 function loadUser() {
@@ -39,5 +44,17 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(),
     provideHttpClient(withFetch(), withInterceptors([apiInterceptor, sessionExpiredInterceptor])),
     provideAppInitializer(loadUser),
+    provideTransloco({
+      config: {
+        availableLangs: [...APP_LANGUAGES],
+        defaultLang: DEFAULT_LANGUAGE,
+        fallbackLang: DEFAULT_LANGUAGE,
+        missingHandler: { useFallbackTranslation: true },
+        reRenderOnLangChange: true,
+        prodMode: !isDevMode(),
+      },
+      loader: JsonTranslocoLoader,
+    }),
+    provideAppInitializer(() => inject(LanguageStore).init()),
   ],
 };
