@@ -191,6 +191,7 @@ describe('LibraryStore', () => {
     );
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
+      imports: [getTranslocoTestingModule()],
       providers: [provideHttpClient(), provideHttpClientTesting()],
     });
     let message = '';
