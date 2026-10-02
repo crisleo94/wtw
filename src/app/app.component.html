@@ -14,14 +14,16 @@
 
 <header class="header">
   <h1>What to Watch?</h1>
-  <button
-    mat-icon-button
-    class="user-menu"
-    aria-label="Open your panel"
-    (click)="panelOpen.set(true)"
-  >
-    <mat-icon>account_circle</mat-icon>
-  </button>
+  <div class="header-actions">
+    <app-theme-toggle></app-theme-toggle>
+    <button
+      mat-icon-button
+      aria-label="Open your panel"
+      (click)="panelOpen.set(true)"
+    >
+      <mat-icon>account_circle</mat-icon>
+    </button>
+  </div>
 </header>
 
 <div class="container">

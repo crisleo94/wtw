@@ -6,6 +6,7 @@ import { MovieCardComponent } from './components/movie-card/movie-card.component
 import { MoviesOverviewComponent } from './components/movies-overview/movies-overview.component';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSidenavModule } from '@angular/material/sidenav';
+import { ThemeToggleComponent } from './components/theme-toggle/theme-toggle.component';
 import { UserPanelComponent } from './components/user-panel/user-panel.component';
 import { Movie } from './interfaces/movie.interface';
 
@@ -20,6 +21,7 @@ const ERROR_MESSAGE = 'We could not get a movie right now. Please try again.';
     MoviesOverviewComponent,
     FormComponent,
     UserPanelComponent,
+    ThemeToggleComponent,
     MatButtonModule,
     MatSidenavModule,
     MatProgressSpinnerModule,
