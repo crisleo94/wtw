@@ -7,7 +7,7 @@
     "openPanel": "Open the panel of {{fullName}}",
     "login": "Login",
     "loginGuest": "Login (guest)",
-    "guestTooltip": "You are browsing as a guest: your lists stay in this tab. Log in to keep them."
+    "guestTooltip": "You are browsing as a guest: your lists are saved in this browser. Log in to keep them in your account."
   },
   "settings": {
     "open": "Settings",
@@ -57,7 +57,7 @@
     "loginButton": "Login",
     "createAccount": "Create account",
     "continueGuest": "Continue as guest",
-    "guestMessage": "You are browsing as a guest. Your lists stay in this tab until you log in.",
+    "guestMessage": "You are browsing as a guest. Your lists are saved in this browser until you log in.",
     "reasonCard": "Log in to keep your watchlist, watched movies and lists, or continue as a guest.",
     "reasonPanel": "Log in to keep your lists, or continue as a guest."
   },
@@ -95,7 +95,7 @@
   },
   "panel": {
     "guest": "Guest",
-    "guestInfo": "Your lists are kept in this tab only",
+    "guestInfo": "Your lists are saved in this browser",
     "closePanel": "Close panel",
     "logout": "Logout",
     "loginRegister": "Login or register",
@@ -128,7 +128,8 @@
     "deleteListTitle": "Delete list",
     "deleteListMessage": "Delete the list \"{{name}}\"? Its movies will be removed from it.",
     "deleteListConfirm": "Delete",
-    "emptyList": "Empty list. Add movies with the list button on a movie, or drag them here from another list."
+    "emptyList": "Empty list. Add movies with the list button on a movie, or drag them here from another list.",
+    "anonymousInfo": "Your lists are kept in this tab only"
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",

@@ -6,7 +6,7 @@
     <span>{{ user.email }}</span>
     } @else {
     <strong>{{ 'panel.guest' | transloco }}</strong>
-    <span>{{ 'panel.guestInfo' | transloco }}</span>
+    <span>{{ (authStore.isGuest() ? 'panel.guestInfo' : 'panel.anonymousInfo') | transloco }}</span>
     }
   </div>
   <button mat-icon-button [attr.aria-label]="'panel.closePanel' | transloco" (click)="closed.emit()">

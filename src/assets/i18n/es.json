@@ -7,7 +7,7 @@
     "openPanel": "Abrir el panel de {{fullName}}",
     "login": "Iniciar sesión",
     "loginGuest": "Iniciar sesión (invitado)",
-    "guestTooltip": "Estás navegando como invitado: tus listas se quedan en esta pestaña. Inicia sesión para conservarlas."
+    "guestTooltip": "Estás navegando como invitado: tus listas se guardan en este navegador. Inicia sesión para conservarlas en tu cuenta."
   },
   "settings": {
     "open": "Ajustes",
@@ -57,7 +57,7 @@
     "loginButton": "Iniciar sesión",
     "createAccount": "Crear cuenta",
     "continueGuest": "Continuar como invitado",
-    "guestMessage": "Estás navegando como invitado. Tus listas se mantienen en esta pestaña hasta que inicies sesión.",
+    "guestMessage": "Estás navegando como invitado. Tus listas se guardan en este navegador hasta que inicies sesión.",
     "reasonCard": "Inicia sesión para guardar tu lista Por ver, las películas vistas y tus listas, o continúa como invitado.",
     "reasonPanel": "Inicia sesión para guardar tus listas, o continúa como invitado."
   },
@@ -95,7 +95,7 @@
   },
   "panel": {
     "guest": "Invitado",
-    "guestInfo": "Tus listas se conservan en esta pestaña únicamente",
+    "guestInfo": "Tus listas se guardan en este navegador",
     "closePanel": "Cerrar panel",
     "logout": "Cerrar sesión",
     "loginRegister": "Iniciar sesión o registrarse",
@@ -128,7 +128,8 @@
     "deleteListTitle": "Eliminar lista",
     "deleteListMessage": "¿Eliminar la lista \"{{name}}\"? Se quitarán sus películas.",
     "deleteListConfirm": "Eliminar",
-    "emptyList": "Lista vacía. Añade películas con el botón de lista de cada película o arrástralas aquí desde otra lista."
+    "emptyList": "Lista vacía. Añade películas con el botón de lista de cada película o arrástralas aquí desde otra lista.",
+    "anonymousInfo": "Tus listas se conservan solo en esta pestaña"
   },
   "errors": {
     "generic": "Algo salió mal. Intenta de nuevo.",
