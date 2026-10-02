@@ -16,13 +16,28 @@
   <h1>What to Watch?</h1>
   <div class="header-actions">
     <app-theme-toggle></app-theme-toggle>
+    @if (authStore.user(); as user) {
     <button
-      mat-icon-button
-      aria-label="Open your panel"
+      class="avatar-button"
+      matTooltip="Your account and lists"
+      [attr.aria-label]="'Open the panel of ' + user.fullName"
       (click)="panelOpen.set(true)"
     >
-      <mat-icon>account_circle</mat-icon>
+      {{ initials() }}
     </button>
+    } @else {
+    <button
+      mat-icon-button
+      matTooltip="Your lists"
+      aria-label="Open your lists"
+      (click)="panelOpen.set(true)"
+    >
+      <mat-icon>video_library</mat-icon>
+    </button>
+    <button mat-flat-button class="login-button" (click)="openLogin()">
+      <mat-icon>login</mat-icon> Login
+    </button>
+    }
   </div>
 </header>
 

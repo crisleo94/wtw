@@ -58,9 +58,27 @@ describe('AppComponent', () => {
       expect(Math.abs(actions.top - title.top)).toBeLessThan(1);
     });
 
-    it('should not overlap the title on a 320px screen', async () => {
-      const { title, actions } = await measure('320px');
-      expect(title.right).toBeLessThanOrEqual(actions.left);
+    it('should stack the actions above the title on a 320px screen', async () => {
+      const { header, title, actions } = await measure('320px');
+      expect(title.top).toBeGreaterThanOrEqual(actions.bottom);
+      expect(actions.right).toBeLessThanOrEqual(header.right);
+      expect(actions.left).toBeGreaterThanOrEqual(header.left);
+    });
+
+    it('should show Login without a session and the avatar with one', async () => {
+      const fixture = TestBed.createComponent(AppComponent);
+      const host = fixture.nativeElement as HTMLElement;
+      await fixture.whenStable();
+      expect(host.querySelector('.login-button')?.textContent).toContain('Login');
+      expect(host.querySelector('.avatar-button')).toBeNull();
+
+      const authStore = fixture.componentInstance.authStore as unknown as {
+        currentUser: { set(user: unknown): void };
+      };
+      authStore.currentUser.set({ id: '1', email: 'ada@test.dev', fullName: 'Ada Lovelace' });
+      await fixture.whenStable();
+      expect(host.querySelector('.login-button')).toBeNull();
+      expect(host.querySelector('.avatar-button')?.textContent?.trim()).toBe('AL');
     });
   });
 });
