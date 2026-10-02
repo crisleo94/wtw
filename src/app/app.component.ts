@@ -1,4 +1,3 @@
-import { HttpClientModule } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -15,7 +14,6 @@ import { MoviesService } from './services/movies.service';
     MovieCardComponent,
     MoviesOverviewComponent,
     FormComponent,
-    HttpClientModule,
     MatProgressSpinnerModule,
     MatIconModule,
   ],
