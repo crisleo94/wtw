@@ -9,6 +9,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { IMAGE_URL, PLACEHOLDER_IMG } from '../../constants';
 import { Movie } from '../../interfaces/movie.interface';
 import { GenresService } from '../../services/genres.service';
+import { AuthDialogService } from '../../services/auth-dialog.service';
 import { MoviesService } from '../../services/movies.service';
 import { CARD_VARIANT } from '../../types/components.types';
 
@@ -29,6 +30,7 @@ export class MovieCardComponent {
   private _genreService = inject(GenresService);
   private _moviesService = inject(MoviesService);
   private _snackBar = inject(MatSnackBar);
+  private _authDialog = inject(AuthDialogService);
 
   variant = input<CARD_VARIANT>('simple');
   movie = input<Movie | null>(null);
@@ -50,11 +52,19 @@ export class MovieCardComponent {
 
   addToFavorite(): void {
     const movie = this.movie();
-    if (movie) {
-      this._moviesService.addFavoriteMovie(movie);
+    if (!movie) {
+      return;
     }
-    this._snackBar.open('Movie added to favorites!', 'Dismiss', {
-      duration: 1000,
-    });
+    this._authDialog
+      .ensureSession('Log in to keep your favorites, or continue as a guest.')
+      .subscribe((result) => {
+        if (!result) {
+          return;
+        }
+        this._moviesService.addFavoriteMovie(movie);
+        this._snackBar.open('Movie added to favorites!', 'Dismiss', {
+          duration: 1000,
+        });
+      });
   }
 }

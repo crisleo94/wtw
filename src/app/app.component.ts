@@ -4,6 +4,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FormComponent } from './components/form/form.component';
 import { MovieCardComponent } from './components/movie-card/movie-card.component';
 import { MoviesOverviewComponent } from './components/movies-overview/movies-overview.component';
+import { UserMenuComponent } from './components/user-menu/user-menu.component';
 import { Movie } from './interfaces/movie.interface';
 import { MoviesService } from './services/movies.service';
 
@@ -17,6 +18,7 @@ const ERROR_MESSAGE = 'We could not get a movie right now. Please try again.';
     MovieCardComponent,
     MoviesOverviewComponent,
     FormComponent,
+    UserMenuComponent,
     MatProgressSpinnerModule,
     MatIconModule,
   ],
