@@ -5,7 +5,9 @@
     "yourAccount": "Tu cuenta y tus listas",
     "yourLists": "Tus listas",
     "openPanel": "Abrir el panel de {{fullName}}",
-    "login": "Iniciar sesión"
+    "login": "Iniciar sesión",
+    "loginGuest": "Iniciar sesión (invitado)",
+    "guestTooltip": "Estás navegando como invitado: tus listas se quedan en esta pestaña. Inicia sesión para conservarlas."
   },
   "settings": {
     "open": "Ajustes",
@@ -109,7 +111,6 @@
     "optionsFor": "Opciones para {{name}}",
     "rename": "Cambiar nombre",
     "delete": "Eliminar",
-    "dropHere": "Suelta películas aquí",
     "markNotWatched": "Marcar como no vista",
     "markWatched": "Marcar como vista",
     "moveUp": "Mover hacia arriba",
@@ -126,7 +127,8 @@
     "removedFrom": "Quitada de {{name}}.",
     "deleteListTitle": "Eliminar lista",
     "deleteListMessage": "¿Eliminar la lista \"{{name}}\"? Se quitarán sus películas.",
-    "deleteListConfirm": "Eliminar"
+    "deleteListConfirm": "Eliminar",
+    "emptyList": "Lista vacía. Añade películas con el botón de lista de cada película o arrástralas aquí desde otra lista."
   },
   "errors": {
     "generic": "Algo salió mal. Intenta de nuevo.",

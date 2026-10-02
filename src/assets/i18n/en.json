@@ -5,7 +5,9 @@
     "yourAccount": "Your account and lists",
     "yourLists": "Your lists",
     "openPanel": "Open the panel of {{fullName}}",
-    "login": "Login"
+    "login": "Login",
+    "loginGuest": "Login (guest)",
+    "guestTooltip": "You are browsing as a guest: your lists stay in this tab. Log in to keep them."
   },
   "settings": {
     "open": "Settings",
@@ -109,7 +111,6 @@
     "optionsFor": "Options for {{name}}",
     "rename": "Rename",
     "delete": "Delete",
-    "dropHere": "Drop movies here",
     "markNotWatched": "Mark as not watched",
     "markWatched": "Mark as watched",
     "moveUp": "Move up",
@@ -126,7 +127,8 @@
     "removedFrom": "Removed from {{name}}.",
     "deleteListTitle": "Delete list",
     "deleteListMessage": "Delete the list \"{{name}}\"? Its movies will be removed from it.",
-    "deleteListConfirm": "Delete"
+    "deleteListConfirm": "Delete",
+    "emptyList": "Empty list. Add movies with the list button on a movie, or drag them here from another list."
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
