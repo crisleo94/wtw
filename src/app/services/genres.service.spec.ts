@@ -5,11 +5,13 @@ import {
 } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { LanguageStore } from '../stores/language.store';
-import { getTranslocoTestingModule } from '../testing/transloco-testing';
+import { clearLanguagePreference, getTranslocoTestingModule } from '../testing/transloco-testing';
 import { GenresService } from './genres.service';
 
 describe('GenresService', () => {
   let service: GenresService;
+
+  afterEach(() => clearLanguagePreference());
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -35,6 +37,5 @@ describe('GenresService', () => {
     TestBed.inject(LanguageStore).setLang('en');
     httpTesting.expectOne('/api/genres').flush({}, { status: 500, statusText: 'Error' });
     expect(service.getGenre(35)?.name).toBe('Comedia');
-    localStorage.removeItem('wtw.lang');
   });
 });

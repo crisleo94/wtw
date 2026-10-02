@@ -11,7 +11,7 @@ import { AuthStore } from './auth.store';
 import { LanguageStore } from './language.store';
 import { LibraryStore, toImportBody } from './library.store';
 import { SESSION_KEY, SessionStore } from './session.store';
-import { getTranslocoTestingModule } from '../testing/transloco-testing';
+import { clearLanguagePreference, getTranslocoTestingModule } from '../testing/transloco-testing';
 
 const movie = { tmdbId: 7, title: 'Alien', posterPath: '/a.jpg' } as Movie;
 const user = { id: 'u1', email: 'a@b.co', fullName: 'Ana' };
@@ -36,6 +36,7 @@ describe('LibraryStore', () => {
   });
 
   afterEach(() => {
+    clearLanguagePreference();
     sessionStorage.removeItem(SESSION_KEY);
     sessionStorage.removeItem('wtw.session.rejected.v1');
   });
@@ -96,13 +97,11 @@ describe('LibraryStore', () => {
     httpTesting.expectOne('/api/me/lists').flush([]);
     httpTesting.expectOne('/api/me/movies').flush({ watched: [] });
     expect(library.history()[0].movie.title).toBe('Alien, el octavo pasajero');
-    localStorage.removeItem('wtw.lang');
   });
 
   it('should not call the API for guests when the language changes', () => {
     TestBed.inject(LanguageStore).setLang('es');
     httpTesting.verify();
-    localStorage.removeItem('wtw.lang');
   });
 
   it('should skip the import when the session is empty', () => {

@@ -7,9 +7,11 @@ import { TestBed } from '@angular/core/testing';
 import { AppComponent } from './app.component';
 import { Movie } from './interfaces/movie.interface';
 import { LanguageStore } from './stores/language.store';
-import { getTranslocoTestingModule } from './testing/transloco-testing';
+import { clearLanguagePreference, getTranslocoTestingModule } from './testing/transloco-testing';
 
 describe('AppComponent', () => {
+  afterEach(() => clearLanguagePreference());
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent, getTranslocoTestingModule()],
@@ -52,7 +54,6 @@ describe('AppComponent', () => {
     expect(compiled.querySelector('.message')?.textContent).not.toContain(
       'No movies match these filters'
     );
-    localStorage.removeItem('wtw.lang');
   });
 
   it('should reload the same movie in the new language', () => {
@@ -66,7 +67,6 @@ describe('AppComponent', () => {
     httpTesting.expectOne('/api/movies/603').flush({ ...movie, overview: 'Neo descubre la verdad' });
     httpTesting.expectNone('/api/movies/generate');
     expect(fixture.componentInstance.movie()?.overview).toBe('Neo descubre la verdad');
-    localStorage.removeItem('wtw.lang');
   });
 
   describe('header layout', () => {

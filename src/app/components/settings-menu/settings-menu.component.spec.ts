@@ -1,5 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { getTranslocoTestingModule } from '../../testing/transloco-testing';
+import {
+  clearLanguagePreference,
+  getTranslocoTestingModule,
+} from '../../testing/transloco-testing';
 import { LANGUAGE_KEY, LanguageStore } from '../../stores/language.store';
 import { THEME_KEY, ThemeStore } from '../../stores/theme.store';
 import { SettingsMenuComponent } from './settings-menu.component';
@@ -18,7 +21,7 @@ describe('SettingsMenuComponent', () => {
   });
 
   afterEach(() => {
-    localStorage.removeItem(LANGUAGE_KEY);
+    clearLanguagePreference();
     localStorage.removeItem(THEME_KEY);
     document.documentElement.style.colorScheme = '';
     document.documentElement.lang = 'en';
