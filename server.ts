@@ -36,9 +36,14 @@ app.use(
 app.use((req, res, next) => {
   angularApp
     .handle(req)
-    .then((response) =>
-      response ? writeResponseToNodeResponse(response, res) : next(),
-    )
+    .then((response) => {
+      if (!response) {
+        return next();
+      }
+      // Pages can include the user's data: never cache them in shared caches.
+      res.setHeader('Cache-Control', 'private, no-store');
+      return writeResponseToNodeResponse(response, res);
+    })
     .catch(next);
 });
 
