@@ -11,6 +11,7 @@ import { AuthStore } from '../../stores/auth.store';
 import { LibraryStore } from '../../stores/library.store';
 import { SESSION_KEY } from '../../stores/session.store';
 import { MovieCardComponent } from './movie-card.component';
+import { getTranslocoTestingModule } from '../../testing/transloco-testing';
 
 describe('MovieCardComponent', () => {
   let component: MovieCardComponent;
@@ -19,7 +20,7 @@ describe('MovieCardComponent', () => {
   beforeEach(async () => {
     sessionStorage.removeItem(SESSION_KEY);
     await TestBed.configureTestingModule({
-      imports: [MovieCardComponent],
+      imports: [MovieCardComponent, getTranslocoTestingModule()],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),

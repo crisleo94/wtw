@@ -9,6 +9,7 @@ import { AuthStore } from '../../stores/auth.store';
 import { LibraryStore } from '../../stores/library.store';
 import { SESSION_KEY } from '../../stores/session.store';
 import { UserPanelComponent } from './user-panel.component';
+import { getTranslocoTestingModule } from '../../testing/transloco-testing';
 
 const movie = (tmdbId: number) =>
   ({ tmdbId, title: `Movie ${tmdbId}`, posterPath: '/p.jpg' }) as Movie;
@@ -21,7 +22,7 @@ describe('UserPanelComponent', () => {
   beforeEach(async () => {
     sessionStorage.removeItem(SESSION_KEY);
     await TestBed.configureTestingModule({
-      imports: [UserPanelComponent],
+      imports: [UserPanelComponent, getTranslocoTestingModule()],
       providers: [provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
     fixture = TestBed.createComponent(UserPanelComponent);

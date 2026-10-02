@@ -10,6 +10,7 @@ import { Movie } from '../interfaces/movie.interface';
 import { AuthStore } from './auth.store';
 import { LibraryStore, toImportBody } from './library.store';
 import { SESSION_KEY, SessionStore } from './session.store';
+import { getTranslocoTestingModule } from '../testing/transloco-testing';
 
 const movie = { tmdbId: 7, title: 'Alien', posterPath: '/a.jpg' } as Movie;
 const user = { id: 'u1', email: 'a@b.co', fullName: 'Ana' };
@@ -23,6 +24,7 @@ describe('LibraryStore', () => {
   beforeEach(() => {
     sessionStorage.removeItem(SESSION_KEY);
     TestBed.configureTestingModule({
+      imports: [getTranslocoTestingModule()],
       providers: [provideHttpClient(), provideHttpClientTesting()],
     });
     library = TestBed.inject(LibraryStore);

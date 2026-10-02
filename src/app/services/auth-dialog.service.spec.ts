@@ -6,6 +6,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { of } from 'rxjs';
 import { AuthStore } from '../stores/auth.store';
 import { AuthDialogService } from './auth-dialog.service';
+import { getTranslocoTestingModule } from '../testing/transloco-testing';
 
 describe('AuthDialogService', () => {
   let service: AuthDialogService;
@@ -14,6 +15,7 @@ describe('AuthDialogService', () => {
   beforeEach(() => {
     dialog = jasmine.createSpyObj('MatDialog', ['open']);
     TestBed.configureTestingModule({
+      imports: [getTranslocoTestingModule()],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),

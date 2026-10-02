@@ -3,6 +3,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { FormComponent } from './form.component';
+import { getTranslocoTestingModule } from '../../testing/transloco-testing';
 
 describe('FormComponent', () => {
   let component: FormComponent;
@@ -10,7 +11,7 @@ describe('FormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [FormComponent],
+      imports: [FormComponent, getTranslocoTestingModule()],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),

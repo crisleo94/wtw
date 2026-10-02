@@ -8,6 +8,7 @@ import { LibraryStore } from '../../stores/library.store';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { SESSION_KEY } from '../../stores/session.store';
 import { MoviesOverviewComponent } from './movies-overview.component';
+import { getTranslocoTestingModule } from '../../testing/transloco-testing';
 
 describe('MoviesOverviewComponent', () => {
   let component: MoviesOverviewComponent;
@@ -16,7 +17,7 @@ describe('MoviesOverviewComponent', () => {
   beforeEach(async () => {
     sessionStorage.removeItem(SESSION_KEY);
     await TestBed.configureTestingModule({
-      imports: [MoviesOverviewComponent],
+      imports: [MoviesOverviewComponent, getTranslocoTestingModule()],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
