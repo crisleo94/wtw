@@ -23,6 +23,17 @@ describe('ThemeStore', () => {
     expect(localStorage.getItem(THEME_KEY)).toBeNull();
   });
 
+  it('should toggle away from what is on screen', () => {
+    const store = TestBed.inject(ThemeStore);
+    store.setMode('light');
+    store.toggle();
+    expect(store.mode()).toBe('dark');
+    expect(store.isDark()).toBeTrue();
+    store.toggle();
+    expect(store.mode()).toBe('light');
+    expect(store.isDark()).toBeFalse();
+  });
+
   it('should restore the saved mode', () => {
     localStorage.setItem(THEME_KEY, 'light');
     expect(TestBed.inject(ThemeStore).mode()).toBe('light');
