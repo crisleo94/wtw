@@ -8,7 +8,6 @@ import { MovieCardComponent } from '../movie-card/movie-card.component';
 
 @Component({
   selector: 'app-movies-overview',
-  standalone: true,
   imports: [MovieCardComponent, MatGridListModule, MatTabsModule],
   templateUrl: './movies-overview.component.html',
   styleUrl: './movies-overview.component.sass',

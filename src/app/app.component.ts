@@ -9,7 +9,6 @@ import { MoviesService } from './services/movies.service';
 
 @Component({
   selector: 'app-root',
-  standalone: true,
   imports: [
     MovieCardComponent,
     MoviesOverviewComponent,

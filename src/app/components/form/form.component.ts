@@ -18,7 +18,6 @@ import { MoviesService } from '../../services/movies.service';
 
 @Component({
   selector: 'app-form',
-  standalone: true,
   imports: [
     FormsModule,
     ReactiveFormsModule,

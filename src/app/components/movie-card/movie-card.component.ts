@@ -14,7 +14,6 @@ import { CARD_VARIANT } from '../../types/components.types';
 
 @Component({
   selector: 'app-movie-card',
-  standalone: true,
   imports: [
     MatCardModule,
     MatButtonModule,
