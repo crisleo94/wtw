@@ -28,7 +28,7 @@ export const SESSION_LIMITS = {
   listItems: 500,
 };
 
-export const emptySession = (): SessionData => ({
+const emptySession = (): SessionData => ({
   history: [],
   watched: [],
   ratings: [],
