@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import {
   computed,
   effect,
@@ -141,10 +141,10 @@ export class LibraryStore {
     if (!watchlist?.id) {
       return throwError(() => new Error('The watchlist is not loaded yet'));
     }
+    // The API resolves the movie from TMDB; it only accepts tmdbId (and position).
     return this.http
       .post<unknown>(`${API_URL}/me/lists/${watchlist.id}/items`, {
         tmdbId: movie.tmdbId,
-        movie,
       })
       .pipe(switchMap(() => this.loadLists()));
   }
@@ -159,23 +159,33 @@ export class LibraryStore {
       .pipe(switchMap(() => this.loadLists()));
   }
 
-  // Idempotent on the API; on failure the session is kept to retry on the next login.
+  // Idempotent on the API. Network/5xx errors keep the session to retry on the next
+  // login; a 4xx will not change by retrying, so the user is offered to discard it.
   importSession(): Observable<ImportSummary | null> {
     if (this.session.isEmpty() || this.importInProgress()) {
       return of(null);
     }
+    if (this.session.importRejected()) {
+      this.offerDiscard();
+      return of(null);
+    }
     this.importInProgress.set(true);
     return this.http
-      .post<ImportSummary>(`${API_URL}/me/import`, this.session.data())
+      .post<ImportSummary>(`${API_URL}/me/import`, toImportBody(this.session.data()))
       .pipe(
         tap(() => {
           this.session.clear();
           this.notify('Your guest activity was saved to your account.');
         }),
-        catchError(() => {
-          this.notify(
-            'We could not save your guest activity. It stays in this tab and we will retry on your next login.'
-          );
+        catchError((error) => {
+          if (isPermanentError(error)) {
+            this.session.markImportRejected();
+            this.offerDiscard();
+          } else {
+            this.notify(
+              'We could not save your guest activity. It stays in this tab and we will retry on your next login.'
+            );
+          }
           return of(null);
         }),
         finalize(() => this.importInProgress.set(false))
@@ -216,6 +226,20 @@ export class LibraryStore {
     this.remoteWatched.set([]);
   }
 
+  private offerDiscard(): void {
+    this.snackBar
+      .open(
+        'Your guest activity could not be saved to your account. Discard it?',
+        'Discard',
+        { duration: 10000 }
+      )
+      .onAction()
+      .subscribe(() => {
+        this.session.clear();
+        this.notify('Guest activity discarded.');
+      });
+  }
+
   private notify(message: string): void {
     this.snackBar.open(message, 'Dismiss', { duration: 5000 });
   }
@@ -235,4 +259,29 @@ function toMovieLists(data: SessionData, watched: Set<number>): MovieList[] {
         movie: data.movies[tmdbId],
       })),
   }));
+}
+
+// History entries only carry the required movie fields: the full data goes in `movies`.
+export function toImportBody(data: SessionData): SessionData {
+  return {
+    ...data,
+    history: data.history.map(({ movie, ...entry }) => ({
+      ...entry,
+      movie: {
+        tmdbId: movie.tmdbId,
+        title: movie.title,
+        posterPath: movie.posterPath,
+      } as Movie,
+    })),
+  };
+}
+
+// 401 means an expired session (handled elsewhere); other 4xx are permanent.
+function isPermanentError(error: unknown): boolean {
+  return (
+    error instanceof HttpErrorResponse &&
+    error.status >= 400 &&
+    error.status < 500 &&
+    error.status !== 401
+  );
 }

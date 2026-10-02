@@ -4,9 +4,11 @@ import {
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Subject } from 'rxjs';
 import { Movie } from '../interfaces/movie.interface';
 import { AuthStore } from './auth.store';
-import { LibraryStore } from './library.store';
+import { LibraryStore, toImportBody } from './library.store';
 import { SESSION_KEY, SessionStore } from './session.store';
 
 const movie = { tmdbId: 7, title: 'Alien', posterPath: '/a.jpg' } as Movie;
@@ -30,7 +32,10 @@ describe('LibraryStore', () => {
     TestBed.tick();
   });
 
-  afterEach(() => sessionStorage.removeItem(SESSION_KEY));
+  afterEach(() => {
+    sessionStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem('wtw.session.rejected.v1');
+  });
 
   function login(): void {
     auth.login({ email: user.email, password: '12345678' }).subscribe();
@@ -65,7 +70,11 @@ describe('LibraryStore', () => {
 
     const importReq = httpTesting.expectOne('/api/me/import');
     expect(importReq.request.method).toBe('POST');
-    expect(importReq.request.body.history[0].movie.tmdbId).toBe(7);
+    expect(importReq.request.body.history[0].movie).toEqual({
+      tmdbId: 7,
+      title: 'Alien',
+      posterPath: '/a.jpg',
+    });
     expect(importReq.request.body.movies['7'].title).toBe('Alien');
     importReq.flush({ history: 1, watched: 0, lists: 0, items: 0 });
 
@@ -98,5 +107,50 @@ describe('LibraryStore', () => {
     login();
     library.importSession().subscribe();
     expect(httpTesting.match('/api/me/import').length).toBe(1);
+  });
+
+  it('should offer to discard a session the API rejects instead of retrying', () => {
+    const action = new Subject<void>();
+    const snackBar = TestBed.inject(MatSnackBar);
+    spyOn(snackBar, 'open').and.returnValue({ onAction: () => action } as never);
+    library.recordGenerated(movie);
+    login();
+    httpTesting
+      .expectOne('/api/me/import')
+      .flush({ message: 'Too big' }, { status: 413, statusText: 'Payload Too Large' });
+    flushReload();
+    expect(session.importRejected()).toBeTrue();
+    expect(snackBar.open).toHaveBeenCalledWith(
+      jasmine.stringContaining('Discard it?'),
+      'Discard',
+      jasmine.anything()
+    );
+
+    library.importSession().subscribe();
+    httpTesting.expectNone('/api/me/import');
+
+    action.next();
+    expect(session.isEmpty()).toBeTrue();
+  });
+
+  it('should add to the remote watchlist with only the tmdbId', () => {
+    login();
+    flushReload();
+    library.addToWatchlist(movie).subscribe();
+    const req = httpTesting.expectOne('/api/me/lists/w1/items');
+    expect(req.request.body).toEqual({ tmdbId: 7 });
+    req.flush({});
+    httpTesting.expectOne('/api/me/lists').flush([]);
+  });
+
+  it('should strip duplicated movie data from history entries', () => {
+    const body = toImportBody({
+      history: [{ movie: { ...movie, overview: 'long' }, generatedAt: 'x' }],
+      watched: [],
+      lists: [],
+      movies: { 7: { ...movie, overview: 'long' } },
+    });
+    expect(body.history[0].movie).toEqual({ tmdbId: 7, title: 'Alien', posterPath: '/a.jpg' } as Movie);
+    expect(body.movies['7'].overview).toBe('long');
   });
 });
