@@ -1,0 +1,20 @@
+# Only service that publishes a port; the API is reached as wtw-api inside wtw-network.
+services:
+  wtw:
+    build:
+      context: .
+      target: prod
+    image: wtw
+    container_name: wtw
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PORT: 4000
+    ports:
+      - '4000:4000'
+    networks:
+      - wtw-network
+
+networks:
+  wtw-network:
+    external: true
