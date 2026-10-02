@@ -11,6 +11,7 @@ describe('apiErrorMessage', () => {
       const messages: Record<string, string> = {
         'errors.generic': 'Something went wrong. Try again.',
         'errors.serverUnavailable': 'The server is not available right now. Try again.',
+        'errors.sessionExpired': 'Your session expired. Please log in again.',
       };
       return messages[key] || key;
     },
@@ -30,5 +31,11 @@ describe('apiErrorMessage', () => {
   it('should handle server and front errors', () => {
     expect(apiErrorMessage(httpError(502), mockTransloco)).toContain('not available');
     expect(apiErrorMessage(new LibraryError('Too many lists'), mockTransloco)).toBe('Too many lists');
+  });
+
+  it('should explain an expired session instead of the generic error', () => {
+    expect(apiErrorMessage(httpError(401, 'Unauthorized'), mockTransloco)).toBe(
+      'Your session expired. Please log in again.'
+    );
   });
 });

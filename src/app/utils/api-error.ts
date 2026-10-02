@@ -21,6 +21,10 @@ export function apiErrorMessage(
   if (byStatus[error.status]) {
     return byStatus[error.status];
   }
+  // Library actions only fail with 401 when the JWT expired (login passes its own text).
+  if (error.status === 401) {
+    return transloco.translate('errors.sessionExpired');
+  }
   const message = error.error?.message;
   if ([400, 404, 409].includes(error.status) && message) {
     return Array.isArray(message) ? message.join('. ') : String(message);
