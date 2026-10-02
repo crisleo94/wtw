@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { map, Observable, of, tap } from 'rxjs';
 import { API_URL, TOKEN } from '../constants';
 import { Genre } from '../interfaces/genre.interface';
@@ -8,13 +8,14 @@ import { Genre } from '../interfaces/genre.interface';
   providedIn: 'root',
 })
 export class GenresService {
-  private genreList: Genre[] = [];
+  private http = inject(HttpClient);
+  private genreList = signal<Genre[]>([]);
 
-  constructor(private http: HttpClient) {}
+  readonly genres = this.genreList.asReadonly();
 
   getGenres(): Observable<Genre[]> {
-    if (this.genreList.length > 0) {
-      return of(this.genreList);
+    if (this.genreList().length > 0) {
+      return of(this.genreList());
     }
 
     return this.http
@@ -26,11 +27,11 @@ export class GenresService {
       })
       .pipe(
         map((response) => response.genres),
-        tap((genres) => (this.genreList = genres))
+        tap((genres) => this.genreList.set(genres))
       );
   }
 
   getGenre(id: number): Genre | undefined {
-    return this.genreList.find((genre) => genre.id === id);
+    return this.genreList().find((genre) => genre.id === id);
   }
 }

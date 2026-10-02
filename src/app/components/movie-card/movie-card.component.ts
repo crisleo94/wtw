@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
@@ -25,49 +25,36 @@ import { CARD_VARIANT } from '../../types/components.types';
   templateUrl: './movie-card.component.html',
   styleUrl: './movie-card.component.sass',
 })
-export class MovieCardComponent implements OnInit {
-  @Input() variant: CARD_VARIANT = 'simple';
-  @Input() movie: Movie | null = null;
-  favoriteMovies: Movie[] = [];
-  movieGenres: string[] = [];
-  showMore = false;
+export class MovieCardComponent {
+  private _genreService = inject(GenresService);
+  private _moviesService = inject(MoviesService);
+  private _snackBar = inject(MatSnackBar);
 
-  constructor(
-    private _genreService: GenresService,
-    private _moviesService: MoviesService,
-    private _snackBar: MatSnackBar
-  ) {}
+  variant = input<CARD_VARIANT>('simple');
+  movie = input<Movie | null>(null);
+  showMore = signal(false);
 
-  ngOnInit(): void {
-    this.getMovieGenres();
-  }
+  movieGenres = computed(() =>
+    (this.movie()?.genre_ids ?? []).map(
+      (genre) => this._genreService.getGenre(genre)?.name || ''
+    )
+  );
 
   buildImageUrl(path: string): string {
     return path ? `${IMAGE_URL}/${path}` : PLACEHOLDER_IMG;
   }
 
-  getMovieGenres(): void {
-    const genres: string[] = [];
-    if (this.movie) {
-      this.movie.genre_ids.forEach((genre) => {
-        genres.push(this._genreService.getGenre(genre)?.name || '');
-      });
-      this.movieGenres = genres;
-    }
-  }
-
   toggleReadMore(): void {
-    this.showMore = !this.showMore;
+    this.showMore.update((showMore) => !showMore);
   }
 
   addToFavorite(): void {
-    if (this.movie) {
-      this.favoriteMovies = [...this.favoriteMovies, this.movie];
+    const movie = this.movie();
+    if (movie) {
+      this._moviesService.addFavoriteMovie(movie);
     }
     this._snackBar.open('Movie added to favorites!', 'Dismiss', {
       duration: 1000,
     });
-
-    this._moviesService.updateFavoriteMovies(this.favoriteMovies);
   }
 }

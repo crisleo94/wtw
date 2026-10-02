@@ -1,14 +1,14 @@
 <mat-tab-group animate.enter="insert-overview">
   <mat-tab label="History">
     <div class="history-container">
-      @for (movie of recentMovies; track movie?.title) {
+      @for (movie of recentMovies(); track movie?.title) {
       <app-movie-card [movie]="movie" variant="composed"></app-movie-card>
       }
     </div>
   </mat-tab>
   <mat-tab label="Favorites">
     <div class="favorites-container">
-      @for (movie of favoriteMovies; track movie?.title) {
+      @for (movie of favoriteMovies(); track movie?.title) {
       <app-movie-card [movie]="movie" variant="composed"></app-movie-card>
       }
     </div>

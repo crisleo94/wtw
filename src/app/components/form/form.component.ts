@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, inject, OnInit, output } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormBuilder,
   FormsModule,
@@ -11,7 +12,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSliderModule } from '@angular/material/slider';
 import { debounceTime, Subject } from 'rxjs';
-import { Genre } from '../../interfaces/genre.interface';
 import { Movie } from '../../interfaces/movie.interface';
 import { GenresService } from '../../services/genres.service';
 import { MoviesService } from '../../services/movies.service';
@@ -30,17 +30,20 @@ import { MoviesService } from '../../services/movies.service';
   templateUrl: './form.component.html',
   styleUrl: './form.component.sass',
 })
-export class FormComponent {
+export class FormComponent implements OnInit {
+  private fBuilder = inject(FormBuilder);
+  private genreService = inject(GenresService);
+  private movieService = inject(MoviesService);
+
   debounceSubmit$ = new Subject<void>();
-  @Output() movieEvent = new EventEmitter<Movie | null>();
-  @Output() isLoadingEvent = new EventEmitter<boolean>();
+  movieEvent = output<Movie | null>();
+  isLoadingEvent = output<boolean>();
 
   generatedMovies: Movie[] = [];
   randomizedMovie: Movie | null = null;
-  isLoading = true;
   currentYear = new Date().getFullYear();
 
-  genres: Genre[] = [];
+  genres = this.genreService.genres;
 
   dataForm = this.fBuilder.group({
     year: [
@@ -55,25 +58,18 @@ export class FormComponent {
     rating: [1, [Validators.required, Validators.min(1), Validators.max(10)]],
   });
 
-  constructor(
-    private fBuilder: FormBuilder,
-    private genreService: GenresService,
-    private movieService: MoviesService
-  ) {}
+  constructor() {
+    this.debounceSubmit$
+      .pipe(debounceTime(200), takeUntilDestroyed())
+      .subscribe(() => this.generateMovies());
+  }
 
   ngOnInit(): void {
-    this.debounceSubmit$.pipe(debounceTime(200)).subscribe(() => {
-      this.generateMovies();
-      setTimeout(() => {
-        this.isLoading = false;
-      });
-    });
     this.getGenres();
   }
 
   onSubmit(): void {
-    this.isLoading = true;
-    this.isLoadingEvent.emit(this.isLoading);
+    this.isLoadingEvent.emit(true);
     this.debounceSubmit$.next();
   }
 
@@ -90,13 +86,11 @@ export class FormComponent {
         if (this.generatedMovies.length > 0) {
           this.randomizeMovie();
           setTimeout(() => {
-            this.isLoading = false;
-            this.isLoadingEvent.emit(this.isLoading);
+            this.isLoadingEvent.emit(false);
             this.onMovieSelected(this.randomizedMovie);
           }, 1000);
         } else {
-          this.isLoading = false;
-          this.isLoadingEvent.emit(this.isLoading);
+          this.isLoadingEvent.emit(false);
           this.onMovieSelected(null);
         }
       });
@@ -110,12 +104,11 @@ export class FormComponent {
   }
 
   getGenres(): void {
-    this.genreService.getGenres().subscribe((genres) => (this.genres = genres));
+    this.genreService.getGenres().subscribe();
   }
 
   reset(): void {
     this.dataForm.reset();
-    this.isLoading = false;
   }
 
   onMovieSelected(movie: Movie | null): void {

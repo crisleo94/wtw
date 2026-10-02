@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FormComponent } from './components/form/form.component';
@@ -20,23 +20,19 @@ import { MoviesService } from './services/movies.service';
   styleUrl: './app.component.sass',
 })
 export class AppComponent {
-  movie: Movie | null = null;
-  isLoading = false;
-  movies: Movie[] = [];
-  favoriteMovies: Movie[] = [];
+  private _moviesService = inject(MoviesService);
 
-  constructor(private _moviesService: MoviesService) {}
+  movie = signal<Movie | null>(null);
+  isLoading = signal(false);
 
   recieveMovie($event: Movie | null): void {
     if ($event) {
-      this.movies.push($event);
+      this._moviesService.addRecentMovie($event);
     }
-    this.movie = $event;
-
-    this._moviesService.updateRecentMovies(this.movies);
+    this.movie.set($event);
   }
 
   recieveIsLoading($event: boolean): void {
-    this.isLoading = $event;
+    this.isLoading.set($event);
   }
 }

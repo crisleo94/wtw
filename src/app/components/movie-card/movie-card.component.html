@@ -1,4 +1,5 @@
-@if (movie && variant === 'simple') {
+@if (movie(); as movie) {
+@if (variant() === 'simple') {
 <mat-card class="card">
   <div class="card-content">
     <mat-card-header>
@@ -15,7 +16,7 @@
         >
       </mat-card-title-group>
       <mat-chip-listbox disabled>
-        @for (genre of movieGenres; track genre) {
+        @for (genre of movieGenres(); track genre) {
         <mat-chip-option class="genre" disabled>{{ genre }}</mat-chip-option>
         }
       </mat-chip-listbox>
@@ -45,7 +46,7 @@
 </mat-card>
 }
 <!-- COMPOSED VARIANT FOR OVERVIEW COMPONENT -->
-@if (movie && variant === 'composed') {
+@if (variant() === 'composed') {
 <mat-card class="card-composed">
   <div>
     <img
@@ -69,13 +70,13 @@
       </mat-card-title-group>
     </mat-card-header>
     <mat-card-content>
-      @if (!showMore) {
+      @if (!showMore()) {
       <b>Synopsis: </b> {{ movie.overview.slice(0, 80) }}
-      } @if (showMore) {
+      } @if (showMore()) {
       <b>Synopsis: </b> {{ movie.overview }}
       }
       <button mat-stroked-button (click)="toggleReadMore()">
-        {{ showMore ? "Less" : "More" }}
+        {{ showMore() ? "Less" : "More" }}
       </button>
     </mat-card-content>
   </div>
@@ -87,4 +88,5 @@
     </mat-card-actions>
   </div>
 </mat-card>
+}
 }

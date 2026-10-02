@@ -30,7 +30,7 @@
       <mat-label for="genre">Select Genre:</mat-label>
       <mat-select name="genre" id="genre" formControlName="genre">
         <mat-option [value]="">--</mat-option>
-        @for (genre of genres; track genre.id) {
+        @for (genre of genres(); track genre.id) {
           <mat-option [value]="genre.id">
             {{ genre.name }}
           </mat-option>
@@ -66,7 +66,7 @@
   >
     Generate Movie
   </button>
-  <button mat-flat-button color="warn" type="button" onclick="reset()">
+  <button mat-flat-button color="warn" type="button" (click)="reset()">
     Reset Controls
   </button>
 </form>

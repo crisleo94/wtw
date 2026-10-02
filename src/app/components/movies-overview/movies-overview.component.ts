@@ -1,7 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatTabsModule } from '@angular/material/tabs';
-import { Movie } from '../../interfaces/movie.interface';
 import { MoviesService } from '../../services/movies.service';
 import { MovieCardComponent } from '../movie-card/movie-card.component';
 
@@ -11,18 +10,9 @@ import { MovieCardComponent } from '../movie-card/movie-card.component';
   templateUrl: './movies-overview.component.html',
   styleUrl: './movies-overview.component.sass',
 })
-export class MoviesOverviewComponent implements OnInit {
-  recentMovies: Movie[] = [];
-  favoriteMovies: Movie[] = [];
+export class MoviesOverviewComponent {
+  private _moviesService = inject(MoviesService);
 
-  constructor(private _moviesService: MoviesService) {}
-
-  ngOnInit(): void {
-    this._moviesService.currentRecentMovies.subscribe(
-      (currentMovies) => (this.recentMovies = currentMovies)
-    );
-    this._moviesService.currentFavoriteMovies.subscribe(
-      (currentFavoriteMovies) => (this.favoriteMovies = currentFavoriteMovies)
-    );
-  }
+  recentMovies = this._moviesService.currentRecentMovies;
+  favoriteMovies = this._moviesService.currentFavoriteMovies;
 }
