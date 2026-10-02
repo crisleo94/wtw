@@ -93,7 +93,8 @@ h1
   background: transparent
 
 .panel
-  width: min(400px, 100vw)
+  // 100vw would include the scrollbar and push the panel off screen.
+  width: min(400px, 100%)
 
 // Stacks early enough that long translated actions never push the title off center.
 @container header (max-width: 820px)
