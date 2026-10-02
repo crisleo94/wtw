@@ -1,14 +1,18 @@
 import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Movie } from '../interfaces/movie.interface';
-import { SESSION_KEY, SessionStore } from './session.store';
+import { SESSION_KEY, SESSION_LIMITS, SessionStore } from './session.store';
 
 const movie = (tmdbId: number) =>
   ({ tmdbId, title: `Movie ${tmdbId}`, posterPath: '/p.jpg' }) as Movie;
 
 describe('SessionStore', () => {
-  beforeEach(() => sessionStorage.removeItem(SESSION_KEY));
-  afterEach(() => sessionStorage.removeItem(SESSION_KEY));
+  const reset = () => {
+    sessionStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem('wtw.session.rejected.v1');
+  };
+  beforeEach(reset);
+  afterEach(reset);
 
   it('should start empty with the Watchlist', () => {
     const store = TestBed.inject(SessionStore);
@@ -57,5 +61,31 @@ describe('SessionStore', () => {
     store.addHistory(movie(1));
     expect(store.data().history.length).toBe(1);
     expect(sessionStorage.getItem(SESSION_KEY)).toBeNull();
+  });
+
+  it('should keep the session within the API import limits', () => {
+    const store = TestBed.inject(SessionStore);
+    for (let id = 1; id <= SESSION_LIMITS.history + 5; id++) {
+      store.addHistory(movie(id));
+    }
+    expect(store.data().history.length).toBe(SESSION_LIMITS.history);
+    expect(store.data().history[0].movie.tmdbId).toBe(SESSION_LIMITS.history + 5);
+
+    const watched = Array.from({ length: SESSION_LIMITS.watched + 3 }, (_, i) => i + 1);
+    sessionStorage.setItem(
+      SESSION_KEY,
+      JSON.stringify({ history: [], watched, lists: [], movies: {} })
+    );
+    TestBed.resetTestingModule();
+    expect(TestBed.inject(SessionStore).data().watched.length).toBe(SESSION_LIMITS.watched);
+  });
+
+  it('should forget a rejected import on new activity', () => {
+    const store = TestBed.inject(SessionStore);
+    store.addHistory(movie(1));
+    store.markImportRejected();
+    expect(store.importRejected()).toBeTrue();
+    store.setWatched(movie(1), true);
+    expect(store.importRejected()).toBeFalse();
   });
 });

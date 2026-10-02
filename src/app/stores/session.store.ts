@@ -9,7 +9,15 @@ import { Movie } from '../interfaces/movie.interface';
 import { injectSessionStorage } from '../utils/browser-storage';
 
 export const SESSION_KEY = 'wtw.session.v1';
-export const SESSION_HISTORY_LIMIT = 500;
+const REJECTED_KEY = 'wtw.session.rejected.v1';
+
+// Same limits as POST /api/me/import, so a session never grows past them.
+export const SESSION_LIMITS = {
+  history: 500,
+  watched: 2000,
+  lists: 50,
+  listItems: 500,
+};
 
 export const emptySession = (): SessionData => ({
   history: [],
@@ -25,8 +33,11 @@ export const emptySession = (): SessionData => ({
 export class SessionStore {
   private storage = injectSessionStorage();
   private state = signal<SessionData>(this.read());
+  private rejected = signal(this.storage.get(REJECTED_KEY) === 'true');
 
   readonly data = this.state.asReadonly();
+  // The API refused this exact session (4xx); it changes back on any new activity.
+  readonly importRejected = this.rejected.asReadonly();
   readonly isEmpty = computed(() => {
     const { history, watched, lists } = this.state();
     return (
@@ -42,7 +53,7 @@ export class SessionStore {
       history: [
         { movie, filters, generatedAt: new Date().toISOString() },
         ...data.history,
-      ].slice(0, SESSION_HISTORY_LIMIT),
+      ],
       movies: { ...data.movies, [movie.tmdbId]: movie },
     }));
   }
@@ -86,21 +97,35 @@ export class SessionStore {
     }));
   }
 
+  markImportRejected(): void {
+    this.rejected.set(true);
+    this.storage.set(REJECTED_KEY, 'true');
+  }
+
   clear(): void {
     this.state.set(emptySession());
     this.storage.remove(SESSION_KEY);
+    this.clearRejected();
   }
 
   private commit(updater: (data: SessionData) => SessionData): void {
-    const data = withoutOrphanMovies(updater(this.state()));
+    const data = withoutOrphanMovies(withinLimits(updater(this.state())));
     this.state.set(data);
     this.storage.set(SESSION_KEY, JSON.stringify(data));
+    this.clearRejected();
+  }
+
+  private clearRejected(): void {
+    this.rejected.set(false);
+    this.storage.remove(REJECTED_KEY);
   }
 
   private read(): SessionData {
     try {
       const raw = JSON.parse(this.storage.get(SESSION_KEY) ?? 'null');
-      return isSessionData(raw) ? raw : emptySession();
+      return isSessionData(raw)
+        ? withoutOrphanMovies(withinLimits(raw))
+        : emptySession();
     } catch {
       return emptySession();
     }
@@ -117,6 +142,23 @@ function isSessionData(value: unknown): value is SessionData {
     typeof data.movies === 'object' &&
     data.movies !== null
   );
+}
+
+// Newest history first; new watched ids, lists and items beyond the limits are dropped.
+function withinLimits(data: SessionData): SessionData {
+  const lists = [
+    ...data.lists.filter((list) => list.isSystem).slice(0, 1),
+    ...data.lists.filter((list) => !list.isSystem),
+  ].slice(0, SESSION_LIMITS.lists);
+  return {
+    ...data,
+    history: data.history.slice(0, SESSION_LIMITS.history),
+    watched: data.watched.slice(0, SESSION_LIMITS.watched),
+    lists: lists.map((list) => ({
+      ...list,
+      items: list.items.slice(0, SESSION_LIMITS.listItems),
+    })),
+  };
 }
 
 // Keeps only the movies still referenced, so the import body stays small.
