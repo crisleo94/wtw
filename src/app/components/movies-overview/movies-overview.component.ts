@@ -63,6 +63,6 @@ export class MoviesOverviewComponent {
   }
 
   private notify(message: string): void {
-    this._snackBar.open(message, 'Dismiss', { duration: 2500 });
+    this._snackBar.open(message, this._transloco.translate('common.dismiss'), { duration: 2500 });
   }
 }

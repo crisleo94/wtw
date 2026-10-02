@@ -57,7 +57,7 @@
 <div class="lists" cdkDropListGroup>
   @for (panelList of panelLists(); track panelList.key) {
   @let list = panelList.list;
-  <section class="list" [attr.aria-label]="list.name">
+  <section class="list" [attr.aria-label]="list.isSystem ? ('overview.watchlistTab' | transloco) : list.name">
     <div class="list-header">
       @if (editingKey() === panelList.key) {
       <form class="rename" (ngSubmit)="saveRename(list)">
@@ -81,7 +81,7 @@
       } @else {
       <h3>
         @if (list.isSystem) {<mat-icon aria-hidden="true">bookmark</mat-icon>}
-        {{ list.name }} <span class="count">({{ list.items.length }})</span>
+        {{ list.isSystem ? ('overview.watchlistTab' | transloco) : list.name }} <span class="count">({{ list.items.length }})</span>
       </h3>
       @if (!list.isSystem) {
       <button
@@ -139,11 +139,11 @@
           </button>
           @for (other of otherLists(list); track other.name) {
           <button mat-menu-item (click)="moveTo(list, item, other)">
-            <mat-icon>drive_file_move</mat-icon><span>{{ 'panel.moveTo' | transloco: { name: other.name } }}</span>
+            <mat-icon>drive_file_move</mat-icon><span>{{ 'panel.moveTo' | transloco: { name: other.isSystem ? ('overview.watchlistTab' | transloco) : other.name } }}</span>
           </button>
           }
           <button mat-menu-item (click)="removeItem(list, item)">
-            <mat-icon>delete</mat-icon><span>{{ 'panel.removeFrom' | transloco: { name: list.name } }}</span>
+            <mat-icon>delete</mat-icon><span>{{ 'panel.removeFrom' | transloco: { name: list.isSystem ? ('overview.watchlistTab' | transloco) : list.name } }}</span>
           </button>
         </mat-menu>
       </li>

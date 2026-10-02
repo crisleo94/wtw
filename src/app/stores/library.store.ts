@@ -438,7 +438,7 @@ export class LibraryStore {
   }
 
   private notify(message: string): void {
-    this.snackBar.open(message, 'Dismiss', { duration: 5000 });
+    this.snackBar.open(message, this.transloco.translate('common.dismiss'), { duration: 5000 });
   }
 }
 

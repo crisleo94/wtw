@@ -55,7 +55,9 @@
     "loginButton": "Iniciar sesión",
     "createAccount": "Crear cuenta",
     "continueGuest": "Continuar como invitado",
-    "guestMessage": "Estás navegando como invitado. Tus listas se mantienen en esta pestaña hasta que inicies sesión."
+    "guestMessage": "Estás navegando como invitado. Tus listas se mantienen en esta pestaña hasta que inicies sesión.",
+    "reasonCard": "Inicia sesión para guardar tu lista Por ver, las películas vistas y tus listas, o continúa como invitado.",
+    "reasonPanel": "Inicia sesión para guardar tus listas, o continúa como invitado."
   },
   "card": {
     "inWatchlist": "En Por ver",
@@ -135,6 +137,11 @@
     "maxWatchedGuest": "Puedes marcar hasta {{max}} películas como vistas como invitado. Inicia sesión para guardar más.",
     "guestActivitySaved": "Tu actividad como invitado fue guardada en tu cuenta.",
     "guestActivityFailed": "No pudimos guardar tu actividad como invitado. Se mantiene en esta pestaña e intentaremos de nuevo en tu próximo inicio de sesión.",
-    "libraryFailed": "No pudimos cargar tu biblioteca. Recarga la página."
+    "libraryFailed": "No pudimos cargar tu biblioteca. Recarga la página.",
+    "sessionExpired": "Tu sesión expiró. Vuelve a iniciar sesión."
+  },
+  "common": {
+    "dismiss": "Cerrar",
+    "ok": "Entendido"
   }
 }

@@ -1,6 +1,7 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { TranslocoService } from '@jsverse/transloco';
 import { catchError, throwError } from 'rxjs';
 import { API_URL } from '../constants';
 import { AuthStore } from '../stores/auth.store';
@@ -11,6 +12,7 @@ const USER_URLS = [`${API_URL}/me`, `${API_URL}/auth/me`];
 export const sessionExpiredInterceptor: HttpInterceptorFn = (req, next) => {
   const authStore = inject(AuthStore);
   const snackBar = inject(MatSnackBar);
+  const transloco = inject(TranslocoService);
   const isUserRequest = USER_URLS.some(
     (url) => req.url === url || req.url.startsWith(`${url}/`)
   );
@@ -24,7 +26,7 @@ export const sessionExpiredInterceptor: HttpInterceptorFn = (req, next) => {
         authStore.isLoggedIn()
       ) {
         authStore.clearUser();
-        snackBar.open('Your session expired. Please log in again.', 'Dismiss', {
+        snackBar.open(transloco.translate('errors.sessionExpired'), transloco.translate('common.dismiss'), {
           duration: 5000,
         });
       }

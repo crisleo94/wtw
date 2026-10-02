@@ -47,7 +47,6 @@ export class MovieCardComponent {
   private _authDialog = inject(AuthDialogService);
   private _transloco = inject(TranslocoService);
 
-  private readonly sessionReason = 'Log in to keep your watchlist, watched movies and lists, or continue as a guest.';
 
   variant = input<CARD_VARIANT>('simple');
   movie = input<Movie | null>(null);
@@ -132,7 +131,7 @@ export class MovieCardComponent {
     if (!movie) {
       return;
     }
-    this._authDialog.ensureSession(this.sessionReason).subscribe((result) => {
+    this._authDialog.ensureSession(this._transloco.translate('auth.reasonCard')).subscribe((result) => {
       if (!result) {
         return;
       }
@@ -154,6 +153,6 @@ export class MovieCardComponent {
   }
 
   private notify(message: string): void {
-    this._snackBar.open(message, 'Dismiss', { duration: 2500 });
+    this._snackBar.open(message, this._transloco.translate('common.dismiss'), { duration: 2500 });
   }
 }

@@ -42,9 +42,6 @@ import {
   ConfirmDialogData,
 } from '../confirm-dialog/confirm-dialog.component';
 
-const SESSION_REASON =
-  'Log in to keep your lists, or continue as a guest.';
-
 export type WatchedFilter = 'all' | 'watched' | 'unwatched';
 
 interface PanelList {
@@ -257,7 +254,7 @@ export class UserPanelComponent {
 
   // Same rule as the cards: ask for a session, wait for the library, then act.
   private run(action: () => Observable<void>, success: string | null, done?: () => void): void {
-    this.authDialog.ensureSession(SESSION_REASON).subscribe((result) => {
+    this.authDialog.ensureSession(this.transloco.translate('auth.reasonPanel')).subscribe((result) => {
       if (!result) {
         return;
       }
@@ -304,6 +301,6 @@ export class UserPanelComponent {
   }
 
   private notify(message: string): void {
-    this.snackBar.open(message, 'Dismiss', { duration: 2500 });
+    this.snackBar.open(message, this.transloco.translate('common.dismiss'), { duration: 2500 });
   }
 }

@@ -9,6 +9,7 @@ import {
 } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { AuthStore } from '../stores/auth.store';
+import { getTranslocoTestingModule } from '../testing/transloco-testing';
 import { sessionExpiredInterceptor } from './session-expired.interceptor';
 
 describe('sessionExpiredInterceptor', () => {
@@ -18,6 +19,7 @@ describe('sessionExpiredInterceptor', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [getTranslocoTestingModule()],
       providers: [
         provideHttpClient(withInterceptors([sessionExpiredInterceptor])),
         provideHttpClientTesting(),
