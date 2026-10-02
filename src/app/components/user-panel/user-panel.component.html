@@ -138,9 +138,16 @@
             <mat-icon>arrow_downward</mat-icon><span>{{ 'panel.moveDown' | transloco }}</span>
           </button>
           @for (other of otherLists(list); track other.name) {
-          <button mat-menu-item (click)="moveTo(list, item, other)">
-            <mat-icon>drive_file_move</mat-icon><span>{{ 'panel.moveTo' | transloco: { name: other.isSystem ? ('overview.watchlistTab' | transloco) : other.name } }}</span>
+          @let otherName = other.isSystem ? ('overview.watchlistTab' | transloco) : other.name;
+          @if (contains(other, item)) {
+          <button mat-menu-item disabled>
+            <mat-icon>check</mat-icon><span>{{ 'panel.alreadyIn' | transloco: { name: otherName } }}</span>
           </button>
+          } @else {
+          <button mat-menu-item (click)="moveTo(list, item, other)">
+            <mat-icon>drive_file_move</mat-icon><span>{{ 'panel.moveTo' | transloco: { name: otherName } }}</span>
+          </button>
+          }
           }
           <button mat-menu-item (click)="removeItem(list, item)">
             <mat-icon>delete</mat-icon><span>{{ 'panel.removeFrom' | transloco: { name: list.isSystem ? ('overview.watchlistTab' | transloco) : list.name } }}</span>

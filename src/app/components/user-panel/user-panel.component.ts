@@ -28,7 +28,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Observable, switchMap, throwError } from 'rxjs';
-import { IMAGE_URL, PLACEHOLDER_IMG } from '../../constants';
 import {
   MovieList,
   MovieListItem,
@@ -37,6 +36,7 @@ import { AuthDialogService } from '../../services/auth-dialog.service';
 import { AuthStore } from '../../stores/auth.store';
 import { LibraryStore, listKey } from '../../stores/library.store';
 import { apiErrorMessage, LibraryError } from '../../utils/api-error';
+import { posterUrl } from '../../utils/image-url';
 import {
   ConfirmDialogComponent,
   ConfirmDialogData,
@@ -101,7 +101,7 @@ export class UserPanelComponent {
   });
 
   posterUrl(path?: string): string {
-    return path ? `${IMAGE_URL}/${path}` : PLACEHOLDER_IMG;
+    return posterUrl(path);
   }
 
   openAuth(): void {
@@ -222,6 +222,11 @@ export class UserPanelComponent {
 
   otherLists(list: MovieList): MovieList[] {
     return this.library.lists().filter((other) => listKey(other) !== listKey(list));
+  }
+
+  // "Move to" can't target a list that already has the movie.
+  contains(list: MovieList, item: MovieListItem): boolean {
+    return list.items.some((other) => other.tmdbId === item.tmdbId);
   }
 
   isFirst(panelList: PanelList, item: MovieListItem): boolean {

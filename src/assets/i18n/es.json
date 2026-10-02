@@ -115,6 +115,7 @@
     "moveUp": "Mover hacia arriba",
     "moveDown": "Mover hacia abajo",
     "moveTo": "Mover a {{name}}",
+    "alreadyIn": "Ya está en {{name}}",
     "removeFrom": "Eliminar de {{name}}",
     "actionsFor": "Acciones para {{title}}"
   },

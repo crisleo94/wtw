@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subject } from 'rxjs';
 import { AuthDialogResult } from '../auth-dialog/auth-dialog.component';
 import { AuthDialogService } from '../../services/auth-dialog.service';
@@ -107,5 +108,30 @@ describe('MovieCardComponent', () => {
       ]);
       httpTesting.expectOne('/api/me/lists/l2/items');
     });
+
+    it('should say the session expired when an action gets a 401', () => {
+      const snackBar = spyOn(TestBed.inject(MatSnackBar), 'open');
+      component.toggleWatched();
+      loginAndLoad([{ id: 'w1', name: 'Watchlist', isSystem: true, position: 0, items: [] }]);
+      httpTesting
+        .expectOne('/api/me/movies/9')
+        .flush({ message: 'Unauthorized' }, { status: 401, statusText: 'Unauthorized' });
+      expect(snackBar).toHaveBeenCalledWith(
+        'Your session expired. Please log in again.',
+        jasmine.any(String),
+        jasmine.any(Object)
+      );
+    });
+  });
+
+  it('should build poster URLs without a double slash', () => {
+    expect(component.buildImageUrl('/abc.jpg')).toBe('https://image.tmdb.org/t/p/w500/abc.jpg');
+  });
+
+  it('should disable lists that already have the movie', () => {
+    fixture.componentRef.setInput('movie', { tmdbId: 9 } as Movie);
+    const item = { tmdbId: 9, position: 0, watched: false, movie: {} as Movie };
+    expect(component.inList({ name: 'Later', isSystem: false, position: 1, items: [item] })).toBeTrue();
+    expect(component.inList({ name: 'Other', isSystem: false, position: 2, items: [] })).toBeFalse();
   });
 });

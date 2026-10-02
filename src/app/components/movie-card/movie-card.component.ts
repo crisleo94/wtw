@@ -10,7 +10,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Observable, switchMap, throwError } from 'rxjs';
-import { IMAGE_URL, PLACEHOLDER_IMG } from '../../constants';
 import { MovieList } from '../../interfaces/library.interface';
 import { Movie } from '../../interfaces/movie.interface';
 import { AuthDialogService } from '../../services/auth-dialog.service';
@@ -18,6 +17,7 @@ import { GenresService } from '../../services/genres.service';
 import { LibraryStore } from '../../stores/library.store';
 import { CARD_VARIANT } from '../../types/components.types';
 import { apiErrorMessage, LibraryError } from '../../utils/api-error';
+import { posterUrl } from '../../utils/image-url';
 
 interface CardAction {
   request: Observable<void>;
@@ -75,8 +75,13 @@ export class MovieCardComponent {
     this._library.lists().filter((list) => !list.isSystem)
   );
 
+  inList(list: MovieList): boolean {
+    const movie = this.movie();
+    return !!movie && list.items.some((item) => item.tmdbId === movie.tmdbId);
+  }
+
   buildImageUrl(path: string): string {
-    return path ? `${IMAGE_URL}/${path}` : PLACEHOLDER_IMG;
+    return posterUrl(path);
   }
 
   toggleReadMore(): void {

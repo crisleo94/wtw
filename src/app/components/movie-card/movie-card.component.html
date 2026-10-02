@@ -30,7 +30,11 @@
     </button>
     <mat-menu #listsMenu="matMenu">
       @for (list of customLists(); track list.name) {
+      @if (inList(list)) {
+      <button mat-menu-item disabled>{{ 'panel.alreadyIn' | transloco: { name: list.name } }}</button>
+      } @else {
       <button mat-menu-item (click)="addToList(list)">{{ list.name }}</button>
+      }
       } @empty {
       <button mat-menu-item disabled>{{ 'card.noLists' | transloco }}</button>
       }

@@ -76,6 +76,17 @@ describe('UserPanelComponent', () => {
     expect(library.watchlist()!.items.length).toBe(0);
   });
 
+  it('should not offer to move a movie to a list that already has it', async () => {
+    component.newListName.set('Later');
+    component.createList();
+    library.addToList(library.lists()[1], movie(1)).subscribe();
+    const [watchlist, later] = library.lists();
+    const item = watchlist.items.find((entry) => entry.tmdbId === 1)!;
+    expect(component.contains(later, item)).toBeTrue();
+    expect(component.contains(later, watchlist.items.find((entry) => entry.tmdbId === 2)!)).toBeFalse();
+    expect(component.posterUrl('/p.jpg')).toBe('https://image.tmdb.org/t/p/w500/p.jpg');
+  });
+
   it('should reorder with move up', () => {
     const panelList = component.panelLists()[0];
     component.shift(panelList, panelList.items[1], -1);
