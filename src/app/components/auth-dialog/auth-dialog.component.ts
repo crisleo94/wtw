@@ -90,7 +90,7 @@ export class AuthDialogComponent {
     this.submit(
       this.loginForm,
       () => this.authStore.login(this.loginForm.getRawValue()),
-      { 401: 'Invalid email or password.' }
+      { 401: this.transloco.translate('errors.invalidCredentials') }
     );
   }
 
@@ -98,7 +98,7 @@ export class AuthDialogComponent {
     this.submit(
       this.registerForm,
       () => this.authStore.register(this.registerForm.getRawValue()),
-      { 409: 'This email is already registered. Try logging in instead.' }
+      { 409: this.transloco.translate('errors.emailTaken') }
     );
   }
 

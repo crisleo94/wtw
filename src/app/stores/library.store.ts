@@ -433,14 +433,14 @@ export class LibraryStore {
   private offerDiscard(): void {
     this.snackBar
       .open(
-        'Your guest activity could not be saved to your account. Discard it?',
-        'Discard',
+        this.transloco.translate('errors.guestImportRejected'),
+        this.transloco.translate('common.discard'),
         { duration: 10000 }
       )
       .onAction()
       .subscribe(() => {
         this.session.clear();
-        this.notify('Guest activity discarded.');
+        this.notify(this.transloco.translate('errors.guestActivityDiscarded'));
       });
   }
 

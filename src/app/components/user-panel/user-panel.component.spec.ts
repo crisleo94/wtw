@@ -3,6 +3,8 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Movie } from '../../interfaces/movie.interface';
 import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { TranslocoService } from '@jsverse/transloco';
 import { of } from 'rxjs';
 import { AuthDialogService } from '../../services/auth-dialog.service';
 import { AuthStore } from '../../stores/auth.store';
@@ -124,6 +126,30 @@ describe('UserPanelComponent', () => {
     open.and.returnValue({ afterClosed: () => of(true) } as never);
     component.deleteList(library.lists()[1]);
     expect(library.lists().length).toBe(1);
+  });
+
+  it('should show the panel messages and the delete dialog in Spanish', () => {
+    TestBed.inject(TranslocoService).setActiveLang('es');
+    const snackBar = spyOn(TestBed.inject(MatSnackBar), 'open');
+    component.newListName.set('Later');
+    component.createList();
+    expect(snackBar).toHaveBeenCalledWith('Lista "Later" creada.', 'Cerrar', jasmine.any(Object));
+
+    const [watchlist, later] = library.lists();
+    component.moveTo(watchlist, watchlist.items[0], later);
+    expect(snackBar).toHaveBeenCalledWith('Movida a Later.', 'Cerrar', jasmine.any(Object));
+    component.removeItem(later, library.lists()[1].items[0]);
+    expect(snackBar).toHaveBeenCalledWith('Quitada de Later.', 'Cerrar', jasmine.any(Object));
+
+    const open = spyOn(TestBed.inject(MatDialog), 'open').and.returnValue({
+      afterClosed: () => of(false),
+    } as never);
+    component.deleteList(library.lists()[1]);
+    expect(open.calls.mostRecent().args[1]?.data).toEqual({
+      title: 'Eliminar lista',
+      message: '¿Eliminar la lista "Later"? Se quitarán sus películas.',
+      confirmLabel: 'Eliminar',
+    });
   });
 
   it('should focus the rename input', async () => {

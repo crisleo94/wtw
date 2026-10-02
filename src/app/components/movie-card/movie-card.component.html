@@ -43,7 +43,7 @@
     <button
       mat-icon-button
       class="warn-button"
-      [matTooltip]="removeLabel()"
+      [matTooltip]="removeLabel() || ('card.removeLabel' | transloco)"
       [attr.aria-label]="removeLabel() || ('card.removeLabel' | transloco)"
       (click)="remove.emit()"
     >

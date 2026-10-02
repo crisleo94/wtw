@@ -51,7 +51,7 @@ export class MovieCardComponent {
   variant = input<CARD_VARIANT>('simple');
   movie = input<Movie | null>(null);
   removable = input(false);
-  removeLabel = input('Remove');
+  removeLabel = input('');
   remove = output<void>();
   showMore = signal(false);
 
@@ -123,7 +123,10 @@ export class MovieCardComponent {
       return {
         request: target
           ? this._library.addToList(target, movie)
-          : throwError(() => new LibraryError(`The list "${list.name}" is no longer available.`)),
+          : throwError(
+              () =>
+                new LibraryError(this._transloco.translate('errors.listUnavailable', { name: list.name }))
+            ),
         success: this._transloco.translate('card.addedToList', { list: list.name }),
       };
     });

@@ -5,6 +5,7 @@ import {
 } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { TranslocoService } from '@jsverse/transloco';
 import { AuthStore } from '../../stores/auth.store';
 import { AuthDialogComponent } from './auth-dialog.component';
 import { getTranslocoTestingModule } from '../../testing/transloco-testing';
@@ -60,6 +61,16 @@ describe('AuthDialogComponent', () => {
     expect(component.errorMessage()).toBe('Invalid email or password.');
     expect(fixture.nativeElement.textContent).toContain('Invalid email or password.');
     expect(dialogRef.close).not.toHaveBeenCalled();
+  });
+
+  it('should show invalid credentials in Spanish', () => {
+    TestBed.inject(TranslocoService).setActiveLang('es');
+    component.loginForm.setValue({ email: 'a@b.co', password: '12345678' });
+    component.login();
+    httpTesting
+      .expectOne('/api/auth/login')
+      .flush({}, { status: 401, statusText: 'Unauthorized' });
+    expect(component.errorMessage()).toBe('Correo o contraseña incorrectos.');
   });
 
   it('should show an email already used error on register', () => {

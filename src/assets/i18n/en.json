@@ -117,7 +117,16 @@
     "moveTo": "Move to {{name}}",
     "alreadyIn": "Already in {{name}}",
     "removeFrom": "Remove from {{name}}",
-    "actionsFor": "Actions for {{title}}"
+    "actionsFor": "Actions for {{title}}",
+    "loggedOut": "You have logged out.",
+    "listCreated": "List \"{{name}}\" created.",
+    "listRenamed": "List renamed.",
+    "listDeleted": "List \"{{name}}\" deleted.",
+    "movedTo": "Moved to {{name}}.",
+    "removedFrom": "Removed from {{name}}.",
+    "deleteListTitle": "Delete list",
+    "deleteListMessage": "Delete the list \"{{name}}\"? Its movies will be removed from it.",
+    "deleteListConfirm": "Delete"
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -139,10 +148,17 @@
     "guestActivitySaved": "Your guest activity was saved to your account.",
     "guestActivityFailed": "We could not save your guest activity. It stays in this tab and we will retry on your next login.",
     "libraryFailed": "We could not load your library. Please reload the page.",
-    "sessionExpired": "Your session expired. Please log in again."
+    "sessionExpired": "Your session expired. Please log in again.",
+    "listUnavailable": "The list \"{{name}}\" is no longer available.",
+    "invalidCredentials": "Invalid email or password.",
+    "emailTaken": "This email is already registered. Try logging in instead.",
+    "guestImportRejected": "Your guest activity could not be saved to your account. Discard it?",
+    "guestActivityDiscarded": "Guest activity discarded."
   },
   "common": {
     "dismiss": "Dismiss",
-    "ok": "OK"
+    "ok": "OK",
+    "cancel": "Cancel",
+    "discard": "Discard"
   }
 }

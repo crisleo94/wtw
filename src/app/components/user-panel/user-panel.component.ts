@@ -110,14 +110,15 @@ export class UserPanelComponent {
 
   logout(): void {
     this.authStore.logout().subscribe({
-      next: () => this.notify('You have logged out.'),
+      next: () => this.notify(this.transloco.translate('panel.loggedOut')),
       error: (error) => this.notify(apiErrorMessage(error, this.transloco)),
     });
   }
 
   createList(): void {
     const name = this.newListName();
-    this.run(() => this.library.createList(name), `List "${name.trim()}" created.`, () =>
+    const created = this.transloco.translate('panel.listCreated', { name: name.trim() });
+    this.run(() => this.library.createList(name), created, () =>
       this.newListName.set('')
     );
   }
@@ -140,7 +141,7 @@ export class UserPanelComponent {
     const name = this.editingName().trim();
     this.run(
       () => this.withList(list, (current) => this.library.renameList(current, name)),
-      'List renamed.',
+      this.transloco.translate('panel.listRenamed'),
       () => {
         this.editingKey.set(null);
         const renamed = this.findList(name);
@@ -155,9 +156,9 @@ export class UserPanelComponent {
     this.dialog
       .open<ConfirmDialogComponent, ConfirmDialogData, boolean>(ConfirmDialogComponent, {
         data: {
-          title: 'Delete list',
-          message: `Delete the list "${list.name}"? Its movies will be removed from it.`,
-          confirmLabel: 'Delete',
+          title: this.transloco.translate('panel.deleteListTitle'),
+          message: this.transloco.translate('panel.deleteListMessage', { name: list.name }),
+          confirmLabel: this.transloco.translate('panel.deleteListConfirm'),
         },
         ariaDescribedBy: 'confirm-dialog-message',
       })
@@ -166,7 +167,7 @@ export class UserPanelComponent {
         if (confirmed) {
           this.run(
             () => this.withList(list, (current) => this.library.deleteList(current)),
-            `List "${list.name}" deleted.`,
+            this.transloco.translate('panel.listDeleted', { name: list.name }),
             () => this.focusLater('.new-list input')
           );
         }
@@ -209,14 +210,14 @@ export class UserPanelComponent {
   toggleWatched(item: MovieListItem): void {
     this.run(
       () => this.library.setWatched(item.movie, !item.watched),
-      item.watched ? 'Marked as not watched.' : 'Marked as watched.'
+      this.transloco.translate(item.watched ? 'card.markedNotWatched' : 'card.markedWatched')
     );
   }
 
   removeItem(list: MovieList, item: MovieListItem): void {
     this.run(
       () => this.withList(list, (current) => this.library.removeFromList(current, item.tmdbId)),
-      `Removed from ${list.name}.`
+      this.transloco.translate('panel.removedFrom', { name: this.displayName(list) })
     );
   }
 
@@ -252,7 +253,7 @@ export class UserPanelComponent {
             this.library.moveItem(source, item.tmdbId, target, position)
           )
         ),
-      sameList ? null : `Moved to ${to.name}.`,
+      sameList ? null : this.transloco.translate('panel.movedTo', { name: this.displayName(to) }),
       done
     );
   }
@@ -283,7 +284,14 @@ export class UserPanelComponent {
     const current = this.findList(list.name);
     return current
       ? action(current)
-      : throwError(() => new LibraryError(`The list "${list.name}" is no longer available.`));
+      : throwError(
+          () => new LibraryError(this.transloco.translate('errors.listUnavailable', { name: list.name }))
+        );
+  }
+
+  // The Watchlist keeps its English name in the data; show the translated one.
+  private displayName(list: MovieList): string {
+    return list.isSystem ? this.transloco.translate('overview.watchlistTab') : list.name;
   }
 
   private findList(name: string): MovieList | undefined {
