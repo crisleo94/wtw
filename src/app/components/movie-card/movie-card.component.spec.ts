@@ -29,7 +29,7 @@ describe('MovieCardComponent', () => {
   });
 
   it('should render the movie input', async () => {
-    const movie = { id: 1, title: 'Alien', genre_ids: [], overview: '' };
+    const movie = { tmdbId: 1, title: 'Alien', genreIds: [], overview: '' };
     fixture.componentRef.setInput('movie', movie as unknown as Movie);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;

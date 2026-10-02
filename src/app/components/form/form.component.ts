@@ -39,8 +39,6 @@ export class FormComponent implements OnInit {
   movieEvent = output<Movie | null>();
   isLoadingEvent = output<boolean>();
 
-  generatedMovies: Movie[] = [];
-  randomizedMovie: Movie | null = null;
   currentYear = new Date().getFullYear();
 
   genres = this.genreService.genres;
@@ -54,7 +52,7 @@ export class FormComponent implements OnInit {
         Validators.max(this.currentYear),
       ],
     ],
-    genre: [1, [Validators.required]],
+    genre: [null as number | null, [Validators.required]],
     rating: [1, [Validators.required, Validators.min(1), Validators.max(10)]],
   });
 
@@ -75,32 +73,26 @@ export class FormComponent implements OnInit {
 
   generateMovies(): void {
     const { year, genre, rating } = this.dataForm.value;
-    const parsedYear = Number(year);
-    const parsedGenre = Number(genre);
-    const parsedRating = Number(rating);
     this.movieService
-      .getFilteredMovie(parsedYear, parsedGenre, parsedRating)
-      .subscribe((resp) => {
-        this.generatedMovies = resp.results;
-
-        if (this.generatedMovies.length > 0) {
-          this.randomizeMovie();
+      .generateMovie({
+        yearFrom: Number(year),
+        yearTo: Number(year),
+        genres: genre ? [Number(genre)] : [],
+        ratingMin: Number(rating),
+      })
+      .subscribe({
+        next: (movie) => {
+          // Keeps the spinner visible for a moment, as before.
           setTimeout(() => {
             this.isLoadingEvent.emit(false);
-            this.onMovieSelected(this.randomizedMovie);
-          }, 1000);
-        } else {
+            this.onMovieSelected(movie);
+          }, movie ? 1000 : 0);
+        },
+        error: () => {
           this.isLoadingEvent.emit(false);
           this.onMovieSelected(null);
-        }
+        },
       });
-  }
-
-  randomizeMovie(): void {
-    this.randomizedMovie =
-      this.generatedMovies[
-        Math.floor(Math.random() * this.generatedMovies.length)
-      ];
   }
 
   getGenres(): void {

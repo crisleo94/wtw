@@ -35,7 +35,7 @@ export class MovieCardComponent {
   showMore = signal(false);
 
   movieGenres = computed(() =>
-    (this.movie()?.genre_ids ?? []).map(
+    (this.movie()?.genreIds ?? []).map(
       (genre) => this._genreService.getGenre(genre)?.name || ''
     )
   );
