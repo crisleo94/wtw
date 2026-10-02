@@ -1,10 +1,18 @@
 // SIMPLE CARD
 .card
   display: grid
-  grid-template-columns: 1fr auto
+  grid-template-columns: minmax(0, 1fr) auto
 
-  @media (max-width: 600px)
-    display: block
+  // Below desktop: one column, poster centered under the text.
+  @media (max-width: 1023.98px)
+    grid-template-columns: minmax(0, 1fr)
+
+// Chips go under the title, in a row that wraps, so they never squeeze it.
+.card mat-card-header
+  flex-wrap: wrap
+  row-gap: 8px
+  mat-chip-set
+    flex-basis: 100%
 
 .card-content
   display: grid
@@ -22,8 +30,14 @@
   font-size: 10px !important
 
 .poster
+  display: block
   width: 300px
+  max-width: 100%
   height: auto
+  margin-inline: auto
+  @media (max-width: 1023.98px)
+    width: 100%
+    max-width: 360px
 
 .mat-mdc-chip,
 .mat-mdc-standard-chip
