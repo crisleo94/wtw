@@ -69,4 +69,23 @@ describe('FormComponent', () => {
     expect(component.dataForm.controls.yearFrom.value).toBe(1990);
     expect(component.dataForm.controls.votesMin.value).toBe(5000);
   });
+
+  it('should re-create the rating slider when its width changes and keep the values', async () => {
+    const host = fixture.nativeElement as HTMLElement;
+    host.style.display = 'block';
+    host.style.width = '300px';
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const before = component.sliderKey();
+    const slider = host.querySelector('mat-slider');
+
+    host.style.width = '600px';
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    await fixture.whenStable();
+
+    expect(component.sliderKey()).toBeGreaterThan(before);
+    expect(host.querySelector('mat-slider')).not.toBe(slider);
+    expect(component.dataForm.controls.ratingMin.value).toBe(6);
+    expect(component.dataForm.controls.ratingMax.value).toBe(10);
+  });
 });

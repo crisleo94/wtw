@@ -72,10 +72,15 @@
     <mat-label for="rating">
       {{ 'form.rating' | transloco: { min: dataForm.controls.ratingMin.value, max: dataForm.controls.ratingMax.value } }}
     </mat-label>
-    <mat-slider min="0" max="10" step="0.5" discrete>
-      <input matSliderStartThumb formControlName="ratingMin" />
-      <input matSliderEndThumb formControlName="ratingMax" />
-    </mat-slider>
+    <div #ratingBox>
+      <!-- Re-created when its width changes: see FormComponent.watchSliderWidth. -->
+      @for (key of [sliderKey()]; track key) {
+      <mat-slider min="0" max="10" step="0.5" discrete>
+        <input matSliderStartThumb formControlName="ratingMin" />
+        <input matSliderEndThumb formControlName="ratingMax" />
+      </mat-slider>
+      }
+    </div>
   </div>
   <div>
     <div class="row">

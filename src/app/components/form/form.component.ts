@@ -1,4 +1,14 @@
-import { Component, inject, OnInit, output } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  DestroyRef,
+  ElementRef,
+  inject,
+  OnInit,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormBuilder,
@@ -50,6 +60,12 @@ export class FormComponent implements OnInit {
   private movieService = inject(MoviesService);
   private library = inject(LibraryStore);
   private transloco = inject(TranslocoService);
+  private destroyRef = inject(DestroyRef);
+  private ratingBox = viewChild.required<ElementRef<HTMLElement>>('ratingBox');
+
+  // MatSlider can keep stale thumb positions after a resize (e.g. a lost touch end);
+  // bumping the key re-creates it with fresh measurements. Values live in the form.
+  sliderKey = signal(0);
 
   debounceSubmit$ = new Subject<void>();
   movieEvent = output<Movie | null>();
@@ -87,9 +103,31 @@ export class FormComponent implements OnInit {
   );
 
   constructor() {
+    afterNextRender(() => this.watchSliderWidth());
     this.debounceSubmit$
       .pipe(debounceTime(200), takeUntilDestroyed())
       .subscribe(() => this.generateMovies());
+  }
+
+  private watchSliderWidth(): void {
+    if (typeof ResizeObserver === 'undefined') {
+      return;
+    }
+    let width = 0;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const observer = new ResizeObserver(([entry]) => {
+      const next = Math.round(entry.contentRect.width);
+      if (width && next !== width) {
+        clearTimeout(timer);
+        timer = setTimeout(() => this.sliderKey.update((key) => key + 1), 150);
+      }
+      width = next;
+    });
+    observer.observe(this.ratingBox().nativeElement);
+    this.destroyRef.onDestroy(() => {
+      clearTimeout(timer);
+      observer.disconnect();
+    });
   }
 
   ngOnInit(): void {
