@@ -26,4 +26,14 @@ describe('AppComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('h1')?.textContent).toContain('What to Watch?');
   });
+
+  it('should show a friendly message when there are no results', async () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.componentInstance.recieveMovie(null);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('.message')?.textContent).toContain(
+      'No movies match these filters'
+    );
+  });
 });

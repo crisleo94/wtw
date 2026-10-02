@@ -7,6 +7,10 @@ import { MoviesOverviewComponent } from './components/movies-overview/movies-ove
 import { Movie } from './interfaces/movie.interface';
 import { MoviesService } from './services/movies.service';
 
+const NO_RESULTS_MESSAGE =
+  'No movies match these filters. Try a wider year range, fewer genres or fewer minimum votes.';
+const ERROR_MESSAGE = 'We could not get a movie right now. Please try again.';
+
 @Component({
   selector: 'app-root',
   imports: [
@@ -24,12 +28,19 @@ export class AppComponent {
 
   movie = signal<Movie | null>(null);
   isLoading = signal(false);
+  message = signal<string | null>(null);
 
   recieveMovie($event: Movie | null): void {
     if ($event) {
       this._moviesService.addRecentMovie($event);
     }
     this.movie.set($event);
+    this.message.set($event ? null : NO_RESULTS_MESSAGE);
+  }
+
+  recieveError(): void {
+    this.movie.set(null);
+    this.message.set(ERROR_MESSAGE);
   }
 
   recieveIsLoading($event: boolean): void {
