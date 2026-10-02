@@ -35,8 +35,15 @@
     >
       <mat-icon>video_library</mat-icon>
     </button>
-    <button mat-flat-button class="login-button" (click)="openLogin()">
-      <mat-icon>login</mat-icon> {{ 'header.login' | transloco }}
+    <button
+      mat-flat-button
+      class="login-button"
+      [class.guest]="authStore.isGuest()"
+      [matTooltip]="authStore.isGuest() ? ('header.guestTooltip' | transloco) : ''"
+      (click)="openLogin()"
+    >
+      <mat-icon>{{ authStore.isGuest() ? 'person_outline' : 'login' }}</mat-icon>
+      {{ (authStore.isGuest() ? 'header.loginGuest' : 'header.login') | transloco }}
     </button>
     }
   </div>

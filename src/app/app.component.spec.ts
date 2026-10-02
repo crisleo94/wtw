@@ -6,6 +6,7 @@ import {
 import { TestBed } from '@angular/core/testing';
 import { AppComponent } from './app.component';
 import { Movie } from './interfaces/movie.interface';
+import { AuthStore } from './stores/auth.store';
 import { LanguageStore } from './stores/language.store';
 import { clearLanguagePreference, getTranslocoTestingModule } from './testing/transloco-testing';
 
@@ -78,9 +79,25 @@ describe('AppComponent', () => {
     });
 
     it('should keep the logo in the top row on a 320px screen', async () => {
-      const { title, actions, logo } = await measure('320px');
-      expect(logo.right).toBeLessThanOrEqual(actions.left);
+      const { title, logo, buttons } = await measure('320px');
+      for (const button of buttons) {
+        const overlapsLogo =
+          button.left < logo.right && button.top < logo.bottom && button.bottom > logo.top;
+        expect(overlapsLogo).toBeFalse();
+      }
       expect(title.top).toBeGreaterThanOrEqual(logo.bottom);
+    });
+
+    it('should not let a long guest label cover the logo on a 320px screen', async () => {
+      TestBed.inject(AuthStore).continueAsGuest();
+      const { title, logo, buttons } = await measure('320px');
+      for (const button of buttons) {
+        const overlapsLogo =
+          button.left < logo.right && button.top < logo.bottom && button.bottom > logo.top;
+        expect(overlapsLogo).toBeFalse();
+        expect(button.bottom).toBeLessThanOrEqual(title.top + 1);
+      }
+      sessionStorage.removeItem('wtw.guest.v1');
     });
 
     async function measure(width: string) {
@@ -92,9 +109,10 @@ describe('AppComponent', () => {
       const header = host.querySelector('.header')!.getBoundingClientRect();
       const title = host.querySelector('h1')!.getBoundingClientRect();
       const actions = host.querySelector('.header-actions')!.getBoundingClientRect();
+      const buttons = [...host.querySelectorAll('.header-actions button')].map((b) => b.getBoundingClientRect());
       const logoElement = host.querySelector('app-logo') as HTMLElement;
       const logo = logoElement.getBoundingClientRect();
-      return { header, title, actions, logo, logoElement };
+      return { header, title, actions, logo, logoElement, buttons };
     }
 
     it('should keep the title centered and the actions top right on desktop', async () => {
@@ -119,6 +137,17 @@ describe('AppComponent', () => {
       const login = document.querySelector('.login-button') as HTMLElement;
       expect(getComputedStyle(login).whiteSpace).toBe('nowrap');
       expect(login.getBoundingClientRect().height).toBeLessThanOrEqual(48);
+    });
+
+    it('should mark the Login button when browsing as a guest', async () => {
+      const fixture = TestBed.createComponent(AppComponent);
+      const host = fixture.nativeElement as HTMLElement;
+      fixture.componentInstance.authStore.continueAsGuest();
+      await fixture.whenStable();
+      const login = host.querySelector('.login-button')!;
+      expect(login.textContent).toContain('Login (guest)');
+      expect(login.classList).toContain('guest');
+      sessionStorage.removeItem('wtw.guest.v1');
     });
 
     it('should show Login without a session and the avatar with one', async () => {

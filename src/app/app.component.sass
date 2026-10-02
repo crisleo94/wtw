@@ -104,15 +104,22 @@ h1
     font-size: 22px
     margin-top: 0
     margin-bottom: 2rem
+  // Whole first row, leaving room for the logo; wraps if the actions don't fit.
   .header-actions
-    grid-column: 2 / -1
+    grid-column: 1 / -1
     grid-row: 1
+    justify-self: stretch
+    min-width: 0
+    padding-left: 72px
+    flex-wrap: wrap
+    justify-content: flex-end
     gap: 4px
     margin-top: 8px
     margin-right: 8px
+    margin-bottom: 8px
   .logo
     grid-row: 1
-    align-self: center
+    align-self: start
     margin-top: 8px
     margin-left: 8px
 
