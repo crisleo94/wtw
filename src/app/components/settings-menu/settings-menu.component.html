@@ -31,7 +31,7 @@
       [attr.aria-checked]="!themeStore.isDark()"
       (click)="themeStore.setMode('light')"
     >
-      <mat-icon>{{ themeStore.isDark() ? 'light_mode' : 'check' }}</mat-icon>
+      <mat-icon>{{ themeStore.isDark() ? '' : 'check' }}</mat-icon>
       <span>{{ 'settings.light' | transloco }}</span>
     </button>
     <button
@@ -40,7 +40,7 @@
       [attr.aria-checked]="themeStore.isDark()"
       (click)="themeStore.setMode('dark')"
     >
-      <mat-icon>{{ themeStore.isDark() ? 'check' : 'dark_mode' }}</mat-icon>
+      <mat-icon>{{ themeStore.isDark() ? 'check' : '' }}</mat-icon>
       <span>{{ 'settings.dark' | transloco }}</span>
     </button>
   </div>
