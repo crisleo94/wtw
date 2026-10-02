@@ -14,10 +14,11 @@
       [matButton]="isWatched() ? 'tonal' : 'outlined'"
       class="action"
       [attr.aria-pressed]="isWatched()"
+      [matTooltip]="isWatched() ? 'You watched it: click to undo' : 'Mark as watched'"
       (click)="toggleWatched()"
     >
-      <mat-icon>{{ isWatched() ? 'visibility' : 'visibility_off' }}</mat-icon>
-      {{ isWatched() ? 'Watched' : 'Not watched' }}
+      <mat-icon>{{ isWatched() ? 'check_circle' : 'visibility' }}</mat-icon>
+      Watched
     </button>
     <button
       mat-icon-button
