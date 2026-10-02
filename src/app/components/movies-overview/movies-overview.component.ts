@@ -29,9 +29,10 @@ export class MoviesOverviewComponent {
   // The server can't read sessionStorage: show the library after hydration so both match.
   private hydrated = signal(false);
 
-  history = computed(() => (this.hydrated() ? this._library.history() : []));
+  loaded = computed(() => this.hydrated() && this._library.ready());
+  history = computed(() => (this.loaded() ? this._library.history() : []));
   watchlist = computed(() =>
-    this.hydrated() ? this._library.watchlist() : undefined
+    this.loaded() ? this._library.watchlist() : undefined
   );
 
   constructor() {

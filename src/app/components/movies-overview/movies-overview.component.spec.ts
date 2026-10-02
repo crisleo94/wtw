@@ -3,7 +3,9 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { Movie } from '../../interfaces/movie.interface';
+import { AuthStore } from '../../stores/auth.store';
 import { LibraryStore } from '../../stores/library.store';
+import { HttpTestingController } from '@angular/common/http/testing';
 import { SESSION_KEY } from '../../stores/session.store';
 import { MoviesOverviewComponent } from './movies-overview.component';
 
@@ -51,5 +53,27 @@ describe('MoviesOverviewComponent', () => {
     TestBed.inject(LibraryStore).recordGenerated(movie);
     const fresh = TestBed.createComponent(MoviesOverviewComponent);
     expect(fresh.componentInstance.history()).toEqual([]);
+  });
+
+  it('should show a loading state instead of the empty message until the library is ready', async () => {
+    TestBed.inject(AuthStore).login({ email: 'a@b.co', password: '12345678' }).subscribe();
+    TestBed.inject(HttpTestingController).expectOne('/api/auth/login').flush({ user: { id: 'u1' } });
+    TestBed.tick();
+    await fixture.whenStable();
+    expect(component.loaded()).toBeFalse();
+    expect(fixture.nativeElement.textContent).toContain('Loading your movies');
+  });
+
+  it('should keep four columns on desktop and fewer on narrow screens', async () => {
+    const host = fixture.nativeElement as HTMLElement;
+    const columns = async (width: string) => {
+      host.style.display = 'block';
+      host.style.width = width;
+      await fixture.whenStable();
+      const grid = host.querySelector('.history-container')!;
+      return getComputedStyle(grid).gridTemplateColumns.split(' ').length;
+    };
+    expect(await columns('1200px')).toBe(4);
+    expect(await columns('600px')).toBe(2);
   });
 });

@@ -10,7 +10,9 @@
         (remove)="removeHistory(entry)"
       ></app-movie-card>
       } @empty {
-      <p class="empty">The movies you generate will show up here.</p>
+      <p class="empty">
+        {{ loaded() ? 'The movies you generate will show up here.' : 'Loading your movies...' }}
+      </p>
       }
     </div>
   </mat-tab>
@@ -25,7 +27,9 @@
         (remove)="removeFromWatchlist(item)"
       ></app-movie-card>
       } @empty {
-      <p class="empty">Use the bookmark button on a movie to save it here.</p>
+      <p class="empty">
+        {{ loaded() ? 'Use the bookmark button on a movie to save it here.' : 'Loading your movies...' }}
+      </p>
       }
     </div>
   </mat-tab>
