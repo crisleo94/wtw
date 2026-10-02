@@ -48,6 +48,31 @@ textarea {
   backdrop-filter: blur(3px);
 }
 
+// Login modal at 304px: tab labels wrap and fields drop their 180px minimum.
+// The inactive tab is parked off to the right; hide it so nothing sticks out.
+.auth-dialog {
+  .mat-mdc-tab-body:not(.mat-mdc-tab-body-active) .mat-mdc-tab-body-content {
+    display: none;
+  }
+  .mat-mdc-tab {
+    min-width: 0;
+    padding-inline: 12px;
+  }
+  .mdc-tab__text-label {
+    white-space: normal;
+    text-align: center;
+  }
+  .mat-mdc-form-field-infix {
+    width: auto;
+    min-width: 0;
+  }
+  @media (max-width: 599.98px) {
+    .mat-mdc-dialog-content {
+      padding-inline: 16px;
+    }
+  }
+}
+
 // Toggle labels may wrap so translated texts never widen their container.
 .genre-mode .mat-button-toggle-label-content,
 .filter .mat-button-toggle-label-content {

@@ -4,11 +4,14 @@ import {
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { TranslocoService } from '@jsverse/transloco';
 import { AuthStore } from '../../stores/auth.store';
 import { AuthDialogComponent } from './auth-dialog.component';
-import { getTranslocoTestingModule } from '../../testing/transloco-testing';
+import {
+  getTranslocoTestingModule,
+  overflowingElements,
+} from '../../testing/transloco-testing';
 
 describe('AuthDialogComponent', () => {
   let component: AuthDialogComponent;
@@ -35,6 +38,25 @@ describe('AuthDialogComponent', () => {
   });
 
   afterEach(() => sessionStorage.removeItem('wtw.guest.v1'));
+
+  it('should fit a 304px modal in both languages', async () => {
+    // A real dialog, so the container padding counts like on a 320px phone.
+    const ref = TestBed.inject(MatDialog).open(AuthDialogComponent, {
+      width: '304px',
+      panelClass: 'auth-dialog',
+      data: { reason: 'Inicia sesión para guardar tus listas, o continúa como invitado.' },
+    });
+    const surface = document.querySelector('.auth-dialog .mat-mdc-dialog-surface') as HTMLElement;
+    for (const lang of ['en', 'es']) {
+      TestBed.inject(TranslocoService).setActiveLang(lang);
+      for (const tab of [0, 1]) {
+        ref.componentInstance.onTabChange(tab);
+        await new Promise((resolve) => setTimeout(resolve, 600));
+        expect(overflowingElements(surface)).withContext(`${lang} tab ${tab}`).toEqual([]);
+      }
+    }
+    ref.close();
+  });
 
   it('should validate email and password length', () => {
     component.loginForm.setValue({ email: 'nope', password: '123' });
