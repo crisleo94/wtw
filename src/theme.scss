@@ -1,11 +1,12 @@
 @use '@angular/material' as mat;
+@use './theme-colors' as theme-colors;
 
 // Material 3 theme; `color-scheme` picks light or dark (the toggle can force one).
 html {
   color-scheme: light dark;
   @include mat.theme((
     color: (
-      primary: mat.$violet-palette,
+      primary: theme-colors.$primary-palette, // royal blue #4169E1
       tertiary: mat.$orange-palette,
     ),
     typography: (
