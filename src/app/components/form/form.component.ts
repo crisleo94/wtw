@@ -20,6 +20,7 @@ import {
 import { Movie } from '../../interfaces/movie.interface';
 import { GenresService } from '../../services/genres.service';
 import { MoviesService } from '../../services/movies.service';
+import { LibraryStore } from '../../stores/library.store';
 import { rangeValidator } from '../../validators/range.validator';
 
 export const MIN_YEAR = 1900;
@@ -45,6 +46,7 @@ export class FormComponent implements OnInit {
   private fBuilder = inject(FormBuilder);
   private genreService = inject(GenresService);
   private movieService = inject(MoviesService);
+  private library = inject(LibraryStore);
 
   debounceSubmit$ = new Subject<void>();
   movieEvent = output<Movie | null>();
@@ -109,8 +111,12 @@ export class FormComponent implements OnInit {
   }
 
   generateMovies(): void {
-    this.movieService.generateMovie(this.buildFilters()).subscribe({
+    const filters = this.buildFilters();
+    this.movieService.generateMovie(filters).subscribe({
       next: (movie) => {
+        if (movie) {
+          this.library.recordGenerated(movie, filters);
+        }
         // Keeps the spinner visible for a moment, as before.
         setTimeout(() => {
           this.isLoadingEvent.emit(false);
