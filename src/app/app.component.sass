@@ -31,7 +31,7 @@ h1
 
 .container
   display: grid
-  grid-template-columns: 400px 1fr
+  grid-template-columns: minmax(0, 400px) minmax(0, 1fr)
   min-height: 80vh
   max-width: 1200px
   margin: 0 auto
@@ -42,6 +42,7 @@ h1
     max-width: 600px
 
 .menu
+  min-width: 0
   background-color: var(--mat-sys-surface-container)
   color: var(--mat-sys-on-surface)
   display: grid

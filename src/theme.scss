@@ -47,3 +47,10 @@ textarea {
   background: rgb(0 0 0 / 72%);
   backdrop-filter: blur(3px);
 }
+
+// Toggle labels may wrap so translated texts never widen their container.
+.genre-mode .mat-button-toggle-label-content {
+  white-space: normal;
+  line-height: 1.25;
+  padding-block: 6px;
+}
