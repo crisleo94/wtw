@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FormComponent } from './components/form/form.component';
@@ -12,8 +13,11 @@ import { SettingsMenuComponent } from './components/settings-menu/settings-menu.
 import { UserPanelComponent } from './components/user-panel/user-panel.component';
 import { Movie } from './interfaces/movie.interface';
 import { AuthDialogService } from './services/auth-dialog.service';
+import { MoviesService } from './services/movies.service';
 import { AuthStore } from './stores/auth.store';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { LanguageStore } from './stores/language.store';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { catchError, EMPTY, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -37,7 +41,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 export class AppComponent {
   authStore = inject(AuthStore);
   private authDialog = inject(AuthDialogService);
-  private transloco = inject(TranslocoService);
+  private moviesService = inject(MoviesService);
 
   initials = computed(() =>
     (this.authStore.user()?.fullName ?? '')
@@ -50,18 +54,36 @@ export class AppComponent {
   movie = signal<Movie | null>(null);
   isLoading = signal(false);
   panelOpen = signal(false);
+  // Translation key, so the message follows the active language.
   message = signal<string | null>(null);
+
+  constructor() {
+    // Shows the same movie in the new language instead of generating another.
+    inject(LanguageStore)
+      .changed$.pipe(
+        switchMap(() => {
+          const movie = this.movie();
+          return movie
+            ? this.moviesService.getMovie(movie.tmdbId).pipe(catchError(() => EMPTY))
+            : EMPTY;
+        }),
+        takeUntilDestroyed()
+      )
+      .subscribe((movie) => {
+        if (this.movie()?.tmdbId === movie.tmdbId) {
+          this.movie.set(movie);
+        }
+      });
+  }
 
   recieveMovie($event: Movie | null): void {
     this.movie.set($event);
-    this.message.set(
-      $event ? null : this.transloco.translate('errors.noMovies')
-    );
+    this.message.set($event ? null : 'errors.noMovies');
   }
 
   recieveError(): void {
     this.movie.set(null);
-    this.message.set(this.transloco.translate('errors.fetchError'));
+    this.message.set('errors.fetchError');
   }
 
   openLogin(): void {

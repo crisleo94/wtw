@@ -1,7 +1,12 @@
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import {
+  HttpTestingController,
+  provideHttpClientTesting,
+} from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { AppComponent } from './app.component';
+import { Movie } from './interfaces/movie.interface';
+import { LanguageStore } from './stores/language.store';
 import { getTranslocoTestingModule } from './testing/transloco-testing';
 
 describe('AppComponent', () => {
@@ -36,6 +41,32 @@ describe('AppComponent', () => {
     expect(compiled.querySelector('.message')?.textContent).toContain(
       'No movies match these filters'
     );
+  });
+
+  it('should translate the message when the language changes', async () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.componentInstance.recieveMovie(null);
+    TestBed.inject(LanguageStore).setLang('es');
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('.message')?.textContent).not.toContain(
+      'No movies match these filters'
+    );
+    localStorage.removeItem('wtw.lang');
+  });
+
+  it('should reload the same movie in the new language', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const httpTesting = TestBed.inject(HttpTestingController);
+    const movie = { tmdbId: 603, title: 'The Matrix', genreIds: [] } as unknown as Movie;
+    fixture.componentInstance.recieveMovie(movie);
+
+    TestBed.inject(LanguageStore).setLang('es');
+    httpTesting.match('/api/genres');
+    httpTesting.expectOne('/api/movies/603').flush({ ...movie, overview: 'Neo descubre la verdad' });
+    httpTesting.expectNone('/api/movies/generate');
+    expect(fixture.componentInstance.movie()?.overview).toBe('Neo descubre la verdad');
+    localStorage.removeItem('wtw.lang');
   });
 
   describe('header layout', () => {

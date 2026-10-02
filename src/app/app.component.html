@@ -61,7 +61,7 @@
     } @else if (message(); as message) {
       <div class="message" role="status">
         <mat-icon>movie_filter</mat-icon>
-        <p>{{ message }}</p>
+        <p>{{ message | transloco }}</p>
       </div>
     } @else {
       <app-movie-card [movie]="movie()"></app-movie-card>
