@@ -6,7 +6,7 @@ import {
 import { PLATFORM_ID, REQUEST } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { LanguageStore } from '../stores/language.store';
-import { getTranslocoTestingModule } from '../testing/transloco-testing';
+import { clearLanguagePreference, getTranslocoTestingModule } from '../testing/transloco-testing';
 import { languageInterceptor } from './language.interceptor';
 
 describe('languageInterceptor', () => {
@@ -26,7 +26,7 @@ describe('languageInterceptor', () => {
     };
   }
 
-  afterEach(() => localStorage.removeItem('wtw.lang'));
+  afterEach(() => clearLanguagePreference());
 
   it('should send the active language to the API', () => {
     const { http, httpTesting, languageStore } = setup();
@@ -41,6 +41,22 @@ describe('languageInterceptor', () => {
     const next = httpTesting.expectOne('/api/me/lists');
     expect(next.request.headers.get('Accept-Language')).toBe('en');
     next.flush([]);
+  });
+
+  it('should send the language the SSR resolved from the cookie', () => {
+    const { http, httpTesting } = setup([
+      { provide: PLATFORM_ID, useValue: 'server' },
+      {
+        provide: REQUEST,
+        useValue: {
+          headers: new Headers({ cookie: 'wtw_lang=es', 'accept-language': 'en-US' }),
+        },
+      },
+    ]);
+    http.get('/api/genres').subscribe();
+    const req = httpTesting.expectOne('/api/genres');
+    expect(req.request.headers.get('Accept-Language')).toBe('es');
+    req.flush([]);
   });
 
   it('should leave requests outside the API untouched', () => {
