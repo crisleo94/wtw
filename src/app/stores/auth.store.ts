@@ -7,6 +7,9 @@ import {
   RegisterData,
   User,
 } from '../interfaces/user.interface';
+import { injectSessionStorage } from '../utils/browser-storage';
+
+const GUEST_KEY = 'wtw.guest.v1';
 
 interface AuthResponse {
   user: User;
@@ -17,8 +20,9 @@ interface AuthResponse {
 })
 export class AuthStore {
   private http = inject(HttpClient);
+  private storage = injectSessionStorage();
   private currentUser = signal<User | null>(null);
-  private guest = signal(false);
+  private guest = signal(this.storage.get(GUEST_KEY) === 'true');
 
   readonly user = this.currentUser.asReadonly();
   readonly isLoggedIn = computed(() => this.currentUser() !== null);
@@ -53,6 +57,7 @@ export class AuthStore {
 
   continueAsGuest(): void {
     this.guest.set(true);
+    this.storage.set(GUEST_KEY, 'true');
   }
 
   private authenticate(
@@ -64,6 +69,7 @@ export class AuthStore {
       tap((user) => {
         this.currentUser.set(user);
         this.guest.set(false);
+        this.storage.remove(GUEST_KEY);
       })
     );
   }

@@ -19,6 +19,8 @@ describe('AuthStore', () => {
     httpTesting = TestBed.inject(HttpTestingController);
   });
 
+  afterEach(() => sessionStorage.removeItem('wtw.guest.v1'));
+
   it('should hydrate the user from /api/auth/me', () => {
     store.load().subscribe();
     httpTesting.expectOne('/api/auth/me').flush({ user });
@@ -46,5 +48,10 @@ describe('AuthStore', () => {
     store.logout().subscribe();
     httpTesting.expectOne('/api/auth/logout').flush(null);
     expect(store.user()).toBeNull();
+  });
+
+  it('should remember the guest choice for the tab', () => {
+    store.continueAsGuest();
+    expect(sessionStorage.getItem('wtw.guest.v1')).toBe('true');
   });
 });

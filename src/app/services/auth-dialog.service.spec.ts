@@ -22,6 +22,8 @@ describe('AuthDialogService', () => {
     service = TestBed.inject(AuthDialogService);
   });
 
+  afterEach(() => sessionStorage.removeItem('wtw.guest.v1'));
+
   it('should not open the dialog in guest mode', (done) => {
     TestBed.inject(AuthStore).continueAsGuest();
     service.ensureSession('why').subscribe((result) => {

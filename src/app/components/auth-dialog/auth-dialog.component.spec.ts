@@ -32,6 +32,8 @@ describe('AuthDialogComponent', () => {
     await fixture.whenStable();
   });
 
+  afterEach(() => sessionStorage.removeItem('wtw.guest.v1'));
+
   it('should validate email and password length', () => {
     component.loginForm.setValue({ email: 'nope', password: '123' });
     component.login();
