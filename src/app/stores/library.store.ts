@@ -43,10 +43,10 @@ import { LanguageStore } from './language.store';
 import { PreferencesStore } from './preferences.store';
 import { SessionStore, watchedOrder } from './session.store';
 
-export const HISTORY_PAGE_SIZE = 50;
-export const MAX_LISTS = 50;
-export const MAX_LIST_ITEMS = 500;
-export const MAX_WATCHED = 2000;
+const HISTORY_PAGE_SIZE = 50;
+const MAX_LISTS = 50;
+const MAX_LIST_ITEMS = 500;
+const MAX_WATCHED = 2000;
 const WATCHED_PAGE_SIZE = 20;
 
 // Facade over the user library: the API when logged in, the session otherwise.
