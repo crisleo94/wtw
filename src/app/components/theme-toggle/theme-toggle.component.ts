@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { afterNextRender, Component, computed, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
@@ -18,6 +18,7 @@ const OPTIONS: { mode: ThemeMode; label: string; icon: string }[] = [
     <button
       mat-icon-button
       [matMenuTriggerFor]="themeMenu"
+      [style.visibility]="hydrated() ? null : 'hidden'"
       [matTooltip]="'Theme: ' + selected().label"
       [attr.aria-label]="'Theme: ' + selected().label"
     >
@@ -41,7 +42,13 @@ const OPTIONS: { mode: ThemeMode; label: string; icon: string }[] = [
 export class ThemeToggleComponent {
   themeStore = inject(ThemeStore);
   options = OPTIONS;
+  // The server can't know the saved theme: show the icon once hydrated.
+  hydrated = signal(false);
   selected = computed(
     () => OPTIONS.find((option) => option.mode === this.themeStore.mode())!
   );
+
+  constructor() {
+    afterNextRender(() => this.hydrated.set(true));
+  }
 }
