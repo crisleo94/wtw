@@ -26,6 +26,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Observable, switchMap, throwError } from 'rxjs';
 import { IMAGE_URL, PLACEHOLDER_IMG } from '../../constants';
 import {
@@ -67,6 +68,7 @@ interface PanelList {
     MatInputModule,
     MatMenuModule,
     MatTooltipModule,
+    TranslocoPipe,
   ],
   templateUrl: './user-panel.component.html',
   styleUrl: './user-panel.component.sass',
@@ -78,6 +80,7 @@ export class UserPanelComponent {
   private dialog = inject(MatDialog);
   private injector = inject(Injector);
   private host = inject(ElementRef);
+  private transloco = inject(TranslocoService);
   private renameInput = viewChild<ElementRef<HTMLInputElement>>('renameInput');
   authStore = inject(AuthStore);
 

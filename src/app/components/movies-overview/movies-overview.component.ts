@@ -7,6 +7,7 @@ import {
 } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Observable } from 'rxjs';
 import {
   HistoryEntry,
@@ -18,13 +19,14 @@ import { MovieCardComponent } from '../movie-card/movie-card.component';
 
 @Component({
   selector: 'app-movies-overview',
-  imports: [MovieCardComponent, MatTabsModule],
+  imports: [MovieCardComponent, MatTabsModule, TranslocoPipe],
   templateUrl: './movies-overview.component.html',
   styleUrl: './movies-overview.component.sass',
 })
 export class MoviesOverviewComponent {
   private _library = inject(LibraryStore);
   private _snackBar = inject(MatSnackBar);
+  private _transloco = inject(TranslocoService);
 
   // The server can't read sessionStorage: show the library after hydration so both match.
   private hydrated = signal(false);
@@ -40,7 +42,7 @@ export class MoviesOverviewComponent {
   }
 
   removeHistory(entry: HistoryEntry): void {
-    this.run(this._library.removeHistory(entry), 'Removed from your history.');
+    this.run(this._library.removeHistory(entry), this._transloco.translate('overview.removeFromHistory'));
   }
 
   removeFromWatchlist(item: MovieListItem): void {
@@ -48,7 +50,7 @@ export class MoviesOverviewComponent {
     if (watchlist) {
       this.run(
         this._library.removeFromList(watchlist, item.tmdbId),
-        'Removed from your watchlist.'
+        this._transloco.translate('overview.removeFromWatchlist')
       );
     }
   }
@@ -56,7 +58,7 @@ export class MoviesOverviewComponent {
   private run(action: Observable<void>, success: string): void {
     action.subscribe({
       next: () => this.notify(success),
-      error: (error) => this.notify(apiErrorMessage(error)),
+      error: (error) => this.notify(apiErrorMessage(error, {}, this._transloco)),
     });
   }
 

@@ -8,7 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Observable, switchMap, throwError } from 'rxjs';
 import { IMAGE_URL, PLACEHOLDER_IMG } from '../../constants';
 import { MovieList } from '../../interfaces/library.interface';
@@ -35,7 +35,7 @@ interface CardAction {
     MatIconModule,
     MatMenuModule,
     MatTooltipModule,
-    TranslocoDirective,
+    TranslocoPipe,
   ],
   templateUrl: './movie-card.component.html',
   styleUrl: './movie-card.component.sass',

@@ -13,7 +13,7 @@ import { UserPanelComponent } from './components/user-panel/user-panel.component
 import { Movie } from './interfaces/movie.interface';
 import { AuthDialogService } from './services/auth-dialog.service';
 import { AuthStore } from './stores/auth.store';
-import { TranslocoService } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-root',
@@ -29,6 +29,7 @@ import { TranslocoService } from '@jsverse/transloco';
     MatProgressSpinnerModule,
     MatIconModule,
     MatTooltipModule,
+    TranslocoPipe,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.sass',

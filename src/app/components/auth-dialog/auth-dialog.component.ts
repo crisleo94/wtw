@@ -10,6 +10,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTabsModule } from '@angular/material/tabs';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { Observable } from 'rxjs';
 import { User } from '../../interfaces/user.interface';
 import { AuthStore } from '../../stores/auth.store';
@@ -42,6 +43,7 @@ const PASSWORD_MAX_LENGTH = 72;
     MatInputModule,
     MatButtonModule,
     MatProgressBarModule,
+    TranslocoPipe,
   ],
   templateUrl: './auth-dialog.component.html',
   styleUrl: './auth-dialog.component.sass',
