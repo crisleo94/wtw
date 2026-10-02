@@ -1,27 +1,38 @@
 # Wtw
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.3.9.
+What to Watch: Angular 21 SSR app. Its Express server (`server.ts`) also works as the BFF for the `wtw-api` backend.
 
-## Development server
+## Stack
+- NodeJS `v22`
+- Angular `v21` (SSR) + Angular Material
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+## Installation
+1. Run `nvm use` to use the correct NodeJS version
+2. Run `npm ci` to install the dependencies
+3. Run `cp .env.example .env`
 
-## Code scaffolding
+## Environment
+- `API_URL`: backend URL seen from the front container (`http://wtw-api:3000`)
+- `PORT`: SSR server port (`4000`)
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+## Docker
+The front shares the external network `wtw-network` with the `wtw-api` compose. It is the **only** service that publishes a port (`4000`); the API and Postgres stay inside the network.
 
-## Build
+1. Create the network once: `docker network create wtw-network`
+2. Start the API and the DB from the `wtw-api` repo (see its README)
+3. Start the front: `docker-compose up -d --build`
+4. Open `http://localhost:4000`
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+### Development (hot reload)
+`docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build`
 
-## Running unit tests
+Mounts the source as a volume and runs `ng serve --host 0.0.0.0 --port 4000` (the dev server also runs `server.ts`).
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+### Validate
+`docker-compose config`
 
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+## Local scripts
+- `npm start`: dev server on `http://localhost:4200`
+- `npm run build`: production build in `dist/wtw`
+- `npm run serve:ssr:wtw`: run the built SSR server
+- `npm test`: unit tests
