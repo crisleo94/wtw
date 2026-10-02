@@ -65,6 +65,7 @@
           <mat-label>List name</mat-label>
           <input
             matInput
+            #renameInput
             name="rename"
             maxlength="50"
             [ngModel]="editingName()"
@@ -83,7 +84,12 @@
         {{ list.name }} <span class="count">({{ list.items.length }})</span>
       </h3>
       @if (!list.isSystem) {
-      <button mat-icon-button [matMenuTriggerFor]="listMenu" [attr.aria-label]="'Options for ' + list.name">
+      <button
+        mat-icon-button
+        [matMenuTriggerFor]="listMenu"
+        [attr.aria-label]="'Options for ' + list.name"
+        [attr.data-list-options]="panelList.key"
+      >
         <mat-icon>more_vert</mat-icon>
       </button>
       <mat-menu #listMenu="matMenu">
@@ -116,6 +122,7 @@
           mat-icon-button
           [matMenuTriggerFor]="itemMenu"
           [attr.aria-label]="'Actions for ' + item.movie.title"
+          [attr.data-item-actions]="panelList.key + ':' + item.tmdbId"
         >
           <mat-icon>more_horiz</mat-icon>
         </button>
@@ -124,10 +131,10 @@
             <mat-icon>{{ item.watched ? 'visibility_off' : 'visibility' }}</mat-icon>
             <span>{{ item.watched ? 'Mark as not watched' : 'Mark as watched' }}</span>
           </button>
-          <button mat-menu-item [disabled]="isFirst(list, item)" (click)="shift(list, item, -1)">
+          <button mat-menu-item [disabled]="isFirst(panelList, item)" (click)="shift(panelList, item, -1)">
             <mat-icon>arrow_upward</mat-icon><span>Move up</span>
           </button>
-          <button mat-menu-item [disabled]="isLast(list, item)" (click)="shift(list, item, 1)">
+          <button mat-menu-item [disabled]="isLast(panelList, item)" (click)="shift(panelList, item, 1)">
             <mat-icon>arrow_downward</mat-icon><span>Move down</span>
           </button>
           @for (other of otherLists(list); track other.name) {

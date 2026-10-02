@@ -5,17 +5,28 @@ import {
   CdkDropList,
   CdkDropListGroup,
 } from '@angular/cdk/drag-drop';
-import { Component, computed, inject, output, signal } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  ElementRef,
+  inject,
+  Injector,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Observable } from 'rxjs';
+import { Observable, switchMap, throwError } from 'rxjs';
 import { IMAGE_URL, PLACEHOLDER_IMG } from '../../constants';
 import {
   MovieList,
@@ -24,7 +35,14 @@ import {
 import { AuthDialogService } from '../../services/auth-dialog.service';
 import { AuthStore } from '../../stores/auth.store';
 import { LibraryStore, listKey } from '../../stores/library.store';
-import { apiErrorMessage } from '../../utils/api-error';
+import { apiErrorMessage, LibraryError } from '../../utils/api-error';
+import {
+  ConfirmDialogComponent,
+  ConfirmDialogData,
+} from '../confirm-dialog/confirm-dialog.component';
+
+const SESSION_REASON =
+  'Log in to keep your lists, or continue as a guest.';
 
 export type WatchedFilter = 'all' | 'watched' | 'unwatched';
 
@@ -57,6 +75,10 @@ export class UserPanelComponent {
   private library = inject(LibraryStore);
   private authDialog = inject(AuthDialogService);
   private snackBar = inject(MatSnackBar);
+  private dialog = inject(MatDialog);
+  private injector = inject(Injector);
+  private host = inject(ElementRef);
+  private renameInput = viewChild<ElementRef<HTMLInputElement>>('renameInput');
   authStore = inject(AuthStore);
 
   closed = output<void>();
@@ -87,12 +109,15 @@ export class UserPanelComponent {
   }
 
   logout(): void {
-    this.run(this.authStore.logout(), 'You have logged out.');
+    this.authStore.logout().subscribe({
+      next: () => this.notify('You have logged out.'),
+      error: (error) => this.notify(apiErrorMessage(error)),
+    });
   }
 
   createList(): void {
     const name = this.newListName();
-    this.run(this.library.createList(name), `List "${name.trim()}" created.`, () =>
+    this.run(() => this.library.createList(name), `List "${name.trim()}" created.`, () =>
       this.newListName.set('')
     );
   }
@@ -100,25 +125,52 @@ export class UserPanelComponent {
   startRename(panelList: PanelList): void {
     this.editingKey.set(panelList.key);
     this.editingName.set(panelList.list.name);
+    afterNextRender(() => this.renameInput()?.nativeElement.focus(), {
+      injector: this.injector,
+    });
   }
 
   cancelRename(): void {
+    const key = this.editingKey();
     this.editingKey.set(null);
+    this.focusLater(`[data-list-options="${CSS.escape(key ?? '')}"]`);
   }
 
   saveRename(list: MovieList): void {
+    const name = this.editingName().trim();
     this.run(
-      this.library.renameList(list, this.editingName()),
+      () => this.withList(list, (current) => this.library.renameList(current, name)),
       'List renamed.',
-      () => this.editingKey.set(null)
+      () => {
+        this.editingKey.set(null);
+        const renamed = this.findList(name);
+        this.focusLater(
+          `[data-list-options="${CSS.escape(renamed ? listKey(renamed) : '')}"]`
+        );
+      }
     );
   }
 
   deleteList(list: MovieList): void {
-    if (!confirm(`Delete the list "${list.name}"? Its movies will be removed from it.`)) {
-      return;
-    }
-    this.run(this.library.deleteList(list), `List "${list.name}" deleted.`);
+    this.dialog
+      .open<ConfirmDialogComponent, ConfirmDialogData, boolean>(ConfirmDialogComponent, {
+        data: {
+          title: 'Delete list',
+          message: `Delete the list "${list.name}"? Its movies will be removed from it.`,
+          confirmLabel: 'Delete',
+        },
+        ariaDescribedBy: 'confirm-dialog-message',
+      })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.run(
+            () => this.withList(list, (current) => this.library.deleteList(current)),
+            `List "${list.name}" deleted.`,
+            () => this.focusLater('.new-list input')
+          );
+        }
+      });
   }
 
   drop(event: CdkDragDrop<PanelList, PanelList, MovieListItem>): void {
@@ -133,27 +185,37 @@ export class UserPanelComponent {
   }
 
   moveTo(from: MovieList, item: MovieListItem, to: MovieList): void {
-    this.move(from, item, to, to.items.length);
+    this.move(from, item, to, to.items.length, () =>
+      this.focusLater(
+        `[data-item-actions="${CSS.escape(`${listKey(to)}:${item.tmdbId}`)}"]`
+      )
+    );
   }
 
-  // Up/down moves are the keyboard friendly alternative to dragging.
-  shift(list: MovieList, item: MovieListItem, offset: number): void {
-    const position = list.items.indexOf(item) + offset;
-    if (position >= 0 && position < list.items.length) {
-      this.move(list, item, list, position);
+  // Up/down moves are the keyboard friendly alternative to dragging; they
+  // follow the visible (filtered) order, like dropping does.
+  shift(panelList: PanelList, item: MovieListItem, offset: number): void {
+    const target = panelList.items[panelList.items.indexOf(item) + offset];
+    if (target) {
+      const list = panelList.list;
+      this.move(list, item, list, list.items.indexOf(target), () =>
+        this.focusLater(
+          `[data-item-actions="${CSS.escape(`${panelList.key}:${item.tmdbId}`)}"]`
+        )
+      );
     }
   }
 
   toggleWatched(item: MovieListItem): void {
     this.run(
-      this.library.setWatched(item.movie, !item.watched),
+      () => this.library.setWatched(item.movie, !item.watched),
       item.watched ? 'Marked as not watched.' : 'Marked as watched.'
     );
   }
 
   removeItem(list: MovieList, item: MovieListItem): void {
     this.run(
-      this.library.removeFromList(list, item.tmdbId),
+      () => this.withList(list, (current) => this.library.removeFromList(current, item.tmdbId)),
       `Removed from ${list.name}.`
     );
   }
@@ -162,32 +224,80 @@ export class UserPanelComponent {
     return this.library.lists().filter((other) => listKey(other) !== listKey(list));
   }
 
-  isFirst(list: MovieList, item: MovieListItem): boolean {
-    return list.items.indexOf(item) === 0;
+  isFirst(panelList: PanelList, item: MovieListItem): boolean {
+    return panelList.items.indexOf(item) === 0;
   }
 
-  isLast(list: MovieList, item: MovieListItem): boolean {
-    return list.items.indexOf(item) === list.items.length - 1;
+  isLast(panelList: PanelList, item: MovieListItem): boolean {
+    return panelList.items.indexOf(item) === panelList.items.length - 1;
   }
 
-  private move(from: MovieList, item: MovieListItem, to: MovieList, position: number): void {
+  private move(
+    from: MovieList,
+    item: MovieListItem,
+    to: MovieList,
+    position: number,
+    done?: () => void
+  ): void {
     const sameList = listKey(from) === listKey(to);
     this.run(
-      this.library.moveItem(from, item.tmdbId, to, position),
-      sameList ? null : `Moved to ${to.name}.`
+      () =>
+        this.withList(from, (source) =>
+          this.withList(to, (target) =>
+            this.library.moveItem(source, item.tmdbId, target, position)
+          )
+        ),
+      sameList ? null : `Moved to ${to.name}.`,
+      done
     );
   }
 
-  private run(action: Observable<void>, success: string | null, done?: () => void): void {
-    action.subscribe({
-      next: () => {
-        done?.();
-        if (success) {
-          this.notify(success);
-        }
-      },
-      error: (error) => this.notify(apiErrorMessage(error)),
+  // Same rule as the cards: ask for a session, wait for the library, then act.
+  private run(action: () => Observable<void>, success: string | null, done?: () => void): void {
+    this.authDialog.ensureSession(SESSION_REASON).subscribe((result) => {
+      if (!result) {
+        return;
+      }
+      this.library
+        .whenReady()
+        .pipe(switchMap(action))
+        .subscribe({
+          next: () => {
+            done?.();
+            if (success) {
+              this.notify(success);
+            }
+          },
+          error: (error) => this.notify(apiErrorMessage(error)),
+        });
     });
+  }
+
+  // After a login the lists are the account's ones: look them up again by name.
+  private withList(list: MovieList, action: (current: MovieList) => Observable<void>): Observable<void> {
+    const current = this.findList(list.name);
+    return current
+      ? action(current)
+      : throwError(() => new LibraryError(`The list "${list.name}" is no longer available.`));
+  }
+
+  private findList(name: string): MovieList | undefined {
+    const lowered = name.toLowerCase();
+    return this.library.lists().find((list) => list.name.toLowerCase() === lowered);
+  }
+
+  // Moves focus once the view reflects the change (the old element may be gone).
+  private focusLater(selector: string): void {
+    afterNextRender(
+      () => {
+        const host = this.host.nativeElement as HTMLElement;
+        const target =
+          host.querySelector<HTMLElement>(selector) ??
+          host.querySelector<HTMLElement>('.new-list input');
+        target?.focus();
+      },
+      { injector: this.injector }
+    );
   }
 
   private notify(message: string): void {
