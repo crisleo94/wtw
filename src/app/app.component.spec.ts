@@ -36,4 +36,31 @@ describe('AppComponent', () => {
       'No movies match these filters'
     );
   });
+
+  describe('header layout', () => {
+    async function measure(width: string) {
+      const fixture = TestBed.createComponent(AppComponent);
+      const host = fixture.nativeElement as HTMLElement;
+      host.style.display = 'block';
+      host.style.width = width;
+      await fixture.whenStable();
+      const header = host.querySelector('.header')!.getBoundingClientRect();
+      const title = host.querySelector('h1')!.getBoundingClientRect();
+      const actions = host.querySelector('.header-actions')!.getBoundingClientRect();
+      return { header, title, actions };
+    }
+
+    it('should keep the title centered and the actions top right on desktop', async () => {
+      const { header, title, actions } = await measure('1280px');
+      const center = (rect: DOMRect) => rect.left + rect.width / 2;
+      expect(Math.abs(center(title) - center(header))).toBeLessThan(1);
+      expect(Math.abs(header.right - actions.right - 16)).toBeLessThan(1);
+      expect(Math.abs(actions.top - title.top)).toBeLessThan(1);
+    });
+
+    it('should not overlap the title on a 320px screen', async () => {
+      const { title, actions } = await measure('320px');
+      expect(title.right).toBeLessThanOrEqual(actions.left);
+    });
+  });
 });
