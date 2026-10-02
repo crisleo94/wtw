@@ -12,6 +12,7 @@ import {
   getTranslocoTestingModule,
   overflowingElements,
 } from '../../testing/transloco-testing';
+import { clearAnonymousStorage } from '../../testing/guest-storage-testing';
 
 describe('AuthDialogComponent', () => {
   let component: AuthDialogComponent;
@@ -37,7 +38,7 @@ describe('AuthDialogComponent', () => {
     await fixture.whenStable();
   });
 
-  afterEach(() => sessionStorage.removeItem('wtw.guest.v1'));
+  afterEach(() => clearAnonymousStorage());
 
   it('should fit a 304px modal in both languages', async () => {
     // A real dialog, so the container padding counts like on a 320px phone.

@@ -18,13 +18,14 @@ import {
 } from '../../testing/transloco-testing';
 import { GenresService } from '../../services/genres.service';
 import { TranslocoService } from '@jsverse/transloco';
+import { clearAnonymousStorage } from '../../testing/guest-storage-testing';
 
 describe('MovieCardComponent', () => {
   let component: MovieCardComponent;
   let fixture: ComponentFixture<MovieCardComponent>;
 
   beforeEach(async () => {
-    sessionStorage.removeItem(SESSION_KEY);
+    clearAnonymousStorage();
     await TestBed.configureTestingModule({
       imports: [MovieCardComponent, getTranslocoTestingModule()],
       providers: [
@@ -69,8 +70,7 @@ describe('MovieCardComponent', () => {
     expect(compiled.textContent).toContain('Watched');
     expect(compiled.textContent).toContain('bookmark');
 
-    sessionStorage.removeItem(SESSION_KEY);
-    sessionStorage.removeItem('wtw.guest.v1');
+    clearAnonymousStorage();
   });
 
   describe('anonymous -> dialog -> login -> action', () => {

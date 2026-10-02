@@ -7,6 +7,7 @@ import { of } from 'rxjs';
 import { AuthStore } from '../stores/auth.store';
 import { AuthDialogService } from './auth-dialog.service';
 import { getTranslocoTestingModule } from '../testing/transloco-testing';
+import { clearAnonymousStorage } from '../testing/guest-storage-testing';
 
 describe('AuthDialogService', () => {
   let service: AuthDialogService;
@@ -25,7 +26,7 @@ describe('AuthDialogService', () => {
     service = TestBed.inject(AuthDialogService);
   });
 
-  afterEach(() => sessionStorage.removeItem('wtw.guest.v1'));
+  afterEach(() => clearAnonymousStorage());
 
   it('should not open the dialog in guest mode', (done) => {
     TestBed.inject(AuthStore).continueAsGuest();

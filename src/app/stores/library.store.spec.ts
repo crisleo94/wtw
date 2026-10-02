@@ -12,6 +12,7 @@ import { LanguageStore } from './language.store';
 import { LibraryStore, toImportBody } from './library.store';
 import { SESSION_KEY, SessionStore } from './session.store';
 import { clearLanguagePreference, getTranslocoTestingModule } from '../testing/transloco-testing';
+import { clearAnonymousStorage } from '../testing/guest-storage-testing';
 
 const movie = { tmdbId: 7, title: 'Alien', posterPath: '/a.jpg' } as Movie;
 const user = { id: 'u1', email: 'a@b.co', fullName: 'Ana' };
@@ -23,7 +24,7 @@ describe('LibraryStore', () => {
   let httpTesting: HttpTestingController;
 
   beforeEach(() => {
-    sessionStorage.removeItem(SESSION_KEY);
+    clearAnonymousStorage();
     TestBed.configureTestingModule({
       imports: [getTranslocoTestingModule()],
       providers: [provideHttpClient(), provideHttpClientTesting()],
@@ -37,7 +38,7 @@ describe('LibraryStore', () => {
 
   afterEach(() => {
     clearLanguagePreference();
-    sessionStorage.removeItem(SESSION_KEY);
+    clearAnonymousStorage();
     sessionStorage.removeItem('wtw.session.rejected.v1');
   });
 

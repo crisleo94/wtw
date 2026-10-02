@@ -9,6 +9,7 @@ import { Movie } from './interfaces/movie.interface';
 import { AuthStore } from './stores/auth.store';
 import { LanguageStore } from './stores/language.store';
 import { clearLanguagePreference, getTranslocoTestingModule } from './testing/transloco-testing';
+import { clearAnonymousStorage } from './testing/guest-storage-testing';
 
 describe('AppComponent', () => {
   afterEach(() => clearLanguagePreference());
@@ -97,7 +98,7 @@ describe('AppComponent', () => {
         expect(overlapsLogo).toBeFalse();
         expect(button.bottom).toBeLessThanOrEqual(title.top + 1);
       }
-      sessionStorage.removeItem('wtw.guest.v1');
+      clearAnonymousStorage();
     });
 
     async function measure(width: string) {
@@ -147,7 +148,7 @@ describe('AppComponent', () => {
       const login = host.querySelector('.login-button')!;
       expect(login.textContent).toContain('Login (guest)');
       expect(login.classList).toContain('guest');
-      sessionStorage.removeItem('wtw.guest.v1');
+      clearAnonymousStorage();
     });
 
     it('should show Login without a session and the avatar with one', async () => {

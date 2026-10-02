@@ -15,6 +15,7 @@ import {
   getTranslocoTestingModule,
   overflowingElements,
 } from '../../testing/transloco-testing';
+import { clearAnonymousStorage } from '../../testing/guest-storage-testing';
 
 const movie = (tmdbId: number) =>
   ({ tmdbId, title: `Movie ${tmdbId}`, posterPath: '/p.jpg' }) as Movie;
@@ -25,7 +26,7 @@ describe('UserPanelComponent', () => {
   let library: LibraryStore;
 
   beforeEach(async () => {
-    sessionStorage.removeItem(SESSION_KEY);
+    clearAnonymousStorage();
     await TestBed.configureTestingModule({
       imports: [UserPanelComponent, getTranslocoTestingModule()],
       providers: [provideHttpClient(), provideHttpClientTesting()],
@@ -41,8 +42,7 @@ describe('UserPanelComponent', () => {
   });
 
   afterEach(() => {
-    sessionStorage.removeItem(SESSION_KEY);
-    sessionStorage.removeItem('wtw.guest.v1');
+    clearAnonymousStorage();
   });
 
   it('should show the guest lists without a delete option for the Watchlist', () => {

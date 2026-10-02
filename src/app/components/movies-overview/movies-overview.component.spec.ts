@@ -9,13 +9,14 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { SESSION_KEY } from '../../stores/session.store';
 import { MoviesOverviewComponent } from './movies-overview.component';
 import { getTranslocoTestingModule } from '../../testing/transloco-testing';
+import { clearAnonymousStorage } from '../../testing/guest-storage-testing';
 
 describe('MoviesOverviewComponent', () => {
   let component: MoviesOverviewComponent;
   let fixture: ComponentFixture<MoviesOverviewComponent>;
 
   beforeEach(async () => {
-    sessionStorage.removeItem(SESSION_KEY);
+    clearAnonymousStorage();
     await TestBed.configureTestingModule({
       imports: [MoviesOverviewComponent, getTranslocoTestingModule()],
       providers: [
