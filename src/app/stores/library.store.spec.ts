@@ -8,6 +8,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subject } from 'rxjs';
 import { Movie } from '../interfaces/movie.interface';
 import { AuthStore } from './auth.store';
+import { LanguageStore } from './language.store';
 import { LibraryStore, toImportBody } from './library.store';
 import { SESSION_KEY, SessionStore } from './session.store';
 import { getTranslocoTestingModule } from '../testing/transloco-testing';
@@ -84,6 +85,24 @@ describe('LibraryStore', () => {
     flushReload();
     expect(library.watchedIds().has(7)).toBeTrue();
     expect(library.watchlist()?.id).toBe('w1');
+  });
+
+  it('should reload the library in the new language', () => {
+    login();
+    flushReload();
+    TestBed.inject(LanguageStore).setLang('es');
+    const history = httpTesting.expectOne((req) => req.url === '/api/me/history');
+    history.flush({ items: [{ id: 'h1', movie: { ...movie, title: 'Alien, el octavo pasajero' }, generatedAt: '2026-10-02' }], total: 1, limit: 50, offset: 0 });
+    httpTesting.expectOne('/api/me/lists').flush([]);
+    httpTesting.expectOne('/api/me/movies').flush({ watched: [] });
+    expect(library.history()[0].movie.title).toBe('Alien, el octavo pasajero');
+    localStorage.removeItem('wtw.lang');
+  });
+
+  it('should not call the API for guests when the language changes', () => {
+    TestBed.inject(LanguageStore).setLang('es');
+    httpTesting.verify();
+    localStorage.removeItem('wtw.lang');
   });
 
   it('should skip the import when the session is empty', () => {

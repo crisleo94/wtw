@@ -24,6 +24,11 @@ export class MoviesService {
       );
   }
 
+  // Same movie in the active language (used after switching languages).
+  getMovie(tmdbId: number): Observable<Movie> {
+    return this.http.get<Movie>(`${API_URL}/movies/${tmdbId}`);
+  }
+
   private buildParams(filters: MovieFilters): HttpParams {
     let params = new HttpParams();
     for (const [key, value] of Object.entries(filters)) {

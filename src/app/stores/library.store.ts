@@ -38,6 +38,7 @@ import { MovieFilters } from '../interfaces/movie-filters.interface';
 import { Movie } from '../interfaces/movie.interface';
 import { LibraryError } from '../utils/api-error';
 import { AuthStore } from './auth.store';
+import { LanguageStore } from './language.store';
 import { SessionStore } from './session.store';
 
 export const HISTORY_PAGE_SIZE = 50;
@@ -118,6 +119,12 @@ export class LibraryStore {
           this.clearRemote();
         }
       });
+    });
+    // Titles and synopses come back in the new language.
+    inject(LanguageStore).changed$.subscribe(() => {
+      if (this.authStore.isLoggedIn() && this.remoteLoaded()) {
+        this.reload();
+      }
     });
   }
 
