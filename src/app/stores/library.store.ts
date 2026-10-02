@@ -38,6 +38,7 @@ import { SessionStore } from './session.store';
 export const HISTORY_PAGE_SIZE = 50;
 export const MAX_LISTS = 50;
 export const MAX_LIST_ITEMS = 500;
+export const MAX_WATCHED = 2000;
 
 // Facade over the user library: the API when logged in, the session otherwise.
 @Injectable({
@@ -135,6 +136,15 @@ export class LibraryStore {
 
   setWatched(movie: Movie, watched: boolean): Observable<void> {
     if (!this.authStore.isLoggedIn()) {
+      const ids = this.session.data().watched;
+      if (watched && !ids.includes(movie.tmdbId) && ids.length >= MAX_WATCHED) {
+        return throwError(
+          () =>
+            new LibraryError(
+              `You can mark up to ${MAX_WATCHED} movies as watched as a guest. Log in to keep more.`
+            )
+        );
+      }
       this.session.setWatched(movie, watched);
       return of(undefined);
     }

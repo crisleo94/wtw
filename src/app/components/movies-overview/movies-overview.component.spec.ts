@@ -45,4 +45,11 @@ describe('MoviesOverviewComponent', () => {
     expect(component.history().length).toBe(0);
     expect(compiled.textContent).toContain('will show up here');
   });
+
+  it('should render an empty library until hydration finishes', () => {
+    const movie = { tmdbId: 4, title: 'Coco', overview: '', genreIds: [], posterPath: '/c.jpg' } as unknown as Movie;
+    TestBed.inject(LibraryStore).recordGenerated(movie);
+    const fresh = TestBed.createComponent(MoviesOverviewComponent);
+    expect(fresh.componentInstance.history()).toEqual([]);
+  });
 });

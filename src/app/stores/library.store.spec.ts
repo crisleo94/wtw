@@ -176,4 +176,25 @@ describe('LibraryStore', () => {
     expect(session.data().history.length).toBe(1);
     httpTesting.verify();
   });
+
+  it('should explain the guest watched limit', () => {
+    sessionStorage.setItem(
+      SESSION_KEY,
+      JSON.stringify({
+        history: [],
+        watched: Array.from({ length: 2000 }, (_, i) => i + 100),
+        lists: [],
+        movies: {},
+      })
+    );
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    let message = '';
+    TestBed.inject(LibraryStore)
+      .setWatched(movie, true)
+      .subscribe({ error: (error) => (message = error.message) });
+    expect(message).toContain('up to 2000');
+  });
 });

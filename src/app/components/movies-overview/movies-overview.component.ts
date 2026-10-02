@@ -1,4 +1,10 @@
-import { Component, inject } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 import { Observable } from 'rxjs';
@@ -20,8 +26,17 @@ export class MoviesOverviewComponent {
   private _library = inject(LibraryStore);
   private _snackBar = inject(MatSnackBar);
 
-  history = this._library.history;
-  watchlist = this._library.watchlist;
+  // The server can't read sessionStorage: show the library after hydration so both match.
+  private hydrated = signal(false);
+
+  history = computed(() => (this.hydrated() ? this._library.history() : []));
+  watchlist = computed(() =>
+    this.hydrated() ? this._library.watchlist() : undefined
+  );
+
+  constructor() {
+    afterNextRender(() => this.hydrated.set(true));
+  }
 
   removeHistory(entry: HistoryEntry): void {
     this.run(this._library.removeHistory(entry), 'Removed from your history.');
