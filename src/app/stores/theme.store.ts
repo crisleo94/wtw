@@ -13,15 +13,9 @@ export class ThemeStore {
   private current = signal<ThemeMode>(this.read());
   private systemDark = signal(this.watchSystem());
 
-  readonly mode = this.current.asReadonly();
   readonly isDark = computed(() =>
     this.current() === 'system' ? this.systemDark() : this.current() === 'dark'
   );
-
-  // Flips what is on screen; from then on the choice is explicit.
-  toggle(): void {
-    this.setMode(this.isDark() ? 'light' : 'dark');
-  }
 
   setMode(mode: ThemeMode): void {
     this.current.set(mode);
