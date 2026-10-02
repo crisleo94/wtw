@@ -1,7 +1,27 @@
+<mat-sidenav-container class="shell">
+<mat-sidenav
+  mode="over"
+  position="end"
+  class="panel"
+  [opened]="panelOpen()"
+  (closedStart)="panelOpen.set(false)"
+>
+  @defer (when panelOpen()) {
+  <app-user-panel (closed)="panelOpen.set(false)"></app-user-panel>
+  }
+</mat-sidenav>
+<mat-sidenav-content>
 
 <header class="header">
   <h1>What to Watch?</h1>
-  <app-user-menu class="user-menu"></app-user-menu>
+  <button
+    mat-icon-button
+    class="user-menu"
+    aria-label="Open your panel"
+    (click)="panelOpen.set(true)"
+  >
+    <mat-icon>account_circle</mat-icon>
+  </button>
 </header>
 
 <div class="container">
@@ -33,3 +53,5 @@
 <div class="overview">
   <app-movies-overview></app-movies-overview>
 </div>
+</mat-sidenav-content>
+</mat-sidenav-container>

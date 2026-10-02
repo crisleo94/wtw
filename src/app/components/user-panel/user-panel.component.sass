@@ -1,0 +1,89 @@
+:host
+  display: grid
+  gap: 12px
+  padding: 16px
+
+.panel-header
+  display: flex
+  align-items: center
+  gap: 12px
+
+.avatar
+  font-size: 40px
+  width: 40px
+  height: 40px
+
+.identity
+  display: grid
+  flex: 1
+  font-size: 14px
+
+.filter
+  width: 100%
+  mat-button-toggle
+    flex: 1
+
+.new-list,
+.rename
+  display: flex
+  align-items: center
+  gap: 4px
+  mat-form-field
+    flex: 1
+
+.list-header
+  display: flex
+  align-items: center
+  justify-content: space-between
+  h3
+    display: flex
+    align-items: center
+    gap: 4px
+    margin: 8px 0
+
+.count
+  font-weight: normal
+
+.items
+  list-style: none
+  margin: 0
+  padding: 4px
+  min-height: 48px
+  border: 1px dashed currentColor
+  border-radius: 8px
+
+.item
+  display: flex
+  align-items: center
+  gap: 8px
+  padding: 4px
+  border-radius: 6px
+  img
+    width: 32px
+    height: 48px
+    object-fit: cover
+  .title
+    flex: 1
+    display: grid
+
+.handle
+  cursor: move
+
+.watched
+  font-size: 12px
+  font-weight: bold
+
+.empty
+  padding: 12px
+  text-align: center
+  opacity: .8
+
+.cdk-drag-preview
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .3)
+
+.cdk-drag-placeholder
+  opacity: .3
+
+.cdk-drag-animating,
+.items.cdk-drop-list-dragging .item:not(.cdk-drag-placeholder)
+  transition: transform 200ms ease

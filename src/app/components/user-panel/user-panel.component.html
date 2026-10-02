@@ -1,0 +1,149 @@
+<header class="panel-header">
+  <mat-icon class="avatar" aria-hidden="true">account_circle</mat-icon>
+  <div class="identity">
+    @if (authStore.user(); as user) {
+    <strong>{{ user.fullName }}</strong>
+    <span>{{ user.email }}</span>
+    } @else {
+    <strong>Guest</strong>
+    <span>Your lists are kept in this tab only</span>
+    }
+  </div>
+  <button mat-icon-button aria-label="Close panel" (click)="closed.emit()">
+    <mat-icon>close</mat-icon>
+  </button>
+</header>
+
+<div class="account-actions">
+  @if (authStore.isLoggedIn()) {
+  <button mat-stroked-button (click)="logout()">
+    <mat-icon>logout</mat-icon> Logout
+  </button>
+  } @else {
+  <button mat-flat-button color="primary" (click)="openAuth()">
+    Login or register
+  </button>
+  }
+</div>
+
+<mat-button-toggle-group
+  class="filter"
+  aria-label="Filter by watched state"
+  hideSingleSelectionIndicator
+  [value]="filter()"
+  (change)="filter.set($event.value)"
+>
+  <mat-button-toggle value="all">All</mat-button-toggle>
+  <mat-button-toggle value="watched">Watched</mat-button-toggle>
+  <mat-button-toggle value="unwatched">Not watched</mat-button-toggle>
+</mat-button-toggle-group>
+
+<form class="new-list" (ngSubmit)="createList()">
+  <mat-form-field subscriptSizing="dynamic">
+    <mat-label>New list</mat-label>
+    <input
+      matInput
+      name="newList"
+      maxlength="50"
+      [ngModel]="newListName()"
+      (ngModelChange)="newListName.set($event)"
+    />
+  </mat-form-field>
+  <button mat-icon-button type="submit" aria-label="Create list" [disabled]="!newListName().trim()">
+    <mat-icon>add</mat-icon>
+  </button>
+</form>
+
+<div class="lists" cdkDropListGroup>
+  @for (panelList of panelLists(); track panelList.key) {
+  @let list = panelList.list;
+  <section class="list" [attr.aria-label]="list.name">
+    <div class="list-header">
+      @if (editingKey() === panelList.key) {
+      <form class="rename" (ngSubmit)="saveRename(list)">
+        <mat-form-field subscriptSizing="dynamic">
+          <mat-label>List name</mat-label>
+          <input
+            matInput
+            name="rename"
+            maxlength="50"
+            [ngModel]="editingName()"
+            (ngModelChange)="editingName.set($event)"
+            (keydown.escape)="cancelRename()"
+          />
+        </mat-form-field>
+        <button mat-icon-button type="submit" aria-label="Save name"><mat-icon>check</mat-icon></button>
+        <button mat-icon-button type="button" aria-label="Cancel rename" (click)="cancelRename()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </form>
+      } @else {
+      <h3>
+        @if (list.isSystem) {<mat-icon aria-hidden="true">bookmark</mat-icon>}
+        {{ list.name }} <span class="count">({{ list.items.length }})</span>
+      </h3>
+      @if (!list.isSystem) {
+      <button mat-icon-button [matMenuTriggerFor]="listMenu" [attr.aria-label]="'Options for ' + list.name">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+      <mat-menu #listMenu="matMenu">
+        <button mat-menu-item (click)="startRename(panelList)">
+          <mat-icon>edit</mat-icon><span>Rename</span>
+        </button>
+        <button mat-menu-item (click)="deleteList(list)">
+          <mat-icon>delete</mat-icon><span>Delete</span>
+        </button>
+      </mat-menu>
+      }
+      }
+    </div>
+
+    <ul
+      class="items"
+      cdkDropList
+      [cdkDropListData]="panelList"
+      (cdkDropListDropped)="drop($event)"
+    >
+      @for (item of panelList.items; track item.tmdbId) {
+      <li class="item" cdkDrag [cdkDragData]="item">
+        <mat-icon class="handle" cdkDragHandle aria-hidden="true">drag_indicator</mat-icon>
+        <img [src]="posterUrl(item.movie.posterPath)" [alt]="" />
+        <span class="title">
+          {{ item.movie.title }}
+          @if (item.watched) {<span class="watched">Watched</span>}
+        </span>
+        <button
+          mat-icon-button
+          [matMenuTriggerFor]="itemMenu"
+          [attr.aria-label]="'Actions for ' + item.movie.title"
+        >
+          <mat-icon>more_horiz</mat-icon>
+        </button>
+        <mat-menu #itemMenu="matMenu">
+          <button mat-menu-item (click)="toggleWatched(item)">
+            <mat-icon>{{ item.watched ? 'visibility_off' : 'visibility' }}</mat-icon>
+            <span>{{ item.watched ? 'Mark as not watched' : 'Mark as watched' }}</span>
+          </button>
+          <button mat-menu-item [disabled]="isFirst(list, item)" (click)="shift(list, item, -1)">
+            <mat-icon>arrow_upward</mat-icon><span>Move up</span>
+          </button>
+          <button mat-menu-item [disabled]="isLast(list, item)" (click)="shift(list, item, 1)">
+            <mat-icon>arrow_downward</mat-icon><span>Move down</span>
+          </button>
+          @for (other of otherLists(list); track other.name) {
+          <button mat-menu-item (click)="moveTo(list, item, other)">
+            <mat-icon>drive_file_move</mat-icon><span>Move to {{ other.name }}</span>
+          </button>
+          }
+          <button mat-menu-item (click)="removeItem(list, item)">
+            <mat-icon>delete</mat-icon><span>Remove from {{ list.name }}</span>
+          </button>
+        </mat-menu>
+      </li>
+      } @empty {
+      <li class="empty">Drop movies here</li>
+      }
+    </ul>
+  </section>
+  }
+</div>

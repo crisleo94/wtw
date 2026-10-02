@@ -4,7 +4,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FormComponent } from './components/form/form.component';
 import { MovieCardComponent } from './components/movie-card/movie-card.component';
 import { MoviesOverviewComponent } from './components/movies-overview/movies-overview.component';
-import { UserMenuComponent } from './components/user-menu/user-menu.component';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { UserPanelComponent } from './components/user-panel/user-panel.component';
 import { Movie } from './interfaces/movie.interface';
 
 const NO_RESULTS_MESSAGE =
@@ -17,7 +19,9 @@ const ERROR_MESSAGE = 'We could not get a movie right now. Please try again.';
     MovieCardComponent,
     MoviesOverviewComponent,
     FormComponent,
-    UserMenuComponent,
+    UserPanelComponent,
+    MatButtonModule,
+    MatSidenavModule,
     MatProgressSpinnerModule,
     MatIconModule,
   ],
@@ -27,6 +31,7 @@ const ERROR_MESSAGE = 'We could not get a movie right now. Please try again.';
 export class AppComponent {
   movie = signal<Movie | null>(null);
   isLoading = signal(false);
+  panelOpen = signal(false);
   message = signal<string | null>(null);
 
   recieveMovie($event: Movie | null): void {
