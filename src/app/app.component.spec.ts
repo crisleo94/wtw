@@ -2,11 +2,12 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { AppComponent } from './app.component';
+import { getTranslocoTestingModule } from './testing/transloco-testing';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AppComponent],
+      imports: [AppComponent, getTranslocoTestingModule()],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -38,6 +39,19 @@ describe('AppComponent', () => {
   });
 
   describe('header layout', () => {
+    it('should show a round logo on the left of the centered title', async () => {
+      const { header, title, logo, logoElement } = await measure('1280px');
+      expect(Math.abs(logo.left - header.left - 16)).toBeLessThan(1);
+      expect(logo.right).toBeLessThanOrEqual(title.left);
+      expect(getComputedStyle(logoElement).borderRadius).toBe('50%');
+    });
+
+    it('should keep the logo in the top row on a 320px screen', async () => {
+      const { title, actions, logo } = await measure('320px');
+      expect(logo.right).toBeLessThanOrEqual(actions.left);
+      expect(title.top).toBeGreaterThanOrEqual(logo.bottom);
+    });
+
     async function measure(width: string) {
       const fixture = TestBed.createComponent(AppComponent);
       const host = fixture.nativeElement as HTMLElement;
@@ -47,7 +61,9 @@ describe('AppComponent', () => {
       const header = host.querySelector('.header')!.getBoundingClientRect();
       const title = host.querySelector('h1')!.getBoundingClientRect();
       const actions = host.querySelector('.header-actions')!.getBoundingClientRect();
-      return { header, title, actions };
+      const logoElement = host.querySelector('app-logo') as HTMLElement;
+      const logo = logoElement.getBoundingClientRect();
+      return { header, title, actions, logo, logoElement };
     }
 
     it('should keep the title centered and the actions top right on desktop', async () => {

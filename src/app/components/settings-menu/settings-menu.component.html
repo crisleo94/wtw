@@ -1,0 +1,47 @@
+<button
+  mat-icon-button
+  [matMenuTriggerFor]="settingsMenu"
+  [matTooltip]="'settings.open' | transloco"
+  [attr.aria-label]="'settings.open' | transloco"
+>
+  <mat-icon>settings</mat-icon>
+</button>
+<mat-menu #settingsMenu="matMenu" xPosition="before">
+  <div class="section-title" id="settings-language">{{ 'settings.language' | transloco }}</div>
+  <div role="group" aria-labelledby="settings-language">
+    @for (language of languages; track language.code) {
+    <button
+      mat-menu-item
+      role="menuitemradio"
+      [attr.lang]="language.code"
+      [attr.aria-checked]="languageStore.lang() === language.code"
+      (click)="languageStore.setLang(language.code)"
+    >
+      <mat-icon>{{ languageStore.lang() === language.code ? 'check' : '' }}</mat-icon>
+      <span>{{ language.name }}</span>
+    </button>
+    }
+  </div>
+  <mat-divider></mat-divider>
+  <div class="section-title" id="settings-theme">{{ 'settings.theme' | transloco }}</div>
+  <div role="group" aria-labelledby="settings-theme">
+    <button
+      mat-menu-item
+      role="menuitemradio"
+      [attr.aria-checked]="!themeStore.isDark()"
+      (click)="themeStore.setMode('light')"
+    >
+      <mat-icon>{{ themeStore.isDark() ? 'light_mode' : 'check' }}</mat-icon>
+      <span>{{ 'settings.light' | transloco }}</span>
+    </button>
+    <button
+      mat-menu-item
+      role="menuitemradio"
+      [attr.aria-checked]="themeStore.isDark()"
+      (click)="themeStore.setMode('dark')"
+    >
+      <mat-icon>{{ themeStore.isDark() ? 'check' : 'dark_mode' }}</mat-icon>
+      <span>{{ 'settings.dark' | transloco }}</span>
+    </button>
+  </div>
+</mat-menu>

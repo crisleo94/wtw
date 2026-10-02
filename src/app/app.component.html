@@ -13,9 +13,10 @@
 <mat-sidenav-content>
 
 <header class="header">
+  <app-logo class="logo"></app-logo>
   <h1>What to Watch?</h1>
   <div class="header-actions">
-    <app-theme-toggle></app-theme-toggle>
+    <app-settings-menu></app-settings-menu>
     @if (authStore.user(); as user) {
     <button
       class="avatar-button"

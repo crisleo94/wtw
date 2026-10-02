@@ -7,7 +7,8 @@ import { MoviesOverviewComponent } from './components/movies-overview/movies-ove
 import { MatButtonModule } from '@angular/material/button';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { ThemeToggleComponent } from './components/theme-toggle/theme-toggle.component';
+import { LogoComponent } from './components/logo/logo.component';
+import { SettingsMenuComponent } from './components/settings-menu/settings-menu.component';
 import { UserPanelComponent } from './components/user-panel/user-panel.component';
 import { Movie } from './interfaces/movie.interface';
 import { AuthDialogService } from './services/auth-dialog.service';
@@ -24,7 +25,8 @@ const ERROR_MESSAGE = 'We could not get a movie right now. Please try again.';
     MoviesOverviewComponent,
     FormComponent,
     UserPanelComponent,
-    ThemeToggleComponent,
+    SettingsMenuComponent,
+    LogoComponent,
     MatButtonModule,
     MatSidenavModule,
     MatProgressSpinnerModule,
