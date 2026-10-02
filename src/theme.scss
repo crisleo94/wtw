@@ -8,7 +8,10 @@ html {
       primary: mat.$violet-palette,
       tertiary: mat.$orange-palette,
     ),
-    typography: Roboto,
+    typography: (
+      plain-family: 'Clarity City',
+      brand-family: 'Clarity City',
+    ),
     density: 0,
   ));
 }
@@ -16,6 +19,15 @@ html {
 body {
   background: var(--mat-sys-surface-container-low);
   color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-large);
+}
+
+// Native controls don't inherit the font by default.
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
 }
 
 // M3 ignores `color="warn"`, so destructive buttons use the error role.
