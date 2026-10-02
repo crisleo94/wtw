@@ -12,7 +12,12 @@ import { AuthStore } from '../../stores/auth.store';
 import { LibraryStore } from '../../stores/library.store';
 import { SESSION_KEY } from '../../stores/session.store';
 import { MovieCardComponent } from './movie-card.component';
-import { getTranslocoTestingModule } from '../../testing/transloco-testing';
+import {
+  getTranslocoTestingModule,
+  overflowingElements,
+} from '../../testing/transloco-testing';
+import { GenresService } from '../../services/genres.service';
+import { TranslocoService } from '@jsverse/transloco';
 
 describe('MovieCardComponent', () => {
   let component: MovieCardComponent;
@@ -122,6 +127,31 @@ describe('MovieCardComponent', () => {
         jasmine.any(Object)
       );
     });
+  });
+
+  it('should keep chips under the title and the card inside 288px', async () => {
+    spyOn(TestBed.inject(GenresService), 'getGenre').and.callFake((id: number) => ({
+      id,
+      name: `Ciencia ficción ${id}`,
+    }));
+    TestBed.inject(TranslocoService).setActiveLang('es');
+    const host = fixture.nativeElement as HTMLElement;
+    host.style.width = '288px';
+    fixture.componentRef.setInput('movie', {
+      tmdbId: 1,
+      title: 'Alien, el octavo pasajero',
+      genreIds: [1, 2, 3, 4],
+      overview: 'Una tripulación espacial recibe una señal desconocida. '.repeat(8),
+      posterPath: '',
+      releaseDate: '1979-05-25',
+      voteAverage: 8.2,
+      voteCount: 15000,
+    } as Movie);
+    await fixture.whenStable();
+    const title = host.querySelector('mat-card-title-group')!.getBoundingClientRect();
+    const chips = host.querySelector('mat-chip-set')!.getBoundingClientRect();
+    expect(chips.top).toBeGreaterThanOrEqual(title.bottom - 1);
+    expect(overflowingElements(host)).toEqual([]);
   });
 
   it('should build poster URLs without a double slash', () => {

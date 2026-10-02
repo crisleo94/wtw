@@ -11,7 +11,10 @@ import { AuthStore } from '../../stores/auth.store';
 import { LibraryStore } from '../../stores/library.store';
 import { SESSION_KEY } from '../../stores/session.store';
 import { UserPanelComponent } from './user-panel.component';
-import { getTranslocoTestingModule } from '../../testing/transloco-testing';
+import {
+  getTranslocoTestingModule,
+  overflowingElements,
+} from '../../testing/transloco-testing';
 
 const movie = (tmdbId: number) =>
   ({ tmdbId, title: `Movie ${tmdbId}`, posterPath: '/p.jpg' }) as Movie;
@@ -150,6 +153,16 @@ describe('UserPanelComponent', () => {
       message: '¿Eliminar la lista "Later"? Se quitarán sus películas.',
       confirmLabel: 'Eliminar',
     });
+  });
+
+  it('should fit 320px with long names in Spanish', async () => {
+    TestBed.inject(TranslocoService).setActiveLang('es');
+    component.newListName.set('Películas para ver con toda la familia en vacaciones');
+    component.createList();
+    const host = fixture.nativeElement as HTMLElement;
+    host.style.width = '320px';
+    await fixture.whenStable();
+    expect(overflowingElements(host)).toEqual([]);
   });
 
   it('should focus the rename input', async () => {

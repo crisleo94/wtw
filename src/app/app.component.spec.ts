@@ -112,6 +112,15 @@ describe('AppComponent', () => {
       expect(actions.left).toBeGreaterThanOrEqual(header.left);
     });
 
+    it('should stack at 768px in Spanish and keep Login on one line', async () => {
+      TestBed.inject(LanguageStore).setLang('es');
+      const { title, actions } = await measure('768px');
+      expect(title.top).toBeGreaterThanOrEqual(actions.bottom);
+      const login = document.querySelector('.login-button') as HTMLElement;
+      expect(getComputedStyle(login).whiteSpace).toBe('nowrap');
+      expect(login.getBoundingClientRect().height).toBeLessThanOrEqual(48);
+    });
+
     it('should show Login without a session and the avatar with one', async () => {
       const fixture = TestBed.createComponent(AppComponent);
       const host = fixture.nativeElement as HTMLElement;
