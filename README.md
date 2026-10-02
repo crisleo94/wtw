@@ -14,6 +14,11 @@ What to Watch: Angular 21 SSR app. Its Express server (`server.ts`) also works a
 ## Environment
 - `API_URL`: backend URL seen from the front container (`http://wtw-api:3000`)
 - `PORT`: SSR server port (`4000`)
+- `API_TIMEOUT_MS`: BFF timeout for API calls (`10000`); returns `504` when exceeded and `502` when the API is unreachable
+- `COOKIE_SECURE`: `true` adds `Secure` to the `wtw_token` cookie (use it behind HTTPS)
+
+## BFF
+`server.ts` forwards `/api/*` to `API_URL` (method, query, body and status). On login/register it moves the JWT from the response body into the `wtw_token` cookie (`httpOnly`, `sameSite=lax`), sends it back to the API as `Authorization: Bearer`, and `POST /api/auth/logout` clears it. The browser never sees the JWT or the TMDB token.
 
 ## Docker
 The front shares the external network `wtw-network` with the `wtw-api` compose. It is the **only** service that publishes a port (`4000`); the API and Postgres stay inside the network.

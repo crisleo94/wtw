@@ -6,11 +6,22 @@ import {
 } from '@angular/ssr/node';
 import express from 'express';
 import { join } from 'node:path';
+import { apiProxy } from './src/server/api-proxy';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
 const app = express();
 const angularApp = new AngularNodeAppEngine();
+
+// BFF: forwards /api/* to the backend inside the docker network
+app.use(
+  '/api',
+  apiProxy({
+    apiUrl: process.env['API_URL'] || 'http://localhost:3000',
+    timeoutMs: Number(process.env['API_TIMEOUT_MS']) || 10000,
+    secureCookie: process.env['COOKIE_SECURE'] === 'true',
+  }),
+);
 
 // Serve static files from /browser
 app.use(
