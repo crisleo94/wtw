@@ -107,6 +107,51 @@ export class SessionStore {
     }));
   }
 
+  createList(name: string): void {
+    this.commit((data) => ({
+      ...data,
+      lists: [...data.lists, { name, isSystem: false, items: [] }],
+    }));
+  }
+
+  renameList(name: string, newName: string): void {
+    this.commit((data) => ({
+      ...data,
+      lists: data.lists.map((list) =>
+        list.name === name ? { ...list, name: newName } : list
+      ),
+    }));
+  }
+
+  deleteList(name: string): void {
+    this.commit((data) => ({
+      ...data,
+      lists: data.lists.filter((list) => list.isSystem || list.name !== name),
+    }));
+  }
+
+  // Moves (or reorders) a movie; `position` is the index in the target list.
+  moveItem(from: string, tmdbId: number, to: string, position: number): void {
+    this.commit((data) => {
+      const lists = data.lists.map((list) =>
+        list.name === from
+          ? { ...list, items: list.items.filter((id) => id !== tmdbId) }
+          : list
+      );
+      return {
+        ...data,
+        lists: lists.map((list) => {
+          if (list.name !== to) {
+            return list;
+          }
+          const items = [...list.items];
+          items.splice(Math.min(position, items.length), 0, tmdbId);
+          return { ...list, items };
+        }),
+      };
+    });
+  }
+
   markImportRejected(): void {
     this.rejected.set(true);
     this.storage.set(REJECTED_KEY, 'true');

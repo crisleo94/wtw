@@ -205,4 +205,60 @@ describe('LibraryStore', () => {
     flushReload();
     expect(library.ready()).toBeTrue();
   });
+
+  it('should manage guest lists with the API rules', () => {
+    const errors: string[] = [];
+    const fail = { error: (error: Error) => errors.push(error.message) };
+    library.createList(' Fun ').subscribe();
+    library.createList('fun').subscribe(fail);
+    library.createList('   ').subscribe(fail);
+    expect(library.lists().map((list) => list.name)).toEqual(['Watchlist', 'Fun']);
+
+    const fun = library.lists()[1];
+    library.renameList(fun, 'Weekend').subscribe();
+    library.renameList(library.watchlist()!, 'Other').subscribe(fail);
+    library.deleteList(library.watchlist()!).subscribe(fail);
+    expect(errors).toEqual([
+      'A list named "fun" already exists.',
+      'The list name cannot be empty.',
+      'The Watchlist cannot be renamed.',
+      'The Watchlist cannot be deleted.',
+    ]);
+
+    library.deleteList(library.lists()[1]).subscribe();
+    expect(library.lists().length).toBe(1);
+  });
+
+  it('should move guest movies between lists and reorder them', () => {
+    const other = { ...movie, tmdbId: 8, title: 'Aliens' };
+    library.addToWatchlist(movie).subscribe();
+    library.addToWatchlist(other).subscribe();
+    library.createList('Later').subscribe();
+
+    library.moveItem(library.watchlist()!, 8, library.watchlist()!, 0).subscribe();
+    expect(library.watchlist()!.items.map((item) => item.tmdbId)).toEqual([8, 7]);
+
+    library.moveItem(library.watchlist()!, 7, library.lists()[1], 0).subscribe();
+    expect(library.watchlist()!.items.map((item) => item.tmdbId)).toEqual([8]);
+    expect(library.lists()[1].items.map((item) => item.tmdbId)).toEqual([7]);
+  });
+
+  it('should move remote items optimistically and send toListId', () => {
+    login();
+    flushReload();
+    library['remoteLists'].set([
+      { id: 'w1', name: 'Watchlist', isSystem: true, position: 0, items: [
+        { tmdbId: 7, position: 0, watched: false, movie },
+      ] },
+      { id: 'l2', name: 'Later', isSystem: false, position: 1, items: [] },
+    ]);
+    const [watchlist, later] = library.lists();
+    library.moveItem(watchlist, 7, later, 0).subscribe();
+
+    expect(library.lists()[1].items.map((item) => item.tmdbId)).toEqual([7]);
+    const req = httpTesting.expectOne('/api/me/lists/w1/items/7');
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ toListId: 'l2', position: 0 });
+    req.flush({});
+  });
 });

@@ -30,6 +30,7 @@ import {
   HistoryPage,
   ImportSummary,
   MovieList,
+  MovieListItem,
   SessionData,
 } from '../interfaces/library.interface';
 import { MovieFilters } from '../interfaces/movie-filters.interface';
@@ -216,6 +217,99 @@ export class LibraryStore {
       .pipe(switchMap(() => this.loadLists()));
   }
 
+  createList(rawName: string): Observable<void> {
+    const name = rawName.trim();
+    const invalid = this.validateListName(name);
+    if (invalid) {
+      return throwError(() => new LibraryError(invalid));
+    }
+    if (this.lists().length >= MAX_LISTS) {
+      return throwError(
+        () => new LibraryError(`You can have up to ${MAX_LISTS} lists.`)
+      );
+    }
+    if (!this.authStore.isLoggedIn()) {
+      this.session.createList(name);
+      return of(undefined);
+    }
+    return this.http
+      .post<unknown>(`${API_URL}/me/lists`, { name })
+      .pipe(switchMap(() => this.loadLists()));
+  }
+
+  renameList(list: MovieList, rawName: string): Observable<void> {
+    const name = rawName.trim();
+    if (list.isSystem) {
+      return throwError(() => new LibraryError('The Watchlist cannot be renamed.'));
+    }
+    if (name === list.name) {
+      return of(undefined);
+    }
+    const invalid = this.validateListName(name, list);
+    if (invalid) {
+      return throwError(() => new LibraryError(invalid));
+    }
+    if (!this.authStore.isLoggedIn()) {
+      this.session.renameList(list.name, name);
+      return of(undefined);
+    }
+    return this.http
+      .patch<unknown>(`${API_URL}/me/lists/${list.id}`, { name })
+      .pipe(switchMap(() => this.loadLists()));
+  }
+
+  deleteList(list: MovieList): Observable<void> {
+    if (list.isSystem) {
+      return throwError(() => new LibraryError('The Watchlist cannot be deleted.'));
+    }
+    if (!this.authStore.isLoggedIn()) {
+      this.session.deleteList(list.name);
+      return of(undefined);
+    }
+    return this.http
+      .delete<void>(`${API_URL}/me/lists/${list.id}`)
+      .pipe(switchMap(() => this.loadLists()));
+  }
+
+  // Moves inside a list or to another one; remote moves are optimistic.
+  moveItem(
+    from: MovieList,
+    tmdbId: number,
+    to: MovieList,
+    position: number
+  ): Observable<void> {
+    const sameList = listKey(from) === listKey(to);
+    if (!sameList && to.items.some((item) => item.tmdbId === tmdbId)) {
+      return throwError(
+        () => new LibraryError(`That movie is already in ${to.name}.`)
+      );
+    }
+    if (!sameList && to.items.length >= MAX_LIST_ITEMS) {
+      return throwError(
+        () => new LibraryError(`${to.name} is full (${MAX_LIST_ITEMS} movies max).`)
+      );
+    }
+    if (!this.authStore.isLoggedIn()) {
+      this.session.moveItem(from.name, tmdbId, to.name, position);
+      return of(undefined);
+    }
+    this.remoteLists.update((lists) =>
+      moveListItem(lists, from, tmdbId, to, position)
+    );
+    return this.http
+      .patch<unknown>(`${API_URL}/me/lists/${from.id}/items/${tmdbId}`, {
+        ...(sameList ? {} : { toListId: to.id }),
+        position,
+      })
+      .pipe(
+        map(() => undefined),
+        catchError((error) => {
+          this.loadLists().subscribe();
+          return throwError(() => error);
+        })
+      );
+  }
+
   // Idempotent on the API. Network/5xx errors keep the session to retry on the next
   // login; a 4xx will not change by retrying, so the user is offered to discard it.
   importSession(): Observable<ImportSummary | null> {
@@ -284,6 +378,21 @@ export class LibraryStore {
       take(1),
       map(() => undefined)
     );
+  }
+
+  // Names are unique per user, ignoring case (same rule as the API).
+  private validateListName(name: string, current?: MovieList): string | null {
+    if (!name) {
+      return 'The list name cannot be empty.';
+    }
+    if (name.length > 50) {
+      return 'The list name can have up to 50 characters.';
+    }
+    const taken = this.lists().some(
+      (list) =>
+        list !== current && list.name.toLowerCase() === name.toLowerCase()
+    );
+    return taken ? `A list named "${name}" already exists.` : null;
   }
 
   private loadHistory(): Observable<void> {
@@ -370,4 +479,38 @@ function isPermanentError(error: unknown): boolean {
     error.status < 500 &&
     error.status !== 401
   );
+}
+
+export function listKey(list: MovieList): string {
+  return list.id ?? list.name;
+}
+
+function moveListItem(
+  lists: MovieList[],
+  from: MovieList,
+  tmdbId: number,
+  to: MovieList,
+  position: number
+): MovieList[] {
+  const moving = from.items.find((item) => item.tmdbId === tmdbId);
+  if (!moving) {
+    return lists;
+  }
+  const renumber = (items: MovieListItem[]) =>
+    items.map((item, index) => ({ ...item, position: index }));
+  const withoutItem = lists.map((list) =>
+    listKey(list) === listKey(from)
+      ? { ...list, items: list.items.filter((item) => item.tmdbId !== tmdbId) }
+      : list
+  );
+  return withoutItem.map((list) => {
+    if (listKey(list) !== listKey(to)) {
+      return listKey(list) === listKey(from)
+        ? { ...list, items: renumber(list.items) }
+        : list;
+    }
+    const items = [...list.items];
+    items.splice(Math.min(position, items.length), 0, moving);
+    return { ...list, items: renumber(items) };
+  });
 }
