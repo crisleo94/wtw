@@ -2,22 +2,22 @@
 <ng-template #actions>
   <mat-card-actions class="actions">
     <button
-      mat-icon-button
-      [matTooltip]="inWatchlist() ? 'Remove from your watchlist' : 'Add to your watchlist'"
-      [attr.aria-label]="inWatchlist() ? 'Remove from your watchlist' : 'Add to your watchlist'"
+      [matButton]="inWatchlist() ? 'tonal' : 'outlined'"
+      class="action"
       [attr.aria-pressed]="inWatchlist()"
       (click)="toggleWatchlist()"
     >
       <mat-icon>{{ inWatchlist() ? 'bookmark' : 'bookmark_border' }}</mat-icon>
+      {{ inWatchlist() ? 'In watchlist' : 'Watchlist' }}
     </button>
     <button
-      mat-icon-button
-      [matTooltip]="isWatched() ? 'Mark as not watched' : 'Mark as watched'"
-      [attr.aria-label]="isWatched() ? 'Mark as not watched' : 'Mark as watched'"
+      [matButton]="isWatched() ? 'tonal' : 'outlined'"
+      class="action"
       [attr.aria-pressed]="isWatched()"
       (click)="toggleWatched()"
     >
       <mat-icon>{{ isWatched() ? 'visibility' : 'visibility_off' }}</mat-icon>
+      {{ isWatched() ? 'Watched' : 'Not watched' }}
     </button>
     <button
       mat-icon-button
