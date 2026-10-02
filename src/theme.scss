@@ -41,3 +41,9 @@ textarea {
     icon-color: var(--mat-sys-error),
   ));
 }
+
+// Darker, blurred backdrop so the auth modal stands out from the page.
+.auth-dialog-backdrop {
+  background: rgb(0 0 0 / 72%);
+  backdrop-filter: blur(3px);
+}

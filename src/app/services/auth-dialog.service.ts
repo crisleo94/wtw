@@ -23,8 +23,9 @@ export class AuthDialogService {
             AuthDialogComponent,
             {
               data,
-              width: '420px',
+              width: '520px',
               maxWidth: '95vw',
+              backdropClass: 'auth-dialog-backdrop',
               autoFocus: 'first-tabbable',
               ariaDescribedBy: data.reason ? 'auth-dialog-reason' : null,
             }
