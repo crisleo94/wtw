@@ -17,13 +17,17 @@ import { isPlatformServer } from '@angular/common';
 import { provideClientHydration } from '@angular/platform-browser';
 import { routes } from './app.routes';
 import { apiInterceptor } from './interceptors/api.interceptor';
+import { sessionExpiredInterceptor } from './interceptors/session-expired.interceptor';
+import { parseCookies, TOKEN_COOKIE } from '../server/cookies';
 import { AuthStore } from './stores/auth.store';
 
-// The server only knows the user while rendering a real request (not at build time).
+// On the server the user only exists for a real request that carries the token cookie.
 function loadUser() {
-  const isServer = isPlatformServer(inject(PLATFORM_ID));
-  if (isServer && !inject(REQUEST, { optional: true })) {
-    return;
+  if (isPlatformServer(inject(PLATFORM_ID))) {
+    const cookie = inject(REQUEST, { optional: true })?.headers.get('cookie');
+    if (!parseCookies(cookie ?? undefined)[TOKEN_COOKIE]) {
+      return;
+    }
   }
   return inject(AuthStore).load();
 }
@@ -33,7 +37,7 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideRouter(routes),
     provideClientHydration(),
-    provideHttpClient(withFetch(), withInterceptors([apiInterceptor])),
+    provideHttpClient(withFetch(), withInterceptors([apiInterceptor, sessionExpiredInterceptor])),
     provideAppInitializer(loadUser),
   ],
 };

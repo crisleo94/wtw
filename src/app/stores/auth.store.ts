@@ -47,6 +47,10 @@ export class AuthStore {
     );
   }
 
+  clearUser(): void {
+    this.currentUser.set(null);
+  }
+
   continueAsGuest(): void {
     this.guest.set(true);
   }
