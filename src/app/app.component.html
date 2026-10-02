@@ -1,5 +1,53 @@
+<mat-sidenav-container class="shell">
+<mat-sidenav
+  mode="over"
+  position="end"
+  class="panel"
+  [opened]="panelOpen()"
+  (closedStart)="panelOpen.set(false)"
+>
+  @defer (when panelOpen()) {
+  <app-user-panel (closed)="panelOpen.set(false)"></app-user-panel>
+  }
+</mat-sidenav>
+<mat-sidenav-content>
 
-<h1>What to Watch?</h1>
+<header class="header">
+  <app-logo class="logo"></app-logo>
+  <h1>{{ 'header.title' | transloco }}</h1>
+  <div class="header-actions">
+    <app-settings-menu></app-settings-menu>
+    @if (authStore.user(); as user) {
+    <button
+      class="avatar-button"
+      [matTooltip]="'header.yourAccount' | transloco"
+      [attr.aria-label]="'header.openPanel' | transloco: { fullName: user.fullName }"
+      (click)="panelOpen.set(true)"
+    >
+      {{ initials() }}
+    </button>
+    } @else {
+    <button
+      mat-icon-button
+      [matTooltip]="'header.yourLists' | transloco"
+      [attr.aria-label]="'header.yourLists' | transloco"
+      (click)="panelOpen.set(true)"
+    >
+      <mat-icon>video_library</mat-icon>
+    </button>
+    <button
+      mat-flat-button
+      class="login-button"
+      [class.guest]="authStore.isGuest()"
+      [matTooltip]="authStore.isGuest() ? ('header.guestTooltip' | transloco) : ''"
+      (click)="openLogin()"
+    >
+      <mat-icon>{{ authStore.isGuest() ? 'person_outline' : 'login' }}</mat-icon>
+      {{ (authStore.isGuest() ? 'header.loginGuest' : 'header.login') | transloco }}
+    </button>
+    }
+  </div>
+</header>
 
 <div class="container">
   <div class="menu">
@@ -9,18 +57,26 @@
     <app-form
       (movieEvent)="recieveMovie($event)"
       (isLoadingEvent)="recieveIsLoading($event)"
+      (errorEvent)="recieveError()"
     ></app-form>
   </div>
   <div class="content">
-    @if (isLoading) {
+    @if (isLoading()) {
       <div class="spinner-container">
         <mat-spinner></mat-spinner>
       </div>
+    } @else if (message(); as message) {
+      <div class="message" role="status">
+        <mat-icon>movie_filter</mat-icon>
+        <p>{{ message | transloco }}</p>
+      </div>
     } @else {
-      <app-movie-card [movie]="movie"></app-movie-card>
+      <app-movie-card [movie]="movie()"></app-movie-card>
     }
   </div>
 </div>
 <div class="overview">
   <app-movies-overview></app-movies-overview>
 </div>
+</mat-sidenav-content>
+</mat-sidenav-container>

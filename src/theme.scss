@@ -1,0 +1,82 @@
+@use '@angular/material' as mat;
+@use './theme-colors' as theme-colors;
+
+// Material 3 theme; `color-scheme` picks light or dark (the toggle can force one).
+html {
+  color-scheme: light dark;
+  @include mat.theme((
+    color: (
+      primary: theme-colors.$primary-palette, // royal blue #4169E1
+      tertiary: mat.$orange-palette,
+    ),
+    typography: (
+      plain-family: 'Clarity City',
+      brand-family: 'Clarity City',
+    ),
+    density: 0,
+  ));
+}
+
+body {
+  background: var(--mat-sys-surface-container-low);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-large);
+}
+
+// Native controls don't inherit the font by default.
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+// M3 ignores `color="warn"`, so destructive buttons use the error role.
+.warn-button {
+  @include mat.button-overrides((
+    filled-container-color: var(--mat-sys-error),
+    filled-label-text-color: var(--mat-sys-on-error),
+  ));
+  @include mat.icon-button-overrides((
+    icon-color: var(--mat-sys-error),
+  ));
+}
+
+// Darker, blurred backdrop so the auth modal stands out from the page.
+.auth-dialog-backdrop {
+  background: rgb(0 0 0 / 72%);
+  backdrop-filter: blur(3px);
+}
+
+// Login modal at 304px: tab labels wrap and fields drop their 180px minimum.
+// The inactive tab is parked off to the right; hide it so nothing sticks out.
+.auth-dialog {
+  .mat-mdc-tab-body:not(.mat-mdc-tab-body-active) .mat-mdc-tab-body-content {
+    display: none;
+  }
+  .mat-mdc-tab {
+    min-width: 0;
+    padding-inline: 12px;
+  }
+  .mdc-tab__text-label {
+    white-space: normal;
+    text-align: center;
+  }
+  .mat-mdc-form-field-infix {
+    width: auto;
+    min-width: 0;
+  }
+  @media (max-width: 599.98px) {
+    .mat-mdc-dialog-content {
+      padding-inline: 16px;
+    }
+  }
+}
+
+// Toggle labels may wrap so translated texts never widen their container.
+.genre-mode .mat-button-toggle-label-content,
+.filter .mat-button-toggle-label-content {
+  white-space: normal;
+  line-height: 1.25;
+  padding-block: 6px;
+}

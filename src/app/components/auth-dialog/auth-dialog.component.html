@@ -1,0 +1,98 @@
+@if (isSubmitting()) {
+<mat-progress-bar mode="indeterminate" [attr.aria-label]="'auth.sending' | transloco"></mat-progress-bar>
+}
+<h2 mat-dialog-title>{{ 'auth.title' | transloco }}</h2>
+<mat-dialog-content>
+  @if (data?.reason) {
+  <p class="reason" id="auth-dialog-reason">{{ data?.reason }}</p>
+  }
+  <mat-tab-group
+    [selectedIndex]="selectedTab()"
+    (selectedIndexChange)="onTabChange($event)"
+    mat-stretch-tabs
+  >
+    <mat-tab [label]="'auth.loginTab' | transloco">
+      <form class="auth-form" [formGroup]="loginForm" (ngSubmit)="login()">
+        <mat-form-field>
+          <mat-label>{{ 'auth.email' | transloco }}</mat-label>
+          <input matInput type="email" formControlName="email" autocomplete="email" />
+          @if (loginForm.controls.email.hasError('required')) {
+          <mat-error>{{ 'auth.emailRequired' | transloco }}</mat-error>
+          } @else if (loginForm.controls.email.invalid) {
+          <mat-error>{{ 'auth.emailInvalid' | transloco }}</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>{{ 'auth.password' | transloco }}</mat-label>
+          <input
+            matInput
+            type="password"
+            formControlName="password"
+            autocomplete="current-password"
+          />
+          @if (loginForm.controls.password.hasError('required')) {
+          <mat-error>{{ 'auth.passwordRequired' | transloco }}</mat-error>
+          } @else if (loginForm.controls.password.hasError('minlength')) {
+          <mat-error>{{ 'auth.passwordMinLength' | transloco: { min: passwordMinLength } }}</mat-error>
+          }
+        </mat-form-field>
+        @if (errorMessage() && selectedTab() === 0) {
+        <p class="api-error" role="alert">{{ errorMessage() }}</p>
+        }
+        <button mat-flat-button type="submit" [disabled]="isSubmitting()">
+          {{ 'auth.loginButton' | transloco }}
+        </button>
+      </form>
+    </mat-tab>
+    <mat-tab [label]="'auth.registerTab' | transloco">
+      <form class="auth-form" [formGroup]="registerForm" (ngSubmit)="register()">
+        <mat-form-field>
+          <mat-label>{{ 'auth.fullName' | transloco }}</mat-label>
+          <input matInput formControlName="fullName" autocomplete="name" />
+          @if (registerForm.controls.fullName.hasError('required')) {
+          <mat-error>{{ 'auth.fullNameRequired' | transloco }}</mat-error>
+          } @else if (registerForm.controls.fullName.invalid) {
+          <mat-error>{{ 'auth.fullNameLength' | transloco }}</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>{{ 'auth.email' | transloco }}</mat-label>
+          <input matInput type="email" formControlName="email" autocomplete="email" />
+          @if (registerForm.controls.email.hasError('required')) {
+          <mat-error>{{ 'auth.emailRequired' | transloco }}</mat-error>
+          } @else if (registerForm.controls.email.invalid) {
+          <mat-error>{{ 'auth.emailInvalid' | transloco }}</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>{{ 'auth.password' | transloco }}</mat-label>
+          <input
+            matInput
+            type="password"
+            formControlName="password"
+            autocomplete="new-password"
+          />
+          <mat-hint>{{ 'auth.passwordMinHint' | transloco: { min: passwordMinLength } }}</mat-hint>
+          @if (registerForm.controls.password.hasError('required')) {
+          <mat-error>{{ 'auth.passwordRequired' | transloco }}</mat-error>
+          } @else if (registerForm.controls.password.hasError('minlength')) {
+          <mat-error>{{ 'auth.passwordMinLength' | transloco: { min: passwordMinLength } }}</mat-error>
+          } @else if (registerForm.controls.password.hasError('maxlength')) {
+          <mat-error>{{ 'auth.passwordMaxLength' | transloco }}</mat-error>
+          }
+        </mat-form-field>
+        @if (errorMessage() && selectedTab() === 1) {
+        <p class="api-error" role="alert">{{ errorMessage() }}</p>
+        }
+        <button mat-flat-button type="submit" [disabled]="isSubmitting()">
+          {{ 'auth.createAccount' | transloco }}
+        </button>
+      </form>
+    </mat-tab>
+  </mat-tab-group>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="continueAsGuest()">
+    {{ 'auth.continueGuest' | transloco }}
+  </button>
+</mat-dialog-actions>

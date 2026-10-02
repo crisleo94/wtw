@@ -1,72 +1,129 @@
 <form class="main" [formGroup]="dataForm" (ngSubmit)="onSubmit()">
   <div>
-    <mat-form-field>
-      <mat-label for="year">Primary Release Year:</mat-label>
-      <input
-        matInput
-        type="number"
-        id="year"
-        name="year"
-        formControlName="year"
-      />
-      @if (dataForm.get('year')?.invalid && dataForm.get('year')?.touched) {
+    <div class="row">
+      <mat-form-field>
+        <mat-label for="yearFrom">{{ 'form.releasedFrom' | transloco }}</mat-label>
+        <input
+          matInput
+          type="number"
+          id="yearFrom"
+          formControlName="yearFrom"
+          [min]="minYear"
+          [max]="currentYear"
+        />
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label for="yearTo">{{ 'form.releasedTo' | transloco }}</mat-label>
+        <input
+          matInput
+          type="number"
+          id="yearTo"
+          formControlName="yearTo"
+          [min]="minYear"
+          [max]="currentYear"
+        />
+      </mat-form-field>
+    </div>
+    @for (field of ['yearFrom', 'yearTo']; track field) {
+      @let control = dataForm.get(field);
+      @if (control?.invalid && control?.touched) {
       <mat-error>
-        @if (dataForm.get('year')?.errors?.['required']) {
-        <span>Release year is a required value</span>
-        } @if(dataForm.get('year')?.errors?.['min']) {
-        <span>Release year cannot be less than 1900</span>
-        } @if (dataForm.get('year')?.errors?.['max']) {
-        <span
-          >Release year cannot be greater than the current year
-          {{ currentYear }}</span
-        >
+        @if (control?.errors?.['required']) {
+        <span>{{ 'form.yearRequired' | transloco }}</span>
+        } @else if (control?.errors?.['min']) {
+        <span>{{ 'form.yearMin' | transloco: { minYear } }}</span>
+        } @else if (control?.errors?.['max']) {
+        <span>{{ 'form.yearMax' | transloco: { currentYear } }}</span>
         }
       </mat-error>
       }
-    </mat-form-field>
+    }
+    @if (dataForm.errors?.['yearRange']) {
+    <mat-error>{{ 'form.yearRange' | transloco }}</mat-error>
+    }
   </div>
   <div>
     <mat-form-field>
-      <mat-label for="genre">Select Genre:</mat-label>
-      <mat-select name="genre" id="genre" formControlName="genre">
-        <mat-option [value]="">--</mat-option>
-        @for (genre of genres; track genre.id) {
+      <mat-label for="genres">{{ 'form.genres' | transloco }}</mat-label>
+      <mat-select id="genres" formControlName="genres" multiple>
+        @for (genre of genres(); track genre.id) {
           <mat-option [value]="genre.id">
             {{ genre.name }}
           </mat-option>
         }
       </mat-select>
-      @if (dataForm.get('genre')?.invalid && dataForm.get('genre')?.touched) {
-      <mat-error>
-        @if (dataForm.get('genre')?.errors?.['required']) {
-        <span>Genre is a required value</span>
-        }
-      </mat-error>
-      }
+      <mat-hint>{{ 'form.genresHint' | transloco }}</mat-hint>
     </mat-form-field>
+    @if (dataForm.controls.genres.value.length > 1) {
+    <div class="genre-mode">
+      <span>{{ 'form.match' | transloco }}</span>
+      <mat-button-toggle-group
+        formControlName="genreMode"
+        [attr.aria-label]="'form.match' | transloco"
+        hideSingleSelectionIndicator
+      >
+        <mat-button-toggle value="all">{{ 'form.allGenres' | transloco }}</mat-button-toggle>
+        <mat-button-toggle value="any">{{ 'form.anyGenre' | transloco }}</mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
+    }
   </div>
   <div>
-    <mat-label for="rating">Enter the desire rating:</mat-label>
-    <mat-slider min="1" max="10" step="1" showTickMarks discrete>
-      <input matSliderThumb formControlName="rating" />
-    </mat-slider>
-    @if (dataForm.get('rating')?.invalid && dataForm.get('rating')?.touched) {
-    <mat-error>
-      @if (dataForm.get('rating')?.errors?.['required']) {
-      <span>Rating is a required value</span>
+    <mat-label for="rating">
+      {{ 'form.rating' | transloco: { min: dataForm.controls.ratingMin.value, max: dataForm.controls.ratingMax.value } }}
+    </mat-label>
+    <div #ratingBox>
+      <!-- Re-created when its width changes: see FormComponent.watchSliderWidth. -->
+      @for (key of [sliderKey()]; track key) {
+      <mat-slider min="0" max="10" step="0.5" discrete>
+        <input matSliderStartThumb formControlName="ratingMin" />
+        <input matSliderEndThumb formControlName="ratingMax" />
+      </mat-slider>
       }
-    </mat-error>
+    </div>
+  </div>
+  <div>
+    <div class="row">
+      <mat-form-field>
+        <mat-label for="votesMin">{{ 'form.minVotes' | transloco }}</mat-label>
+        <input
+          matInput
+          type="number"
+          id="votesMin"
+          formControlName="votesMin"
+          min="0"
+        />
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label for="votesMax">{{ 'form.maxVotes' | transloco }}</mat-label>
+        <input
+          matInput
+          type="number"
+          id="votesMax"
+          formControlName="votesMax"
+          min="0"
+          [placeholder]="'form.noLimit' | transloco"
+        />
+      </mat-form-field>
+    </div>
+    @if (dataForm.controls.votesMin.touched && dataForm.controls.votesMin.errors?.['required']) {
+    <mat-error>{{ 'form.minVotesRequired' | transloco }}</mat-error>
+    }
+    @if (dataForm.controls.votesMin.errors?.['min'] || dataForm.controls.votesMax.errors?.['min']) {
+    <mat-error>{{ 'form.votesNegative' | transloco }}</mat-error>
+    }
+    @if (dataForm.errors?.['votesRange']) {
+    <mat-error>{{ 'form.votesRange' | transloco }}</mat-error>
     }
   </div>
   <button
     mat-flat-button
-    color="primary"
     type="submit"
-    [disabled]="!dataForm.valid || !dataForm.touched"
+    [disabled]="dataForm.invalid"
   >
-    Generate Movie
+    {{ 'form.generateMovie' | transloco }}
   </button>
-  <button mat-flat-button color="warn" type="button" onclick="reset()">
-    Reset Controls
+  <button mat-flat-button class="warn-button" type="button" (click)="reset()">
+    {{ 'form.resetControls' | transloco }}
   </button>
 </form>

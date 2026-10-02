@@ -1,4 +1,15 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  DestroyRef,
+  ElementRef,
+  inject,
+  OnInit,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormBuilder,
   FormsModule,
@@ -6,19 +17,29 @@ import {
   Validators,
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSliderModule } from '@angular/material/slider';
 import { debounceTime, Subject } from 'rxjs';
-import { Genre } from '../../interfaces/genre.interface';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import {
+  GenreMode,
+  MovieFilters,
+} from '../../interfaces/movie-filters.interface';
 import { Movie } from '../../interfaces/movie.interface';
 import { GenresService } from '../../services/genres.service';
 import { MoviesService } from '../../services/movies.service';
+import { LibraryStore } from '../../stores/library.store';
+import { rangeValidator } from '../../validators/range.validator';
+
+export const MIN_YEAR = 1900;
+export const DEFAULT_YEAR_FROM = 1990;
+export const DEFAULT_VOTES_MIN = 5000;
 
 @Component({
   selector: 'app-form',
-  standalone: true,
   imports: [
     FormsModule,
     ReactiveFormsModule,
@@ -27,96 +48,135 @@ import { MoviesService } from '../../services/movies.service';
     MatSelectModule,
     MatSliderModule,
     MatButtonModule,
+    MatButtonToggleModule,
+    TranslocoPipe,
   ],
   templateUrl: './form.component.html',
   styleUrl: './form.component.sass',
 })
-export class FormComponent {
-  debounceSubmit$ = new Subject<void>();
-  @Output() movieEvent = new EventEmitter<Movie | null>();
-  @Output() isLoadingEvent = new EventEmitter<boolean>();
+export class FormComponent implements OnInit {
+  private fBuilder = inject(FormBuilder);
+  private genreService = inject(GenresService);
+  private movieService = inject(MoviesService);
+  private library = inject(LibraryStore);
+  private transloco = inject(TranslocoService);
+  private destroyRef = inject(DestroyRef);
+  private ratingBox = viewChild.required<ElementRef<HTMLElement>>('ratingBox');
 
-  generatedMovies: Movie[] = [];
-  randomizedMovie: Movie | null = null;
-  isLoading = true;
+  // MatSlider can keep stale thumb positions after a resize (e.g. a lost touch end);
+  // bumping the key re-creates it with fresh measurements. Values live in the form.
+  sliderKey = signal(0);
+
+  debounceSubmit$ = new Subject<void>();
+  movieEvent = output<Movie | null>();
+  isLoadingEvent = output<boolean>();
+  errorEvent = output<void>();
+
+  minYear = MIN_YEAR;
   currentYear = new Date().getFullYear();
 
-  genres: Genre[] = [];
+  genres = this.genreService.genres;
 
-  dataForm = this.fBuilder.group({
-    year: [
-      1990,
-      [
-        Validators.required,
-        Validators.min(1900),
-        Validators.max(this.currentYear),
+  private yearValidators = [
+    Validators.required,
+    Validators.min(MIN_YEAR),
+    Validators.max(this.currentYear),
+  ];
+
+  dataForm = this.fBuilder.nonNullable.group(
+    {
+      yearFrom: [DEFAULT_YEAR_FROM, this.yearValidators],
+      yearTo: [this.currentYear, this.yearValidators],
+      genres: [[] as number[]],
+      genreMode: ['all' as GenreMode],
+      ratingMin: [6],
+      ratingMax: [10],
+      votesMin: [DEFAULT_VOTES_MIN, [Validators.required, Validators.min(0)]],
+      votesMax: [null as number | null, [Validators.min(0)]],
+    },
+    {
+      validators: [
+        rangeValidator('yearFrom', 'yearTo', 'yearRange'),
+        rangeValidator('votesMin', 'votesMax', 'votesRange'),
       ],
-    ],
-    genre: [1, [Validators.required]],
-    rating: [1, [Validators.required, Validators.min(1), Validators.max(10)]],
-  });
+    }
+  );
 
-  constructor(
-    private fBuilder: FormBuilder,
-    private genreService: GenresService,
-    private movieService: MoviesService
-  ) {}
+  constructor() {
+    afterNextRender(() => this.watchSliderWidth());
+    this.debounceSubmit$
+      .pipe(debounceTime(200), takeUntilDestroyed())
+      .subscribe(() => this.generateMovies());
+  }
+
+  private watchSliderWidth(): void {
+    if (typeof ResizeObserver === 'undefined') {
+      return;
+    }
+    let width = 0;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const observer = new ResizeObserver(([entry]) => {
+      const next = Math.round(entry.contentRect.width);
+      if (width && next !== width) {
+        clearTimeout(timer);
+        timer = setTimeout(() => this.sliderKey.update((key) => key + 1), 150);
+      }
+      width = next;
+    });
+    observer.observe(this.ratingBox().nativeElement);
+    this.destroyRef.onDestroy(() => {
+      clearTimeout(timer);
+      observer.disconnect();
+    });
+  }
 
   ngOnInit(): void {
-    this.debounceSubmit$.pipe(debounceTime(200)).subscribe(() => {
-      this.generateMovies();
-      setTimeout(() => {
-        this.isLoading = false;
-      });
-    });
     this.getGenres();
   }
 
   onSubmit(): void {
-    this.isLoading = true;
-    this.isLoadingEvent.emit(this.isLoading);
+    if (this.dataForm.invalid) {
+      this.dataForm.markAllAsTouched();
+      return;
+    }
+    this.isLoadingEvent.emit(true);
     this.debounceSubmit$.next();
   }
 
-  generateMovies(): void {
-    const { year, genre, rating } = this.dataForm.value;
-    const parsedYear = Number(year);
-    const parsedGenre = Number(genre);
-    const parsedRating = Number(rating);
-    this.movieService
-      .getFilteredMovie(parsedYear, parsedGenre, parsedRating)
-      .subscribe((resp) => {
-        this.generatedMovies = resp.results;
-
-        if (this.generatedMovies.length > 0) {
-          this.randomizeMovie();
-          setTimeout(() => {
-            this.isLoading = false;
-            this.isLoadingEvent.emit(this.isLoading);
-            this.onMovieSelected(this.randomizedMovie);
-          }, 1000);
-        } else {
-          this.isLoading = false;
-          this.isLoadingEvent.emit(this.isLoading);
-          this.onMovieSelected(null);
-        }
-      });
+  buildFilters(): MovieFilters {
+    const value = this.dataForm.getRawValue();
+    return {
+      ...value,
+      votesMax: value.votesMax ?? undefined,
+    };
   }
 
-  randomizeMovie(): void {
-    this.randomizedMovie =
-      this.generatedMovies[
-        Math.floor(Math.random() * this.generatedMovies.length)
-      ];
+  generateMovies(): void {
+    const filters = this.buildFilters();
+    this.movieService.generateMovie(filters).subscribe({
+      next: (movie) => {
+        if (movie) {
+          this.library.recordGenerated(movie, filters);
+        }
+        // Keeps the spinner visible for a moment, as before.
+        setTimeout(() => {
+          this.isLoadingEvent.emit(false);
+          this.onMovieSelected(movie);
+        }, movie ? 1000 : 0);
+      },
+      error: () => {
+        this.isLoadingEvent.emit(false);
+        this.errorEvent.emit();
+      },
+    });
   }
 
   getGenres(): void {
-    this.genreService.getGenres().subscribe((genres) => (this.genres = genres));
+    this.genreService.getGenres().subscribe();
   }
 
   reset(): void {
     this.dataForm.reset();
-    this.isLoading = false;
   }
 
   onMovieSelected(movie: Movie | null): void {

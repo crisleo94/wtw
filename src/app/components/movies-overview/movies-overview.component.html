@@ -1,15 +1,35 @@
-<mat-tab-group @insertOverview>
-  <mat-tab label="History">
+<mat-tab-group animate.enter="insert-overview">
+  <mat-tab [label]="'overview.historyTab' | transloco">
     <div class="history-container">
-      @for (movie of recentMovies; track movie?.title) {
-      <app-movie-card [movie]="movie" variant="composed"></app-movie-card>
+      @for (entry of history(); track entry.id ?? entry.generatedAt + entry.movie.tmdbId) {
+      <app-movie-card
+        [movie]="entry.movie"
+        variant="composed"
+        [removable]="true"
+        [removeLabel]="'overview.removeFromHistory' | transloco"
+        (remove)="removeHistory(entry)"
+      ></app-movie-card>
+      } @empty {
+      <p class="empty">
+        {{ loaded() ? ('overview.historyEmpty' | transloco) : ('overview.historyLoading' | transloco) }}
+      </p>
       }
     </div>
   </mat-tab>
-  <mat-tab label="Favorites">
-    <div class="favorites-container">
-      @for (movie of favoriteMovies; track movie?.title) {
-      <app-movie-card [movie]="movie" variant="composed"></app-movie-card>
+  <mat-tab [label]="'overview.watchlistTab' | transloco">
+    <div class="watchlist-container">
+      @for (item of watchlist()?.items ?? []; track item.tmdbId) {
+      <app-movie-card
+        [movie]="item.movie"
+        variant="composed"
+        [removable]="true"
+        [removeLabel]="'overview.removeFromWatchlist' | transloco"
+        (remove)="removeFromWatchlist(item)"
+      ></app-movie-card>
+      } @empty {
+      <p class="empty">
+        {{ loaded() ? ('overview.watchlistEmpty' | transloco) : ('overview.watchlistLoading' | transloco) }}
+      </p>
       }
     </div>
   </mat-tab>

@@ -1,38 +1,68 @@
-import { animate, style, transition, trigger } from '@angular/animations';
-import { Component, OnInit } from '@angular/core';
-import { MatGridListModule } from '@angular/material/grid-list';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
-import { Movie } from '../../interfaces/movie.interface';
-import { MoviesService } from '../../services/movies.service';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { Observable } from 'rxjs';
+import {
+  HistoryEntry,
+  MovieListItem,
+} from '../../interfaces/library.interface';
+import { LibraryStore } from '../../stores/library.store';
+import { apiErrorMessage } from '../../utils/api-error';
 import { MovieCardComponent } from '../movie-card/movie-card.component';
 
 @Component({
   selector: 'app-movies-overview',
-  standalone: true,
-  imports: [MovieCardComponent, MatGridListModule, MatTabsModule],
+  imports: [MovieCardComponent, MatTabsModule, TranslocoPipe],
   templateUrl: './movies-overview.component.html',
   styleUrl: './movies-overview.component.sass',
-  animations: [
-    trigger('insertOverview', [
-      transition(':enter', [
-        style({ opacity: 0 }),
-        animate('100ms', style({ opacity: 1 })),
-      ]),
-    ]),
-  ],
 })
-export class MoviesOverviewComponent implements OnInit {
-  recentMovies: Movie[] = [];
-  favoriteMovies: Movie[] = [];
+export class MoviesOverviewComponent {
+  private _library = inject(LibraryStore);
+  private _snackBar = inject(MatSnackBar);
+  private _transloco = inject(TranslocoService);
 
-  constructor(private _moviesService: MoviesService) {}
+  // The server can't read sessionStorage: show the library after hydration so both match.
+  private hydrated = signal(false);
 
-  ngOnInit(): void {
-    this._moviesService.currentRecentMovies.subscribe(
-      (currentMovies) => (this.recentMovies = currentMovies)
-    );
-    this._moviesService.currentFavoriteMovies.subscribe(
-      (currentFavoriteMovies) => (this.favoriteMovies = currentFavoriteMovies)
-    );
+  loaded = computed(() => this.hydrated() && this._library.ready());
+  history = computed(() => (this.loaded() ? this._library.history() : []));
+  watchlist = computed(() =>
+    this.loaded() ? this._library.watchlist() : undefined
+  );
+
+  constructor() {
+    afterNextRender(() => this.hydrated.set(true));
+  }
+
+  removeHistory(entry: HistoryEntry): void {
+    this.run(this._library.removeHistory(entry), this._transloco.translate('overview.removeFromHistory'));
+  }
+
+  removeFromWatchlist(item: MovieListItem): void {
+    const watchlist = this.watchlist();
+    if (watchlist) {
+      this.run(
+        this._library.removeFromList(watchlist, item.tmdbId),
+        this._transloco.translate('overview.removeFromWatchlist')
+      );
+    }
+  }
+
+  private run(action: Observable<void>, success: string): void {
+    action.subscribe({
+      next: () => this.notify(success),
+      error: (error) => this.notify(apiErrorMessage(error, this._transloco)),
+    });
+  }
+
+  private notify(message: string): void {
+    this._snackBar.open(message, this._transloco.translate('common.dismiss'), { duration: 2500 });
   }
 }

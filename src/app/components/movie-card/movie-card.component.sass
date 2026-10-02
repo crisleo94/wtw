@@ -1,10 +1,18 @@
 // SIMPLE CARD
 .card
   display: grid
-  grid-template-columns: 1fr auto
+  grid-template-columns: minmax(0, 1fr) auto
 
-  @media (max-width: 600px)
-    display: block
+  // Below desktop: one column, poster centered under the text.
+  @media (max-width: 1023.98px)
+    grid-template-columns: minmax(0, 1fr)
+
+// Chips go under the title, in a row that wraps, so they never squeeze it.
+.card mat-card-header
+  flex-wrap: wrap
+  row-gap: 8px
+  mat-chip-set
+    flex-basis: 100%
 
 .card-content
   display: grid
@@ -13,30 +21,56 @@
   place-items: center
 
 .average
-  color: green
+  color: var(--mat-sys-primary)
 
 .count
-  color: red
+  color: var(--mat-sys-tertiary)
 
 .genre
   font-size: 10px !important
 
 .poster
+  display: block
   width: 300px
+  max-width: 100%
   height: auto
+  margin-inline: auto
+  @media (max-width: 1023.98px)
+    width: 100%
+    max-width: 360px
 
 .mat-mdc-chip,
 .mat-mdc-standard-chip
-  background-color: rgba(0, 144, 0, 0.1) !important
-  color: black !important
+  background-color: var(--mat-sys-secondary-container) !important
+  color: var(--mat-sys-on-secondary-container) !important
   border: none !important
 
 // COMPOSED CARD
+:host
+  display: block
+
+// Fills its grid cell; actions stay at the bottom so rows line up.
 .card-composed
-  max-width: 300px
-  min-height: 700px
-  max-height: auto
+  height: 100%
+  display: flex
+  flex-direction: column
+  > div:first-child
+    flex: 1
 
 .poster-composed
-  width: 300px
-  height: auto
+  width: 100%
+  aspect-ratio: 2 / 3
+  object-fit: cover
+
+.actions
+  display: flex
+  flex-wrap: wrap
+  align-items: center
+  gap: 4px 8px
+
+.action
+  --mat-button-outlined-horizontal-padding: 12px
+  --mat-button-tonal-horizontal-padding: 12px
+
+.watched-label
+  font-weight: bold

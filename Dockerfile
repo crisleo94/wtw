@@ -1,14 +1,22 @@
-FROM node:20-alpine as build
-WORKDIR /app/src
-COPY package*.json ./
+FROM node:22-alpine AS deps
+WORKDIR /app
+COPY package.json package-lock.json ./
 RUN npm ci
-COPY . ./
+
+FROM deps AS dev
+COPY . .
+EXPOSE 4000
+CMD ["npx", "ng", "serve", "--host", "0.0.0.0", "--port", "4000"]
+
+FROM deps AS build
+COPY . .
 RUN npm run build
 
-FROM node:20-alpine
-RUN addgroup -S appgroup && adduser -S appuser -g appgroup
-USER appuser
-WORKDIR /usr/app
-COPY --from=build /app/src/dist/wtw/ ./
-CMD node server/server.mjs
+FROM node:22-alpine AS prod
+ENV NODE_ENV=production
+WORKDIR /app
+# The SSR bundle is self-contained: no node_modules needed at runtime
+COPY --from=build --chown=node:node /app/dist/wtw ./
+USER node
 EXPOSE 4000
+CMD ["node", "server/server.mjs"]
