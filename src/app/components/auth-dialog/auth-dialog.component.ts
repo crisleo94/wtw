@@ -23,6 +23,13 @@ export interface AuthDialogData {
 }
 
 export const PASSWORD_MIN_LENGTH = 8;
+// Angular's email validator accepts `a@b`; the API requires a domain with a TLD.
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const emailValidators = [
+  Validators.required,
+  Validators.email,
+  Validators.pattern(EMAIL_PATTERN),
+];
 const PASSWORD_MAX_LENGTH = 72;
 
 @Component({
@@ -58,7 +65,7 @@ export class AuthDialogComponent {
   ];
 
   loginForm = this.fBuilder.nonNullable.group({
-    email: ['', [Validators.required, Validators.email]],
+    email: ['', emailValidators],
     password: ['', this.passwordValidators],
   });
 
@@ -67,7 +74,7 @@ export class AuthDialogComponent {
       '',
       [Validators.required, Validators.minLength(2), Validators.maxLength(100)],
     ],
-    email: ['', [Validators.required, Validators.email]],
+    email: ['', emailValidators],
     password: ['', this.passwordValidators],
   });
 
@@ -106,11 +113,14 @@ export class AuthDialogComponent {
       form.markAllAsTouched();
       return;
     }
+    // Closing mid request would drop the result while the login still succeeds.
+    this.dialogRef.disableClose = true;
     this.isSubmitting.set(true);
     this.errorMessage.set(null);
     request().subscribe({
       next: () => this.dialogRef.close('authenticated'),
       error: (error) => {
+        this.dialogRef.disableClose = false;
         this.isSubmitting.set(false);
         this.errorMessage.set(apiErrorMessage(error, messages));
       },

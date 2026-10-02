@@ -77,4 +77,21 @@ describe('AuthDialogComponent', () => {
     expect(TestBed.inject(AuthStore).isGuest()).toBeTrue();
     expect(dialogRef.close).toHaveBeenCalledWith('guest');
   });
+
+  it('should reject emails without a TLD like the API', () => {
+    component.loginForm.controls.email.setValue('a@b');
+    expect(component.loginForm.controls.email.invalid).toBeTrue();
+    component.loginForm.controls.email.setValue('a@b.co');
+    expect(component.loginForm.controls.email.valid).toBeTrue();
+  });
+
+  it('should not let the dialog close while sending', () => {
+    component.loginForm.setValue({ email: 'a@b.co', password: '12345678' });
+    component.login();
+    expect(dialogRef.disableClose).toBeTrue();
+    httpTesting
+      .expectOne('/api/auth/login')
+      .flush({}, { status: 500, statusText: 'Server Error' });
+    expect(dialogRef.disableClose).toBeFalse();
+  });
 });

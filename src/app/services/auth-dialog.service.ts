@@ -21,11 +21,17 @@ export class AuthDialogService {
         this.dialog
           .open<unknown, AuthDialogData, AuthDialogResult>(
             AuthDialogComponent,
-            { data, width: '420px', maxWidth: '95vw', autoFocus: 'first-tabbable' }
+            {
+              data,
+              width: '420px',
+              maxWidth: '95vw',
+              autoFocus: 'first-tabbable',
+              ariaDescribedBy: data.reason ? 'auth-dialog-reason' : null,
+            }
           )
           .afterClosed()
       ),
-      map((result) => result ?? null)
+      map((result) => result ?? (this.authStore.isLoggedIn() ? 'authenticated' : null))
     );
   }
 
