@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { Observable, switchMap, throwError } from 'rxjs';
 import { IMAGE_URL, PLACEHOLDER_IMG } from '../../constants';
 import { MovieList } from '../../interfaces/library.interface';
@@ -23,9 +24,6 @@ interface CardAction {
   success: string;
 }
 
-const SESSION_REASON =
-  'Log in to keep your watchlist, watched movies and lists, or continue as a guest.';
-
 @Component({
   selector: 'app-movie-card',
   imports: [
@@ -37,6 +35,7 @@ const SESSION_REASON =
     MatIconModule,
     MatMenuModule,
     MatTooltipModule,
+    TranslocoDirective,
   ],
   templateUrl: './movie-card.component.html',
   styleUrl: './movie-card.component.sass',
@@ -46,6 +45,9 @@ export class MovieCardComponent {
   private _library = inject(LibraryStore);
   private _snackBar = inject(MatSnackBar);
   private _authDialog = inject(AuthDialogService);
+  private _transloco = inject(TranslocoService);
+
+  private readonly sessionReason = 'Log in to keep your watchlist, watched movies and lists, or continue as a guest.';
 
   variant = input<CARD_VARIANT>('simple');
   movie = input<Movie | null>(null);
@@ -85,14 +87,16 @@ export class MovieCardComponent {
   toggleWatchlist(): void {
     this.run((movie) => {
       const watchlist = this._library.watchlist();
+      const removed = this._transloco.translate('card.inWatchlist');
+      const added = this._transloco.translate('card.inWatchlist');
       return watchlist && this._library.watchlistIds().has(movie.tmdbId)
         ? {
             request: this._library.removeFromList(watchlist, movie.tmdbId),
-            success: 'Removed from your watchlist.',
+            success: removed,
           }
         : {
             request: this._library.addToWatchlist(movie),
-            success: 'Added to your watchlist!',
+            success: added,
           };
     });
   }
@@ -100,9 +104,10 @@ export class MovieCardComponent {
   toggleWatched(): void {
     this.run((movie) => {
       const watched = !this._library.watchedIds().has(movie.tmdbId);
+      const marked = this._transloco.translate(watched ? 'card.watched' : 'card.unwatchedToggle');
       return {
         request: this._library.setWatched(movie, watched),
-        success: watched ? 'Marked as watched.' : 'Marked as not watched.',
+        success: marked,
       };
     });
   }
@@ -114,11 +119,12 @@ export class MovieCardComponent {
       const target = this._library
         .lists()
         .find((candidate) => candidate.name.toLowerCase() === name);
+      const added = this._transloco.translate('card.inWatchlist');
       return {
         request: target
           ? this._library.addToList(target, movie)
           : throwError(() => new LibraryError(`The list "${list.name}" is no longer available.`)),
-        success: `Added to ${list.name}!`,
+        success: added,
       };
     });
   }
@@ -130,7 +136,7 @@ export class MovieCardComponent {
     if (!movie) {
       return;
     }
-    this._authDialog.ensureSession(SESSION_REASON).subscribe((result) => {
+    this._authDialog.ensureSession(this.sessionReason).subscribe((result) => {
       if (!result) {
         return;
       }

@@ -5,11 +5,11 @@
     <strong>{{ user.fullName }}</strong>
     <span>{{ user.email }}</span>
     } @else {
-    <strong>Guest</strong>
-    <span>Your lists are kept in this tab only</span>
+    <strong>{{ 'panel.guest' | transloco }}</strong>
+    <span>{{ 'panel.guestInfo' | transloco }}</span>
     }
   </div>
-  <button mat-icon-button aria-label="Close panel" (click)="closed.emit()">
+  <button mat-icon-button [attr.aria-label]="'panel.closePanel' | transloco" (click)="closed.emit()">
     <mat-icon>close</mat-icon>
   </button>
 </header>
@@ -17,30 +17,30 @@
 <div class="account-actions">
   @if (authStore.isLoggedIn()) {
   <button mat-stroked-button (click)="logout()">
-    <mat-icon>logout</mat-icon> Logout
+    <mat-icon>logout</mat-icon> {{ 'panel.logout' | transloco }}
   </button>
   } @else {
   <button mat-flat-button (click)="openAuth()">
-    Login or register
+    {{ 'panel.loginRegister' | transloco }}
   </button>
   }
 </div>
 
 <mat-button-toggle-group
   class="filter"
-  aria-label="Filter by watched state"
+  [attr.aria-label]="'panel.filterWatchedState' | transloco"
   hideSingleSelectionIndicator
   [value]="filter()"
   (change)="filter.set($event.value)"
 >
-  <mat-button-toggle value="all">All</mat-button-toggle>
-  <mat-button-toggle value="watched">Watched</mat-button-toggle>
-  <mat-button-toggle value="unwatched">Not watched</mat-button-toggle>
+  <mat-button-toggle value="all">{{ 'panel.allItems' | transloco }}</mat-button-toggle>
+  <mat-button-toggle value="watched">{{ 'panel.watched' | transloco }}</mat-button-toggle>
+  <mat-button-toggle value="unwatched">{{ 'panel.notWatched' | transloco }}</mat-button-toggle>
 </mat-button-toggle-group>
 
 <form class="new-list" (ngSubmit)="createList()">
   <mat-form-field subscriptSizing="dynamic">
-    <mat-label>New list</mat-label>
+    <mat-label>{{ 'panel.newList' | transloco }}</mat-label>
     <input
       matInput
       name="newList"
@@ -49,7 +49,7 @@
       (ngModelChange)="newListName.set($event)"
     />
   </mat-form-field>
-  <button mat-icon-button type="submit" aria-label="Create list" [disabled]="!newListName().trim()">
+  <button mat-icon-button type="submit" [attr.aria-label]="'panel.createList' | transloco" [disabled]="!newListName().trim()">
     <mat-icon>add</mat-icon>
   </button>
 </form>
@@ -62,7 +62,7 @@
       @if (editingKey() === panelList.key) {
       <form class="rename" (ngSubmit)="saveRename(list)">
         <mat-form-field subscriptSizing="dynamic">
-          <mat-label>List name</mat-label>
+          <mat-label>{{ 'panel.listName' | transloco }}</mat-label>
           <input
             matInput
             #renameInput
@@ -73,8 +73,8 @@
             (keydown.escape)="cancelRename()"
           />
         </mat-form-field>
-        <button mat-icon-button type="submit" aria-label="Save name"><mat-icon>check</mat-icon></button>
-        <button mat-icon-button type="button" aria-label="Cancel rename" (click)="cancelRename()">
+        <button mat-icon-button type="submit" [attr.aria-label]="'panel.saveName' | transloco"><mat-icon>check</mat-icon></button>
+        <button mat-icon-button type="button" [attr.aria-label]="'panel.cancelRename' | transloco" (click)="cancelRename()">
           <mat-icon>close</mat-icon>
         </button>
       </form>
@@ -87,17 +87,17 @@
       <button
         mat-icon-button
         [matMenuTriggerFor]="listMenu"
-        [attr.aria-label]="'Options for ' + list.name"
+        [attr.aria-label]="'panel.optionsFor' | transloco: { name: list.name }"
         [attr.data-list-options]="panelList.key"
       >
         <mat-icon>more_vert</mat-icon>
       </button>
       <mat-menu #listMenu="matMenu">
         <button mat-menu-item (click)="startRename(panelList)">
-          <mat-icon>edit</mat-icon><span>Rename</span>
+          <mat-icon>edit</mat-icon><span>{{ 'panel.rename' | transloco }}</span>
         </button>
         <button mat-menu-item (click)="deleteList(list)">
-          <mat-icon>delete</mat-icon><span>Delete</span>
+          <mat-icon>delete</mat-icon><span>{{ 'panel.delete' | transloco }}</span>
         </button>
       </mat-menu>
       }
@@ -116,12 +116,12 @@
         <img [src]="posterUrl(item.movie.posterPath)" [alt]="" />
         <span class="title">
           {{ item.movie.title }}
-          @if (item.watched) {<span class="watched">Watched</span>}
+          @if (item.watched) {<span class="watched">{{ 'panel.watched' | transloco }}</span>}
         </span>
         <button
           mat-icon-button
           [matMenuTriggerFor]="itemMenu"
-          [attr.aria-label]="'Actions for ' + item.movie.title"
+          [attr.aria-label]="'panel.actionsFor' | transloco: { title: item.movie.title }"
           [attr.data-item-actions]="panelList.key + ':' + item.tmdbId"
         >
           <mat-icon>more_horiz</mat-icon>
@@ -129,26 +129,26 @@
         <mat-menu #itemMenu="matMenu">
           <button mat-menu-item (click)="toggleWatched(item)">
             <mat-icon>{{ item.watched ? 'visibility_off' : 'visibility' }}</mat-icon>
-            <span>{{ item.watched ? 'Mark as not watched' : 'Mark as watched' }}</span>
+            <span>{{ item.watched ? ('panel.markNotWatched' | transloco) : ('panel.markWatched' | transloco) }}</span>
           </button>
           <button mat-menu-item [disabled]="isFirst(panelList, item)" (click)="shift(panelList, item, -1)">
-            <mat-icon>arrow_upward</mat-icon><span>Move up</span>
+            <mat-icon>arrow_upward</mat-icon><span>{{ 'panel.moveUp' | transloco }}</span>
           </button>
           <button mat-menu-item [disabled]="isLast(panelList, item)" (click)="shift(panelList, item, 1)">
-            <mat-icon>arrow_downward</mat-icon><span>Move down</span>
+            <mat-icon>arrow_downward</mat-icon><span>{{ 'panel.moveDown' | transloco }}</span>
           </button>
           @for (other of otherLists(list); track other.name) {
           <button mat-menu-item (click)="moveTo(list, item, other)">
-            <mat-icon>drive_file_move</mat-icon><span>Move to {{ other.name }}</span>
+            <mat-icon>drive_file_move</mat-icon><span>{{ 'panel.moveTo' | transloco: { name: other.name } }}</span>
           </button>
           }
           <button mat-menu-item (click)="removeItem(list, item)">
-            <mat-icon>delete</mat-icon><span>Remove from {{ list.name }}</span>
+            <mat-icon>delete</mat-icon><span>{{ 'panel.removeFrom' | transloco: { name: list.name } }}</span>
           </button>
         </mat-menu>
       </li>
       } @empty {
-      <li class="empty">Drop movies here</li>
+      <li class="empty">{{ 'panel.dropHere' | transloco }}</li>
       }
     </ul>
   </section>

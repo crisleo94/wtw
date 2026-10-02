@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { TranslocoService } from '@jsverse/transloco';
 import {
   catchError,
   filter,
@@ -53,6 +54,7 @@ export class LibraryStore {
   private authStore = inject(AuthStore);
   private session = inject(SessionStore);
   private snackBar = inject(MatSnackBar);
+  private transloco = inject(TranslocoService);
 
   private remoteHistory = signal<HistoryEntry[]>([]);
   private remoteLists = signal<MovieList[]>([]);
@@ -134,7 +136,7 @@ export class LibraryStore {
       return of(undefined);
     }
     if (!entry.id) {
-      return throwError(() => new LibraryError('Please try again in a moment.'));
+      return throwError(() => new LibraryError(this.transloco.translate('errors.tryAgain')));
     }
     return this.http.delete<void>(`${API_URL}/me/history/${entry.id}`).pipe(
       tap(() =>
@@ -152,7 +154,7 @@ export class LibraryStore {
         return throwError(
           () =>
             new LibraryError(
-              `You can mark up to ${MAX_WATCHED} movies as watched as a guest. Log in to keep more.`
+              this.transloco.translate('errors.maxWatchedGuest', { max: MAX_WATCHED })
             )
         );
       }
@@ -177,7 +179,7 @@ export class LibraryStore {
     const watchlist = this.watchlist();
     if (!watchlist) {
       return throwError(
-        () => new LibraryError('Your watchlist is still loading. Please try again.')
+        () => new LibraryError(this.transloco.translate('errors.watchlistLoading'))
       );
     }
     return this.addToList(watchlist, movie);
@@ -187,13 +189,13 @@ export class LibraryStore {
   addToList(list: MovieList, movie: Movie): Observable<void> {
     if (list.items.some((item) => item.tmdbId === movie.tmdbId)) {
       return throwError(
-        () => new LibraryError(`"${movie.title}" is already in ${list.name}.`)
+        () => new LibraryError(this.transloco.translate('errors.movieAlreadyInList', { title: movie.title, list: list.name }))
       );
     }
     if (list.items.length >= MAX_LIST_ITEMS) {
       return throwError(
         () =>
-          new LibraryError(`${list.name} is full (${MAX_LIST_ITEMS} movies max).`)
+          new LibraryError(this.transloco.translate('errors.listFull', { list: list.name, max: MAX_LIST_ITEMS }))
       );
     }
     if (!this.authStore.isLoggedIn()) {
@@ -225,7 +227,7 @@ export class LibraryStore {
     }
     if (this.lists().length >= MAX_LISTS) {
       return throwError(
-        () => new LibraryError(`You can have up to ${MAX_LISTS} lists.`)
+        () => new LibraryError(this.transloco.translate('errors.maxLists', { max: MAX_LISTS }))
       );
     }
     if (!this.authStore.isLoggedIn()) {
@@ -240,7 +242,7 @@ export class LibraryStore {
   renameList(list: MovieList, rawName: string): Observable<void> {
     const name = rawName.trim();
     if (list.isSystem) {
-      return throwError(() => new LibraryError('The Watchlist cannot be renamed.'));
+      return throwError(() => new LibraryError(this.transloco.translate('errors.watchlistCannotRename')));
     }
     if (name === list.name) {
       return of(undefined);
@@ -260,7 +262,7 @@ export class LibraryStore {
 
   deleteList(list: MovieList): Observable<void> {
     if (list.isSystem) {
-      return throwError(() => new LibraryError('The Watchlist cannot be deleted.'));
+      return throwError(() => new LibraryError(this.transloco.translate('errors.watchlistCannotDelete')));
     }
     if (!this.authStore.isLoggedIn()) {
       this.session.deleteList(list.name);
@@ -281,12 +283,12 @@ export class LibraryStore {
     const sameList = listKey(from) === listKey(to);
     if (!sameList && to.items.some((item) => item.tmdbId === tmdbId)) {
       return throwError(
-        () => new LibraryError(`That movie is already in ${to.name}.`)
+        () => new LibraryError(this.transloco.translate('errors.movieAlreadyInTarget', { list: to.name }))
       );
     }
     if (!sameList && to.items.length >= MAX_LIST_ITEMS) {
       return throwError(
-        () => new LibraryError(`${to.name} is full (${MAX_LIST_ITEMS} movies max).`)
+        () => new LibraryError(this.transloco.translate('errors.listFull', { list: to.name, max: MAX_LIST_ITEMS }))
       );
     }
     if (!this.authStore.isLoggedIn()) {
@@ -326,7 +328,7 @@ export class LibraryStore {
       .pipe(
         tap(() => {
           this.session.clear();
-          this.notify('Your guest activity was saved to your account.');
+          this.notify(this.transloco.translate('errors.guestActivitySaved'));
         }),
         catchError((error) => {
           if (isPermanentError(error)) {
@@ -334,7 +336,7 @@ export class LibraryStore {
             this.offerDiscard();
           } else {
             this.notify(
-              'We could not save your guest activity. It stays in this tab and we will retry on your next login.'
+              this.transloco.translate('errors.guestActivityFailed')
             );
           }
           return of(null);
@@ -363,7 +365,7 @@ export class LibraryStore {
       },
       error: () => {
         this.remoteLoaded.set(true);
-        this.notify('We could not load your library. Please reload the page.');
+        this.notify(this.transloco.translate('errors.libraryFailed'));
       },
     });
   }
@@ -383,16 +385,16 @@ export class LibraryStore {
   // Names are unique per user, ignoring case (same rule as the API).
   private validateListName(name: string, current?: MovieList): string | null {
     if (!name) {
-      return 'The list name cannot be empty.';
+      return this.transloco.translate('errors.listNameEmpty');
     }
     if (name.length > 50) {
-      return 'The list name can have up to 50 characters.';
+      return this.transloco.translate('errors.listNameLength');
     }
     const taken = this.lists().some(
       (list) =>
         list !== current && list.name.toLowerCase() === name.toLowerCase()
     );
-    return taken ? `A list named "${name}" already exists.` : null;
+    return taken ? this.transloco.translate('errors.listNameExists', { name }) : null;
   }
 
   private loadHistory(): Observable<void> {

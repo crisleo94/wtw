@@ -8,22 +8,22 @@
       (click)="toggleWatchlist()"
     >
       <mat-icon>{{ inWatchlist() ? 'bookmark' : 'bookmark_border' }}</mat-icon>
-      {{ inWatchlist() ? 'In watchlist' : 'Watchlist' }}
+      {{ inWatchlist() ? ('card.inWatchlist' | transloco) : ('card.watchlist' | transloco) }}
     </button>
     <button
       [matButton]="isWatched() ? 'tonal' : 'outlined'"
       class="action"
       [attr.aria-pressed]="isWatched()"
-      [matTooltip]="isWatched() ? 'You watched it: click to undo' : 'Mark as watched'"
+      [matTooltip]="isWatched() ? ('card.watchedToggle' | transloco) : ('card.unwatchedToggle' | transloco)"
       (click)="toggleWatched()"
     >
       <mat-icon>{{ isWatched() ? 'check_circle' : 'visibility' }}</mat-icon>
-      Watched
+      {{ 'card.watched' | transloco }}
     </button>
     <button
       mat-icon-button
-      matTooltip="Add to a list"
-      aria-label="Add to a list"
+      [matTooltip]="'card.addToList' | transloco"
+      [attr.aria-label]="'card.addToList' | transloco"
       [matMenuTriggerFor]="listsMenu"
     >
       <mat-icon>playlist_add</mat-icon>
@@ -32,7 +32,7 @@
       @for (list of customLists(); track list.name) {
       <button mat-menu-item (click)="addToList(list)">{{ list.name }}</button>
       } @empty {
-      <button mat-menu-item disabled>No lists yet: create one in your panel</button>
+      <button mat-menu-item disabled>{{ 'card.noLists' | transloco }}</button>
       }
     </mat-menu>
     @if (removable()) {
@@ -40,7 +40,7 @@
       mat-icon-button
       class="warn-button"
       [matTooltip]="removeLabel()"
-      [attr.aria-label]="removeLabel()"
+      [attr.aria-label]="removeLabel() || ('card.removeLabel' | transloco)"
       (click)="remove.emit()"
     >
       <mat-icon>delete</mat-icon>
@@ -56,18 +56,18 @@
       <mat-card-title-group>
         <mat-card-title>{{ movie.title }}</mat-card-title>
         <mat-card-subtitle
-          >Release date: {{ movie.releaseDate ?? 'Unknown' }}</mat-card-subtitle
+          >{{ 'card.releaseDate' | transloco }} {{ movie.releaseDate ?? ('card.unknown' | transloco) }}</mat-card-subtitle
         >
         <mat-card-subtitle class="average"
-          >Average: {{ movie.voteAverage }}</mat-card-subtitle
+          >{{ 'card.average' | transloco }} {{ movie.voteAverage }}</mat-card-subtitle
         >
         <mat-card-subtitle class="count"
-          >Votes Count: {{ movie.voteCount }}</mat-card-subtitle
+          >{{ 'card.votesCount' | transloco }} {{ movie.voteCount }}</mat-card-subtitle
         >
       </mat-card-title-group>
       <mat-chip-set>
         @if (isWatched()) {
-        <mat-chip class="watched">Watched</mat-chip>
+        <mat-chip class="watched">{{ 'card.watched' | transloco }}</mat-chip>
         }
         @for (genre of movieGenres(); track genre) {
         <mat-chip class="genre">{{ genre }}</mat-chip>
@@ -75,7 +75,7 @@
       </mat-chip-set>
     </mat-card-header>
     <mat-card-content>
-      <b>Synopsis: </b> {{ movie.overview }}
+      <b>{{ 'card.synopsis' | transloco }} </b> {{ movie.overview }}
     </mat-card-content>
   </div>
   <div>
@@ -103,27 +103,27 @@
       <mat-card-title-group>
         <mat-card-title>{{ movie.title }}</mat-card-title>
         <mat-card-subtitle
-          >Release date: {{ movie.releaseDate ?? 'Unknown' }}</mat-card-subtitle
+          >{{ 'card.releaseDate' | transloco }} {{ movie.releaseDate ?? ('card.unknown' | transloco) }}</mat-card-subtitle
         >
         <mat-card-subtitle class="average"
-          >Average: {{ movie.voteAverage }}</mat-card-subtitle
+          >{{ 'card.average' | transloco }} {{ movie.voteAverage }}</mat-card-subtitle
         >
         <mat-card-subtitle class="count"
-          >Votes Count: {{ movie.voteCount }}</mat-card-subtitle
+          >{{ 'card.votesCount' | transloco }} {{ movie.voteCount }}</mat-card-subtitle
         >
         @if (isWatched()) {
-        <mat-card-subtitle class="watched-label">Watched</mat-card-subtitle>
+        <mat-card-subtitle class="watched-label">{{ 'card.watched' | transloco }}</mat-card-subtitle>
         }
       </mat-card-title-group>
     </mat-card-header>
     <mat-card-content>
       @if (!showMore()) {
-      <b>Synopsis: </b> {{ movie.overview.slice(0, 80) }}
+      <b>{{ 'card.synopsis' | transloco }} </b> {{ movie.overview.slice(0, 80) }}
       } @if (showMore()) {
-      <b>Synopsis: </b> {{ movie.overview }}
+      <b>{{ 'card.synopsis' | transloco }} </b> {{ movie.overview }}
       }
       <button mat-stroked-button (click)="toggleReadMore()">
-        {{ showMore() ? "Less" : "More" }}
+        {{ showMore() ? ('card.less' | transloco) : ('card.more' | transloco) }}
       </button>
     </mat-card-content>
   </div>

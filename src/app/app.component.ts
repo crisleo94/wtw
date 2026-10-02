@@ -13,10 +13,7 @@ import { UserPanelComponent } from './components/user-panel/user-panel.component
 import { Movie } from './interfaces/movie.interface';
 import { AuthDialogService } from './services/auth-dialog.service';
 import { AuthStore } from './stores/auth.store';
-
-const NO_RESULTS_MESSAGE =
-  'No movies match these filters. Try a wider year range, fewer genres or fewer minimum votes.';
-const ERROR_MESSAGE = 'We could not get a movie right now. Please try again.';
+import { TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-root',
@@ -39,6 +36,7 @@ const ERROR_MESSAGE = 'We could not get a movie right now. Please try again.';
 export class AppComponent {
   authStore = inject(AuthStore);
   private authDialog = inject(AuthDialogService);
+  private transloco = inject(TranslocoService);
 
   initials = computed(() =>
     (this.authStore.user()?.fullName ?? '')
@@ -55,12 +53,14 @@ export class AppComponent {
 
   recieveMovie($event: Movie | null): void {
     this.movie.set($event);
-    this.message.set($event ? null : NO_RESULTS_MESSAGE);
+    this.message.set(
+      $event ? null : this.transloco.translate('errors.noMovies')
+    );
   }
 
   recieveError(): void {
     this.movie.set(null);
-    this.message.set(ERROR_MESSAGE);
+    this.message.set(this.transloco.translate('errors.fetchError'));
   }
 
   openLogin(): void {

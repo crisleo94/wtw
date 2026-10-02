@@ -2,7 +2,7 @@
   <div>
     <div class="row">
       <mat-form-field>
-        <mat-label for="yearFrom">Released from:</mat-label>
+        <mat-label for="yearFrom">{{ 'form.releasedFrom' | transloco }}</mat-label>
         <input
           matInput
           type="number"
@@ -13,7 +13,7 @@
         />
       </mat-form-field>
       <mat-form-field>
-        <mat-label for="yearTo">Released to:</mat-label>
+        <mat-label for="yearTo">{{ 'form.releasedTo' | transloco }}</mat-label>
         <input
           matInput
           type="number"
@@ -29,25 +29,22 @@
       @if (control?.invalid && control?.touched) {
       <mat-error>
         @if (control?.errors?.['required']) {
-        <span>Both release years are required</span>
+        <span>{{ 'form.yearRequired' | transloco }}</span>
         } @else if (control?.errors?.['min']) {
-        <span>Release year cannot be less than {{ minYear }}</span>
+        <span>{{ 'form.yearMin' | transloco: { minYear } }}</span>
         } @else if (control?.errors?.['max']) {
-        <span
-          >Release year cannot be greater than the current year
-          {{ currentYear }}</span
-        >
+        <span>{{ 'form.yearMax' | transloco: { currentYear } }}</span>
         }
       </mat-error>
       }
     }
     @if (dataForm.errors?.['yearRange']) {
-    <mat-error>"Released from" must be before or equal to "Released to"</mat-error>
+    <mat-error>{{ 'form.yearRange' | transloco }}</mat-error>
     }
   </div>
   <div>
     <mat-form-field>
-      <mat-label for="genres">Genres:</mat-label>
+      <mat-label for="genres">{{ 'form.genres' | transloco }}</mat-label>
       <mat-select id="genres" formControlName="genres" multiple>
         @for (genre of genres(); track genre.id) {
           <mat-option [value]="genre.id">
@@ -55,27 +52,26 @@
           </mat-option>
         }
       </mat-select>
-      <mat-hint>Leave empty for any genre</mat-hint>
+      <mat-hint>{{ 'form.genresHint' | transloco }}</mat-hint>
     </mat-form-field>
     @if (dataForm.controls.genres.value.length > 1) {
     <div class="genre-mode">
-      <span>Match:</span>
+      <span>{{ 'form.match' | transloco }}</span>
       <mat-button-toggle-group
         formControlName="genreMode"
-        aria-label="Genre match mode"
+        [attr.aria-label]="'form.match' | transloco"
         hideSingleSelectionIndicator
       >
-        <mat-button-toggle value="all">All genres</mat-button-toggle>
-        <mat-button-toggle value="any">Any genre</mat-button-toggle>
+        <mat-button-toggle value="all">{{ 'form.allGenres' | transloco }}</mat-button-toggle>
+        <mat-button-toggle value="any">{{ 'form.anyGenre' | transloco }}</mat-button-toggle>
       </mat-button-toggle-group>
     </div>
     }
   </div>
   <div>
-    <mat-label for="rating"
-      >Rating: {{ dataForm.controls.ratingMin.value }} -
-      {{ dataForm.controls.ratingMax.value }}</mat-label
-    >
+    <mat-label for="rating">
+      {{ 'form.rating' | transloco: { min: dataForm.controls.ratingMin.value, max: dataForm.controls.ratingMax.value } }}
+    </mat-label>
     <mat-slider min="0" max="10" step="0.5" discrete>
       <input matSliderStartThumb formControlName="ratingMin" />
       <input matSliderEndThumb formControlName="ratingMax" />
@@ -84,7 +80,7 @@
   <div>
     <div class="row">
       <mat-form-field>
-        <mat-label for="votesMin">Min votes:</mat-label>
+        <mat-label for="votesMin">{{ 'form.minVotes' | transloco }}</mat-label>
         <input
           matInput
           type="number"
@@ -94,25 +90,25 @@
         />
       </mat-form-field>
       <mat-form-field>
-        <mat-label for="votesMax">Max votes:</mat-label>
+        <mat-label for="votesMax">{{ 'form.maxVotes' | transloco }}</mat-label>
         <input
           matInput
           type="number"
           id="votesMax"
           formControlName="votesMax"
           min="0"
-          placeholder="No limit"
+          [placeholder]="'form.noLimit' | transloco"
         />
       </mat-form-field>
     </div>
     @if (dataForm.controls.votesMin.touched && dataForm.controls.votesMin.errors?.['required']) {
-    <mat-error>Minimum votes is required (use 0 for no minimum)</mat-error>
+    <mat-error>{{ 'form.minVotesRequired' | transloco }}</mat-error>
     }
     @if (dataForm.controls.votesMin.errors?.['min'] || dataForm.controls.votesMax.errors?.['min']) {
-    <mat-error>Votes cannot be negative</mat-error>
+    <mat-error>{{ 'form.votesNegative' | transloco }}</mat-error>
     }
     @if (dataForm.errors?.['votesRange']) {
-    <mat-error>Minimum votes cannot be greater than maximum votes</mat-error>
+    <mat-error>{{ 'form.votesRange' | transloco }}</mat-error>
     }
   </div>
   <button
@@ -120,9 +116,9 @@
     type="submit"
     [disabled]="dataForm.invalid"
   >
-    Generate Movie
+    {{ 'form.generateMovie' | transloco }}
   </button>
   <button mat-flat-button class="warn-button" type="button" (click)="reset()">
-    Reset Controls
+    {{ 'form.resetControls' | transloco }}
   </button>
 </form>

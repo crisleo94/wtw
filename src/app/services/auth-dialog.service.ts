@@ -1,15 +1,13 @@
 import { inject, Injectable } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { TranslocoService } from '@jsverse/transloco';
 import { from, map, Observable, of, switchMap, tap } from 'rxjs';
 import type {
   AuthDialogData,
   AuthDialogResult,
 } from '../components/auth-dialog/auth-dialog.component';
 import { AuthStore } from '../stores/auth.store';
-
-const GUEST_MESSAGE =
-  'You are browsing as a guest. Your lists stay in this tab until you log in.';
 
 @Injectable({
   providedIn: 'root',
@@ -18,6 +16,7 @@ export class AuthDialogService {
   private dialog = inject(MatDialog);
   private authStore = inject(AuthStore);
   private snackBar = inject(MatSnackBar);
+  private transloco = inject(TranslocoService);
 
   // Lazy loaded to keep the dialog out of the initial bundle; null when dismissed.
   open(data: AuthDialogData = {}): Observable<AuthDialogResult | null> {
@@ -40,7 +39,7 @@ export class AuthDialogService {
       map((result) => result ?? (this.authStore.isLoggedIn() ? 'authenticated' : null)),
       tap((result) => {
         if (result === 'guest') {
-          this.snackBar.open(GUEST_MESSAGE, 'OK', { duration: 4000 });
+          this.snackBar.open(this.transloco.translate('auth_dialog_service.guestMessage'), 'OK', { duration: 4000 });
         }
       })
     );

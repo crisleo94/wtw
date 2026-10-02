@@ -1,34 +1,34 @@
 <mat-tab-group animate.enter="insert-overview">
-  <mat-tab label="History">
+  <mat-tab [label]="'overview.historyTab' | transloco">
     <div class="history-container">
       @for (entry of history(); track entry.id ?? entry.generatedAt + entry.movie.tmdbId) {
       <app-movie-card
         [movie]="entry.movie"
         variant="composed"
         [removable]="true"
-        removeLabel="Remove from history"
+        [removeLabel]="'overview.removeFromHistory' | transloco"
         (remove)="removeHistory(entry)"
       ></app-movie-card>
       } @empty {
       <p class="empty">
-        {{ loaded() ? 'The movies you generate will show up here.' : 'Loading your movies...' }}
+        {{ loaded() ? ('overview.historyEmpty' | transloco) : ('overview.historyLoading' | transloco) }}
       </p>
       }
     </div>
   </mat-tab>
-  <mat-tab label="Watchlist">
+  <mat-tab [label]="'overview.watchlistTab' | transloco">
     <div class="watchlist-container">
       @for (item of watchlist()?.items ?? []; track item.tmdbId) {
       <app-movie-card
         [movie]="item.movie"
         variant="composed"
         [removable]="true"
-        removeLabel="Remove from watchlist"
+        [removeLabel]="'overview.removeFromWatchlist' | transloco"
         (remove)="removeFromWatchlist(item)"
       ></app-movie-card>
       } @empty {
       <p class="empty">
-        {{ loaded() ? 'Use the bookmark button on a movie to save it here.' : 'Loading your movies...' }}
+        {{ loaded() ? ('overview.watchlistEmpty' | transloco) : ('overview.watchlistLoading' | transloco) }}
       </p>
       }
     </div>

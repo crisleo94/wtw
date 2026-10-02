@@ -14,14 +14,14 @@
 
 <header class="header">
   <app-logo class="logo"></app-logo>
-  <h1>What to Watch?</h1>
+  <h1>{{ 'header.title' | transloco }}</h1>
   <div class="header-actions">
     <app-settings-menu></app-settings-menu>
     @if (authStore.user(); as user) {
     <button
       class="avatar-button"
-      matTooltip="Your account and lists"
-      [attr.aria-label]="'Open the panel of ' + user.fullName"
+      [matTooltip]="'header.yourAccount' | transloco"
+      [attr.aria-label]="'header.openPanel' | transloco: { fullName: user.fullName }"
       (click)="panelOpen.set(true)"
     >
       {{ initials() }}
@@ -29,14 +29,14 @@
     } @else {
     <button
       mat-icon-button
-      matTooltip="Your lists"
-      aria-label="Open your lists"
+      [matTooltip]="'header.yourLists' | transloco"
+      [attr.aria-label]="'header.yourLists' | transloco"
       (click)="panelOpen.set(true)"
     >
       <mat-icon>video_library</mat-icon>
     </button>
     <button mat-flat-button class="login-button" (click)="openLogin()">
-      <mat-icon>login</mat-icon> Login
+      <mat-icon>login</mat-icon> {{ 'header.login' | transloco }}
     </button>
     }
   </div>

@@ -13,6 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSliderModule } from '@angular/material/slider';
 import { debounceTime, Subject } from 'rxjs';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import {
   GenreMode,
   MovieFilters,
@@ -38,6 +39,7 @@ export const DEFAULT_VOTES_MIN = 5000;
     MatSliderModule,
     MatButtonModule,
     MatButtonToggleModule,
+    TranslocoDirective,
   ],
   templateUrl: './form.component.html',
   styleUrl: './form.component.sass',
@@ -47,6 +49,7 @@ export class FormComponent implements OnInit {
   private genreService = inject(GenresService);
   private movieService = inject(MoviesService);
   private library = inject(LibraryStore);
+  private transloco = inject(TranslocoService);
 
   debounceSubmit$ = new Subject<void>();
   movieEvent = output<Movie | null>();
