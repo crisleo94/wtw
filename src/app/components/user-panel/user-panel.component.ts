@@ -45,7 +45,7 @@ import {
 
 export type WatchedFilter = 'all' | 'watched' | 'unwatched';
 
-interface PanelList {
+export interface PanelList {
   list: MovieList;
   key: string;
   items: MovieListItem[];
