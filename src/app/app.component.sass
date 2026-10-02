@@ -37,9 +37,14 @@ h1
   margin: 0 auto
   place-items: center
 
-  @media (max-width: 600px)
-    display: block
-    max-width: 600px
+  // Below desktop the filters and the card stack, centered at a readable width.
+  @media (max-width: 1023.98px)
+    grid-template-columns: minmax(0, 1fr)
+    place-items: stretch
+    gap: 16px
+    min-height: 0
+    max-width: 720px
+    padding-inline: 16px
 
 .menu
   min-width: 0
@@ -58,8 +63,12 @@ h1
     align-items: center
 
 .content
+  min-width: 0
+  box-sizing: border-box
   padding: 16px
   overflow: auto
+  @media (max-width: 1023.98px)
+    padding-inline: 0
 
 .spinner-container
   display: flex
@@ -76,6 +85,7 @@ h1
   align-items: center
   gap: 8px
   max-width: 360px
+  margin-inline: auto
   text-align: center
 
 .shell
