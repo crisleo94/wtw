@@ -56,4 +56,15 @@ describe('LanguageStore', () => {
     store.setLang('en');
     expect(localStorage.getItem(LANGUAGE_KEY)).toBe('en');
   });
+
+  it('should notify only real language changes', () => {
+    localStorage.setItem(LANGUAGE_KEY, 'en');
+    const store = setup();
+    const changes: string[] = [];
+    store.changed$.subscribe((lang) => changes.push(lang));
+    store.setLang('en');
+    store.setLang('es');
+    store.setLang('es');
+    expect(changes).toEqual(['es']);
+  });
 });

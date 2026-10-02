@@ -18,6 +18,7 @@ import { isPlatformServer } from '@angular/common';
 import { provideClientHydration } from '@angular/platform-browser';
 import { routes } from './app.routes';
 import { apiInterceptor } from './interceptors/api.interceptor';
+import { languageInterceptor } from './interceptors/language.interceptor';
 import { sessionExpiredInterceptor } from './interceptors/session-expired.interceptor';
 import { parseCookies, TOKEN_COOKIE } from '../server/cookies';
 import { provideTransloco } from '@jsverse/transloco';
@@ -42,7 +43,7 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideRouter(routes),
     provideClientHydration(),
-    provideHttpClient(withFetch(), withInterceptors([apiInterceptor, sessionExpiredInterceptor])),
+    provideHttpClient(withFetch(), withInterceptors([apiInterceptor, languageInterceptor, sessionExpiredInterceptor])),
     provideAppInitializer(loadUser),
     provideTransloco({
       config: {

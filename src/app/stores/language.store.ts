@@ -1,7 +1,7 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { inject, Injectable, PLATFORM_ID, REQUEST, signal } from '@angular/core';
 import { TranslocoService } from '@jsverse/transloco';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subject } from 'rxjs';
 import {
   AppLanguage,
   DEFAULT_LANGUAGE,
@@ -20,8 +20,11 @@ export class LanguageStore {
   private request = inject(REQUEST, { optional: true });
   private isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private current = signal<AppLanguage>(this.initial());
+  private changes = new Subject<AppLanguage>();
 
   readonly lang = this.current.asReadonly();
+  // Emits only when the user switches to a different language.
+  readonly changed$ = this.changes.asObservable();
 
   // Loads the translation before the first render (SSR and hydration).
   init(): Promise<unknown> {
@@ -30,8 +33,12 @@ export class LanguageStore {
   }
 
   setLang(lang: AppLanguage): void {
+    const previous = this.current();
     this.current.set(lang);
     this.apply(lang);
+    if (lang !== previous) {
+      this.changes.next(lang);
+    }
     if (!this.isBrowser) {
       return;
     }
