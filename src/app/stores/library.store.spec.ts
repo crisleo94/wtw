@@ -56,6 +56,14 @@ describe('LibraryStore', () => {
       .expectOne('/api/me/lists')
       .flush([{ id: 'w1', name: 'Watchlist', isSystem: true, position: 0, items: [] }]);
     httpTesting.expectOne('/api/me/movies').flush({ watched: [7] });
+    flushWatched([{ movie, watchedAt: '2026-10-02T10:00:00.000Z', rating: null }], 1);
+  }
+
+  function flushWatched(items: object[], total: number, page = 1): void {
+    const req = httpTesting.expectOne((r) => r.url === '/api/me/movies/watched');
+    expect(req.request.params.get('page')).toBe(String(page));
+    expect(req.request.params.get('limit')).toBe('20');
+    req.flush({ items, total, page, limit: 20 });
   }
 
   it('should rate as a guest in the session, import the ratings and use the API after login', () => {
@@ -86,6 +94,60 @@ describe('LibraryStore', () => {
     expect(clear.request.body).toEqual({ rating: null });
     clear.flush({ tmdbId: 7, watched: false, watchedAt: null, rating: null });
     expect(library.ratings().has(7)).toBeFalse();
+  });
+
+  it('should list a user\'s watched movies, load more pages and follow new marks', () => {
+    login();
+    flushReload();
+    expect(library.watchedMovies().map((item) => item.movie.tmdbId)).toEqual([7]);
+    expect(library.hasMoreWatched()).toBeFalse();
+
+    library.reload();
+    httpTesting.expectOne((req) => req.url === '/api/me/history').flush({ items: [], total: 0, limit: 50, offset: 0 });
+    httpTesting.expectOne('/api/me/lists').flush([]);
+    httpTesting.expectOne('/api/me/movies').flush({ watched: [7, 8] });
+    const eight = { ...movie, tmdbId: 8, title: 'Aliens' };
+    flushWatched([{ movie: eight, watchedAt: '2026-10-03T10:00:00.000Z', rating: 5 }], 2);
+    expect(library.hasMoreWatched()).toBeTrue();
+
+    library.loadMoreWatched();
+    flushWatched([{ movie: eight, watchedAt: 'dup' }, { movie, watchedAt: '2026-10-01T10:00:00.000Z' }], 2, 2);
+    expect(library.watchedMovies().map((item) => item.movie.tmdbId)).toEqual([8, 7]);
+    expect(library.hasMoreWatched()).toBeFalse();
+
+    library.setWatched(eight, false).subscribe();
+    httpTesting.expectOne('/api/me/movies/8').flush({});
+    expect(library.watchedMovies().map((item) => item.movie.tmdbId)).toEqual([7]);
+    const nine = { ...movie, tmdbId: 9, title: 'Prometheus' };
+    library.setWatched(nine, true).subscribe();
+    httpTesting.expectOne('/api/me/movies/9').flush({});
+    expect(library.watchedMovies().map((item) => item.movie.tmdbId)).toEqual([9, 7]);
+    httpTesting.verify();
+  });
+
+  it('should keep the rest of the library when the watched list fails', () => {
+    login();
+    httpTesting.expectOne((req) => req.url === '/api/me/history').flush({ items: [], total: 0, limit: 50, offset: 0 });
+    httpTesting.expectOne('/api/me/lists').flush([]);
+    httpTesting.expectOne('/api/me/movies').flush({ watched: [7] });
+    httpTesting
+      .expectOne((req) => req.url === '/api/me/movies/watched')
+      .flush({}, { status: 404, statusText: 'Not Found' });
+    expect(library.ready()).toBeTrue();
+    expect(library.watchedIds().has(7)).toBeTrue();
+    expect(library.watchedFailed()).toBeTrue();
+    expect(library.watchedMovies()).toEqual([]);
+  });
+
+  it('should list a guest\'s watched movies from the session, newest first', () => {
+    const eight = { ...movie, tmdbId: 8, title: 'Aliens' };
+    library.setWatched(movie, true).subscribe();
+    library.setWatched(eight, true).subscribe();
+    expect(library.watchedMovies().map((item) => item.movie.tmdbId)).toEqual([8, 7]);
+    expect(library.watchedMovies()[0].watchedAt).toEqual(jasmine.any(String));
+    library.setWatched(eight, false).subscribe();
+    expect(library.watchedMovies().map((item) => item.movie.tmdbId)).toEqual([7]);
+    expect(library.hasMoreWatched()).toBeFalse();
   });
 
   it('should load without ratings from an API that does not send them yet', () => {
