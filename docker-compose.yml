@@ -10,6 +10,12 @@ services:
     env_file: .env
     environment:
       PORT: 4000
+      # Set these in .env or in the host (Coolify); see .env.example and the README.
+      # API_URL: http://wtw-api:3000
+      # COOKIE_SECURE: 'true'
+      # NG_ALLOWED_HOSTS: wtw.example.com
+      # INTERNAL_ORIGIN: http://localhost:4000
+      # SSR_API_TIMEOUT_MS: 3000
     ports:
       - '4000:4000'
     networks:
