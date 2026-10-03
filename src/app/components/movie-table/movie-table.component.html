@@ -145,7 +145,12 @@
 
   <ng-container matColumnDef="detail">
     <td mat-cell *matCellDef="let row" [attr.colspan]="columns.length" class="detail-cell">
-      {{ row.movie.overview || ('table.noDescription' | transloco) }}
+      <!-- grid-template-rows 0fr -> 1fr animates the height without measuring it. -->
+      <div class="detail">
+        <div class="detail-inner">
+          <p class="detail-text">{{ row.movie.overview || ('table.noDescription' | transloco) }}</p>
+        </div>
+      </div>
     </td>
   </ng-container>
 
@@ -156,6 +161,7 @@
     *matRowDef="let row; columns: ['detail']"
     class="detail-row"
     [class.expanded]="expanded() === row.key"
+    [attr.aria-hidden]="expanded() !== row.key"
   ></tr>
 </table>
 

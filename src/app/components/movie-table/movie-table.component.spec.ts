@@ -135,17 +135,45 @@ describe('MovieTableComponent', () => {
     expect(button.title).toBe('El corredor del laberinto III: La cura mortal y otras historias largas');
   });
 
-  it('should open the synopsis with a tap on the title on phones', async () => {
+  it('should open and close the synopsis on phones with a height animation', async () => {
     await atWidth('320px');
     const title = host.querySelector<HTMLButtonElement>('.title-button')!;
-    expect(visible('tr.detail-row')).toBeFalse();
-    title.click();
-    await fixture.whenStable();
+    const detail = host.querySelector<HTMLElement>('tr.detail-row')!;
+    const height = () => Math.round(detail.getBoundingClientRect().height);
+    expect(height()).toBe(0);
+    expect(detail.getAttribute('aria-hidden')).toBe('true');
+    expect(getComputedStyle(detail.querySelector('.detail')!).transitionDuration).toBe('0.225s');
+
+    async function heightsAfterTap(): Promise<number[]> {
+      title.click();
+      await fixture.whenStable();
+      const heights: number[] = [];
+      const end = performance.now() + 400;
+      while (performance.now() < end) {
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        heights.push(height());
+      }
+      return heights;
+    }
+
+    const opening = await heightsAfterTap();
+    const open = opening.at(-1)!;
     expect(title.getAttribute('aria-expanded')).toBe('true');
-    expect(visible('tr.detail-row.expanded')).toBeTrue();
-    title.click();
-    await fixture.whenStable();
+    expect(detail.getAttribute('aria-hidden')).toBe('false');
+    expect(open).toBeGreaterThan(40);
+    expect(opening.some((h) => h > 0 && h < open - 2)).withContext(opening.join(',')).toBeTrue();
+
+    const closing = await heightsAfterTap();
+    expect(closing.at(-1)).toBe(0);
+    expect(closing.some((h) => h > 2 && h < open)).withContext(closing.join(',')).toBeTrue();
     expect(host.querySelector('tr.detail-row.expanded')).toBeNull();
+  });
+
+  it('should keep the synopsis row hidden on wider tables', async () => {
+    await atWidth('768px');
+    host.querySelector<HTMLButtonElement>('.title-button')!.click();
+    await fixture.whenStable();
+    expect(visible('tr.detail-row')).toBeFalse();
   });
 
   it('should keep the description at two lines and the row height on hover, focus and click', async () => {
