@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -16,9 +16,10 @@ import { AuthDialogService } from './services/auth-dialog.service';
 import { MoviesService } from './services/movies.service';
 import { AuthStore } from './stores/auth.store';
 import { LanguageStore } from './stores/language.store';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { catchError, EMPTY, switchMap } from 'rxjs';
 import { MatDividerModule } from '@angular/material/divider';
+import { Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-root',
@@ -40,8 +41,12 @@ import { MatDividerModule } from '@angular/material/divider';
   templateUrl: './app.component.html',
   styleUrl: './app.component.sass',
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   authStore = inject(AuthStore);
+  private readonly titleService = inject(Title);
+  private readonly translocoService = inject(TranslocoService);
+  private readonly destroyRef = inject(DestroyRef);
+
   private authDialog = inject(AuthDialogService);
   private moviesService = inject(MoviesService);
 
@@ -75,6 +80,19 @@ export class AppComponent {
         if (this.movie()?.tmdbId === movie.tmdbId) {
           this.movie.set(movie);
         }
+      });
+  }
+
+  ngOnInit(): void {
+    this.translocoService.langChanges$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.translocoService
+          .selectTranslate<string>('header.title')
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe((translatedTitle) => {
+            this.titleService.setTitle(translatedTitle);
+          });
       });
   }
 
