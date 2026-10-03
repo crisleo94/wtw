@@ -1,54 +1,36 @@
 # Wtw
 
-What to Watch: Angular 21 SSR app. Its Express server (`server.ts`) also works as the BFF for the `wtw-api` backend.
+What to Watch: Angular 21 single page app (static build, no SSR). It calls the `wtw-api` backend directly on its own domain.
 
 ## Stack
 - NodeJS `v22`
-- Angular `v21` (SSR) + Angular Material
+- Angular `v21` + Angular Material, Transloco (EN/ES)
 
 ## Installation
 1. Run `nvm use` to use the correct NodeJS version
 2. Run `npm ci` to install the dependencies
-3. Run `cp .env.example .env`
 
-## Environment
-- `API_URL`: backend URL seen from the front container (`http://wtw-api:3000`)
-- `PORT`: SSR server port (`4000`)
-- `API_TIMEOUT_MS`: BFF timeout for API calls (`10000`); returns `504` when exceeded and `502` when the API is unreachable
-- `COOKIE_SECURE`: `true` adds `Secure` to the `wtw_token` and `wtw_session` cookies (use it behind HTTPS)
-- `NG_ALLOWED_HOSTS`: public domains (comma separated) Angular SSR accepts in the `Host` header; only `localhost` and `127.0.0.1` are allowed by default
-- `INTERNAL_ORIGIN`: origin the SSR uses to call its own `/api` (default `http://localhost:${PORT}`)
-- `SSR_API_TIMEOUT_MS`: max wait for each `/api` call during SSR (`3000`); after that the page is served and the browser loads the data
+## Configuration
+- `API_URL` (**build time**): base of the API **including** `/api`, for example `https://api-wtw.example.com/api`. Default: `http://localhost:3003/api`.
 
-## BFF
-`server.ts` forwards `/api/*` to `API_URL` (method, query, body and status). On login/register it moves the JWT from the response body into the `wtw_token` cookie (`httpOnly`, `sameSite=lax`), sends it back to the API as `Authorization: Bearer`, and `POST /api/auth/logout` clears it. The browser never sees the JWT or the TMDB token.
+`npm start`, `npm run build` and `npm run watch` first run `scripts/generate-api-config.mjs`, which writes `src/app/config/api-url.generated.ts` (git ignored) from the variable; the builds swap `src/app/config/api-url.ts` for it. Unit tests use `src/app/config/api-url.ts` (`/api`). The value is baked into the bundle: change it and rebuild. `.env` is not loaded; export the variable in the shell or set it in the build environment (see `.env.example`).
 
-## Docker
-The front shares the external network `wtw-network` with the `wtw-api` compose. It is the **only** service that publishes a port (`4000`); the API and Postgres stay inside the network.
+## Auth
+The API sets the JWT in its own `httpOnly` cookie (`wtw_token`) and clears it on `POST /api/auth/logout`. The front sends `withCredentials: true` to `API_URL` and never sees the token; it only keeps a `wtw.signedIn` flag in `localStorage` to skip `GET /api/auth/me` for anonymous visitors. The API must allow the front origin in `CORS_ORIGINS` (with credentials), and both should share the same site (e.g. `wtw.example.com` and `api-wtw.example.com`) so the `SameSite=Lax` cookie is sent.
 
-1. Create the network once: `docker network create wtw-network`
-2. Start the API and the DB from the `wtw-api` repo (see its README)
-3. Start the front: `docker-compose up -d --build`
-4. Open `http://localhost:4000`
-
-### Development (hot reload)
-`docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build`
-
-Mounts the source as a volume and runs `ng serve --host 0.0.0.0 --port 4000` (the dev server also runs `server.ts`).
-
-### Validate
-`docker-compose config`
+## Local development
+1. Start the API and Postgres from the `wtw-api` repo with Docker (API on `http://localhost:3003`, with `http://localhost:4200` in its `CORS_ORIGINS`).
+2. Run `npm start` and open `http://localhost:4200` (uses the default `API_URL`).
 
 ## Deploy (Coolify)
-1. Point the domain to the `wtw` service on port `4000` (in Coolify: `https://your.domain:4000`, the port is the container one, the public URL stays on 443).
-2. Attach the app to the same Docker network as `wtw-api` so `API_URL=http://wtw-api:3000` resolves; only the front is public.
-3. Set `NG_ALLOWED_HOSTS=your.domain`: without it Angular rejects requests whose `Host` is the public domain.
-4. Set `COOKIE_SECURE=true` (the site is served over HTTPS).
-5. Leave `INTERNAL_ORIGIN` unset (or `http://localhost:4000`). During SSR Angular would call `/api` on the public domain, and from inside the container that goes out through Cloudflare and back to the same host (hairpin NAT): the call hangs and Cloudflare answers `504`. The SSR therefore calls its own BFF on the internal origin, with `SSR_API_TIMEOUT_MS` as a safety net.
-6. Health check: `GET /healthz` answers `ok`; the image already declares a `HEALTHCHECK` on it.
+1. New resource from the Git repository, build pack **Nixpacks** (Node 22 from `.nvmrc`), and mark it as a **static site**.
+2. Build command: `npm run build`. Publish directory: `dist/wtw/browser`.
+3. Build variable: `API_URL=https://<api-domain>/api` (it must be available at build time).
+4. Enable the SPA fallback (every unknown path serves `index.html`); in Coolify, the "SPA" option of static sites.
+5. In the API, add the front domain to `CORS_ORIGINS` and set `COOKIE_SECURE=true`.
 
-## Local scripts
+## Scripts
 - `npm start`: dev server on `http://localhost:4200`
-- `npm run build`: production build in `dist/wtw`
-- `npm run serve:ssr:wtw`: run the built SSR server
-- `npm test`: unit tests
+- `npm run build`: production build in `dist/wtw/browser`
+- `npm test`: unit tests (Karma, `ng test`)
+- `npm run test:scripts`: tests of the build scripts (`node --test`)

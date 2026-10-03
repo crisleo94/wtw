@@ -3,11 +3,14 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
+    "prestart": "node scripts/generate-api-config.mjs",
     "start": "ng serve",
+    "prebuild": "node scripts/generate-api-config.mjs",
     "build": "ng build",
+    "prewatch": "node scripts/generate-api-config.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:wtw": "node dist/wtw/server/server.mjs"
+    "test:scripts": "node --test scripts/*.test.mjs"
   },
   "private": true,
   "dependencies": {
@@ -19,11 +22,8 @@
     "@angular/material": "^21.2.14",
     "@angular/platform-browser": "^21.2.25",
     "@angular/platform-browser-dynamic": "^21.2.25",
-    "@angular/platform-server": "^21.2.25",
     "@angular/router": "^21.2.25",
-    "@angular/ssr": "^21.2.24",
     "@jsverse/transloco": "^8.4.0",
-    "express": "^5.2.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
@@ -31,7 +31,6 @@
     "@angular/build": "^21.2.24",
     "@angular/cli": "^21.2.24",
     "@angular/compiler-cli": "^21.2.25",
-    "@types/express": "^5.0.6",
     "@types/jasmine": "~5.1.0",
     "@types/node": "^22.20.5",
     "jasmine-core": "~5.1.0",

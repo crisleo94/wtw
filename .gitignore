@@ -2,6 +2,8 @@
 
 # Compiled output
 /dist
+# Generated from API_URL by scripts/generate-api-config.mjs
+/src/app/config/api-url.generated.ts
 /tmp
 /out-tsc
 /bazel-out

@@ -4,7 +4,7 @@ import {
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { AuthStore } from './auth.store';
+import { AuthStore, SIGNED_IN_KEY } from './auth.store';
 import { clearAnonymousStorage } from '../testing/guest-storage-testing';
 
 describe('AuthStore', () => {
@@ -50,9 +50,20 @@ describe('AuthStore', () => {
     expect(store.user()).toEqual(user);
     expect(store.isGuest()).toBeFalse();
 
+    expect(localStorage.getItem(SIGNED_IN_KEY)).toBe('true');
+
     store.logout().subscribe();
     httpTesting.expectOne('/api/auth/logout').flush(null);
     expect(store.user()).toBeNull();
+    expect(store.hasSession()).toBeFalse();
+  });
+
+  it('should remember a session from /auth/me and forget it on an expired one', () => {
+    store.load().subscribe();
+    httpTesting.expectOne('/api/auth/me').flush({ user });
+    expect(store.hasSession()).toBeTrue();
+    store.clearUser();
+    expect(store.hasSession()).toBeFalse();
   });
 
   it('should remember the guest choice in localStorage', () => {

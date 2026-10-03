@@ -24,6 +24,10 @@ interface AuthResponse {
   user: User;
 }
 
+// The JWT cookie belongs to the API domain and is httpOnly, so the front can't see it.
+// This flag remembers a session existed, to skip /auth/me (and its 401) otherwise.
+export const SIGNED_IN_KEY = 'wtw.signedIn';
+
 @Injectable({
   providedIn: 'root',
 })
@@ -39,16 +43,20 @@ export class AuthStore {
   readonly isLoggedIn = computed(() => this.currentUser() !== null);
   readonly isGuest = this.guest.asReadonly();
 
+  hasSession(): boolean {
+    return this.local.get(SIGNED_IN_KEY) === 'true';
+  }
+
   constructor() {
     onStorageChange(GUEST_KEY, (value) => this.guest.set(value === 'true'));
   }
 
-  // Reads the session from the httpOnly cookie through the BFF.
+  // Reads the session from the API's httpOnly cookie.
   load(): Observable<User | null> {
     return this.http.get<AuthResponse>(`${API_URL}/auth/me`).pipe(
       map(({ user }) => user),
       catchError(() => of(null)),
-      tap((user) => this.currentUser.set(user))
+      tap((user) => this.setUser(user))
     );
   }
 
@@ -62,18 +70,27 @@ export class AuthStore {
 
   logout(): Observable<void> {
     return this.http.post<void>(`${API_URL}/auth/logout`, null).pipe(
-      tap(() => this.currentUser.set(null))
+      tap(() => this.setUser(null))
     );
   }
 
   clearUser(): void {
-    this.currentUser.set(null);
+    this.setUser(null);
   }
 
   continueAsGuest(): void {
     this.guest.set(true);
     this.local.set(GUEST_KEY, 'true');
     this.local.set(GUEST_ACTIVE_KEY, String(Date.now()));
+  }
+
+  private setUser(user: User | null): void {
+    this.currentUser.set(user);
+    if (user) {
+      this.local.set(SIGNED_IN_KEY, 'true');
+    } else {
+      this.local.remove(SIGNED_IN_KEY);
+    }
   }
 
   // Older builds kept the flag in sessionStorage; expired guest data is dropped.
@@ -102,7 +119,7 @@ export class AuthStore {
     return this.http.post<AuthResponse>(`${API_URL}/auth/${action}`, body).pipe(
       map(({ user }) => user),
       tap((user) => {
-        this.currentUser.set(user);
+        this.setUser(user);
         this.guest.set(false);
         this.local.remove(GUEST_KEY);
         this.local.remove(GUEST_ACTIVE_KEY);

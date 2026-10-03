@@ -8,7 +8,7 @@ import { AuthStore } from '../stores/auth.store';
 
 const USER_URLS = [`${API_URL}/me`, `${API_URL}/auth/me`];
 
-// A 401 on user endpoints means the JWT expired; the BFF already cleared the cookie.
+// A 401 on user endpoints means the JWT expired; the API already cleared the cookie.
 export const sessionExpiredInterceptor: HttpInterceptorFn = (req, next) => {
   const authStore = inject(AuthStore);
   const snackBar = inject(MatSnackBar);

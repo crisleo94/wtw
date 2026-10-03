@@ -1,11 +1,9 @@
-import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import {
   computed,
   effect,
   inject,
   Injectable,
-  PLATFORM_ID,
   signal,
   untracked,
 } from '@angular/core';
@@ -105,10 +103,7 @@ export class LibraryStore {
   );
 
   constructor() {
-    if (!isPlatformBrowser(inject(PLATFORM_ID))) {
-      return;
-    }
-    // Runs on hydration, login and register: import leftovers, then load.
+    // Runs on startup, login and register: import leftovers, then load.
     effect(() => {
       const user = this.authStore.user();
       untracked(() => {
