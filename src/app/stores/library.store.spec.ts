@@ -66,6 +66,30 @@ describe('LibraryStore', () => {
     req.flush({ items, total, page, limit: 20 });
   }
 
+  it('should import the dates of guest watched movies and leave old undated ones out', () => {
+    sessionStorage.setItem(
+      SESSION_KEY,
+      JSON.stringify({ history: [], watched: [3], lists: [], movies: { 3: { ...movie, tmdbId: 3 } }, ratings: [] })
+    );
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [getTranslocoTestingModule()],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    library = TestBed.inject(LibraryStore);
+    auth = TestBed.inject(AuthStore);
+    httpTesting = TestBed.inject(HttpTestingController);
+    TestBed.tick();
+
+    library.setWatched(movie, true).subscribe();
+    const date = TestBed.inject(SessionStore).data().watchedAt?.['7'];
+    expect(date).toEqual(jasmine.any(String));
+    login();
+    const importReq = httpTesting.expectOne('/api/me/import');
+    expect(importReq.request.body.watched).toEqual([3, 7]);
+    expect(importReq.request.body.watchedAt).toEqual({ 7: date });
+  });
+
   it('should rate as a guest in the session, import the ratings and use the API after login', () => {
     library.setRating(movie, 3.5).subscribe();
     expect(library.ratings().get(7)).toBe(3.5);
@@ -266,13 +290,15 @@ describe('LibraryStore', () => {
   it('should strip duplicated movie data from history entries', () => {
     const body = toImportBody({
       history: [{ movie: { ...movie, overview: 'long' }, generatedAt: 'x' }],
-      watched: [],
-      watchedAt: { 7: '2026-10-02T10:00:00.000Z' },
+      watched: [7],
+      watchedAt: { 7: '2026-10-02T10:00:00.000Z', 8: '2026-10-02T10:00:00.000Z' },
       ratings: [{ tmdbId: 7, rating: 4.5 }],
       lists: [],
       movies: { 7: { ...movie, overview: 'long' } },
     });
-    expect('watchedAt' in body).toBeFalse();
+    expect(body.watchedAt).toEqual({ 7: '2026-10-02T10:00:00.000Z' });
+    const undated = toImportBody({ history: [], watched: [7], ratings: [], lists: [], movies: {} });
+    expect('watchedAt' in undated).toBeFalse();
     expect(body.ratings).toEqual([{ tmdbId: 7, rating: 4.5 }]);
     expect(body.history[0].movie).toEqual({ tmdbId: 7, title: 'Alien', posterPath: '/a.jpg' } as Movie);
     expect(body.movies['7'].overview).toBe('long');

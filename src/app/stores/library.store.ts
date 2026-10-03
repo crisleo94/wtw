@@ -569,11 +569,17 @@ function toMovieLists(data: SessionData, watched: Set<number>): MovieList[] {
 }
 
 // History entries only carry the required movie fields: the full data goes in `movies`.
-// `watchedAt` stays in the browser: the import contract has no such field.
+// `watchedAt` only carries real dates of movies still watched; old undated marks
+// are left out (the API dates them on import). Omitted when there is none.
 export function toImportBody(data: SessionData): SessionData {
   const { watchedAt: _dates, ...body } = data;
+  const watched = new Set(data.watched.map(String));
+  const watchedAt = Object.fromEntries(
+    Object.entries(data.watchedAt ?? {}).filter(([id, date]) => watched.has(id) && !!date)
+  );
   return {
     ...body,
+    ...(Object.keys(watchedAt).length ? { watchedAt } : {}),
     history: data.history.map(({ movie, ...entry }) => ({
       ...entry,
       movie: {
