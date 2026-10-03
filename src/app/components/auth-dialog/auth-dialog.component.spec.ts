@@ -50,14 +50,51 @@ describe('AuthDialogComponent', () => {
       data: { reason: 'Inicia sesión para guardar tus listas, o continúa como invitado.' },
     });
     const surface = document.querySelector('.auth-dialog .mat-mdc-dialog-surface') as HTMLElement;
+    const content = surface.querySelector('.mat-mdc-dialog-content') as HTMLElement;
     for (const lang of ['en', 'es']) {
       TestBed.inject(TranslocoService).setActiveLang(lang);
       for (const tab of [0, 1]) {
         ref.componentInstance.onTabChange(tab);
         await new Promise((resolve) => setTimeout(resolve, 600));
         expect(overflowingElements(surface)).withContext(`${lang} tab ${tab}`).toEqual([]);
+        // The parked tab must not let the content scroll sideways.
+        expect(content.scrollWidth).withContext(`${lang} tab ${tab}`).toBeLessThanOrEqual(content.clientWidth);
+        expect(surface.scrollWidth).toBeLessThanOrEqual(surface.clientWidth);
       }
     }
+    ref.close();
+  });
+
+  it('should animate the modal height in both directions', async () => {
+    const ref = TestBed.inject(MatDialog).open(AuthDialogComponent, { width: '400px', panelClass: 'auth-dialog' });
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    const wrapper = document.querySelector('.auth-dialog .mat-mdc-tab-body-wrapper') as HTMLElement;
+
+    // Heights frame by frame while switching tabs.
+    async function heightsWhileSwitching(tab: number): Promise<number[]> {
+      const heights: number[] = [];
+      ref.componentInstance.onTabChange(tab);
+      const end = performance.now() + 500;
+      while (performance.now() < end) {
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        heights.push(Math.round(wrapper.getBoundingClientRect().height));
+      }
+      return heights;
+    }
+
+    const login = Math.round(wrapper.getBoundingClientRect().height);
+    const toRegister = await heightsWhileSwitching(1);
+    const register = toRegister.at(-1)!;
+    expect(register).toBeGreaterThan(login + 20);
+    expect(toRegister.some((h) => h > login + 2 && h < register - 2))
+      .withContext(`no intermediate height: ${toRegister.join(',')}`)
+      .toBeTrue();
+
+    const toLogin = await heightsWhileSwitching(0);
+    expect(toLogin.at(-1)).toBe(login);
+    expect(toLogin.some((h) => h > login + 2 && h < register - 2))
+      .withContext(`no intermediate height: ${toLogin.join(',')}`)
+      .toBeTrue();
     ref.close();
   });
 

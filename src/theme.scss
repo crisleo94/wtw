@@ -57,10 +57,11 @@ textarea {
 }
 
 // Login modal at 304px: tab labels wrap and fields drop their 180px minimum.
-// The inactive tab is parked off to the right; hide it so nothing sticks out.
+// Material parks the inactive tab off to the right (and hides it); clip it so it
+// can't scroll sideways. No display: none, or dynamicHeight can't measure it.
 .auth-dialog {
-  .mat-mdc-tab-body:not(.mat-mdc-tab-body-active) .mat-mdc-tab-body-content {
-    display: none;
+  .mat-mdc-dialog-content {
+    overflow-x: clip;
   }
   .mat-mdc-tab {
     min-width: 0;
