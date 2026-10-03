@@ -1,22 +1,44 @@
 import { PlatformLocation } from '@angular/common';
-import { FetchBackend, HttpEvent, HttpRequest } from '@angular/common/http';
+import {
+  FetchBackend,
+  HttpErrorResponse,
+  HttpEvent,
+  HttpRequest,
+} from '@angular/common/http';
 import { inject, Injectable, InjectionToken } from '@angular/core';
-import { Observable } from 'rxjs';
+import { catchError, Observable, throwError, timeout, TimeoutError } from 'rxjs';
 import { API_URL } from '../constants';
 
 // Where the SSR reaches its own BFF (never the public domain: hairpin NAT hangs).
 export const SSR_INTERNAL_ORIGIN = new InjectionToken<string>('SSR_INTERNAL_ORIGIN');
+// A slow API must not hold the page: on timeout the browser loads the data itself.
+export const SSR_API_TIMEOUT_MS = new InjectionToken<number>('SSR_API_TIMEOUT_MS', {
+  factory: () => 3000,
+});
 
 // Last step of the server HTTP chain: the transfer cache already keyed the request
 // with its original URL, and Angular made it absolute with the public origin.
 @Injectable()
 export class InternalApiBackend extends FetchBackend {
   private internalOrigin = inject(SSR_INTERNAL_ORIGIN);
+  private timeoutMs = inject(SSR_API_TIMEOUT_MS);
   private location = inject(PlatformLocation);
 
   override handle(request: HttpRequest<unknown>): Observable<HttpEvent<unknown>> {
     const url = toInternalUrl(request.url, this.publicOrigin(), this.internalOrigin);
-    return super.handle(url === request.url ? request : request.clone({ url }));
+    if (url === request.url) {
+      return super.handle(request);
+    }
+    return super.handle(request.clone({ url })).pipe(
+      timeout(this.timeoutMs),
+      catchError((error) =>
+        throwError(() =>
+          error instanceof TimeoutError
+            ? new HttpErrorResponse({ url, status: 504, statusText: 'SSR API timeout' })
+            : error
+        )
+      )
+    );
   }
 
   // Same origin Angular uses to resolve relative URLs on the server.

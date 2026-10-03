@@ -2,6 +2,7 @@ import { PlatformLocation } from '@angular/common';
 import {
   FetchBackend,
   HttpClient,
+  HttpErrorResponse,
   HttpInterceptorFn,
   provideHttpClient,
   withFetch,
@@ -11,7 +12,13 @@ import { REQUEST } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { apiInterceptor } from '../interceptors/api.interceptor';
-import { InternalApiBackend, SSR_INTERNAL_ORIGIN, toInternalUrl } from './internal-api.backend';
+import { AuthStore } from '../stores/auth.store';
+import {
+  InternalApiBackend,
+  SSR_API_TIMEOUT_MS,
+  SSR_INTERNAL_ORIGIN,
+  toInternalUrl,
+} from './internal-api.backend';
 
 const PUBLIC = 'https://wtw.example.com';
 const INTERNAL = 'http://localhost:4000';
@@ -63,5 +70,40 @@ describe('InternalApiBackend', () => {
     const [url, init] = fetchSpy.calls.mostRecent().args as [string, RequestInit];
     expect(url).toBe(`${INTERNAL}/api/genres`);
     expect(new Headers(init.headers).get('cookie')).toBe('wtw_token=abc');
+  });
+
+  describe('timeout', () => {
+    let signal: AbortSignal | undefined;
+
+    beforeEach(() => {
+      // An API that never answers, like the public domain seen from the container.
+      spyOn(globalThis, 'fetch').and.callFake((_url, init?: RequestInit) => {
+        signal = init?.signal ?? undefined;
+        return new Promise<Response>(() => undefined);
+      });
+      TestBed.configureTestingModule({
+        providers: [
+          provideHttpClient(withFetch()),
+          { provide: FetchBackend, useClass: InternalApiBackend },
+          { provide: SSR_INTERNAL_ORIGIN, useValue: INTERNAL },
+          { provide: SSR_API_TIMEOUT_MS, useValue: 50 },
+          { provide: PlatformLocation, useValue: { protocol: 'https:', hostname: 'wtw.example.com', port: '' } },
+        ],
+      });
+    });
+
+    it('should fail with a 504 and abort the request', async () => {
+      const started = Date.now();
+      const error = await firstValueFrom(TestBed.inject(HttpClient).get('/api/genres')).catch((e) => e);
+      expect(error).toBeInstanceOf(HttpErrorResponse);
+      expect((error as HttpErrorResponse).status).toBe(504);
+      expect(Date.now() - started).toBeLessThan(1000);
+      expect(signal?.aborted).toBeTrue();
+    });
+
+    it('should let the page render without the user', async () => {
+      const user = await firstValueFrom(TestBed.inject(AuthStore).load());
+      expect(user).toBeNull();
+    });
   });
 });
