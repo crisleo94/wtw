@@ -1,4 +1,3 @@
-import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { THEME_KEY, ThemeStore } from './theme.store';
 
@@ -39,9 +38,4 @@ describe('ThemeStore', () => {
     expect(TestBed.inject(ThemeStore).mode()).toBe('light');
   });
 
-  it('should ignore storage on the server', () => {
-    localStorage.setItem(THEME_KEY, 'dark');
-    TestBed.overrideProvider(PLATFORM_ID, { useValue: 'server' });
-    expect(TestBed.inject(ThemeStore).mode()).toBe('system');
-  });
 });

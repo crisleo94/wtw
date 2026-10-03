@@ -3,7 +3,7 @@ import {
   HttpTestingController,
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
-import { PLATFORM_ID, REQUEST } from '@angular/core';
+
 import { TestBed } from '@angular/core/testing';
 import { LanguageStore } from '../stores/language.store';
 import { clearLanguagePreference, getTranslocoTestingModule } from '../testing/transloco-testing';
@@ -43,22 +43,6 @@ describe('languageInterceptor', () => {
     next.flush([]);
   });
 
-  it('should send the language the SSR resolved from the cookie', () => {
-    const { http, httpTesting } = setup([
-      { provide: PLATFORM_ID, useValue: 'server' },
-      {
-        provide: REQUEST,
-        useValue: {
-          headers: new Headers({ cookie: 'wtw_lang=es', 'accept-language': 'en-US' }),
-        },
-      },
-    ]);
-    http.get('/api/genres').subscribe();
-    const req = httpTesting.expectOne('/api/genres');
-    expect(req.request.headers.get('Accept-Language')).toBe('es');
-    req.flush([]);
-  });
-
   it('should leave requests outside the API untouched', () => {
     const { http, httpTesting } = setup();
     http.get('/assets/i18n/en.json').subscribe();
@@ -67,19 +51,4 @@ describe('languageInterceptor', () => {
     req.flush({});
   });
 
-  it('should use the language resolved for the SSR request', () => {
-    const { http, httpTesting } = setup([
-      { provide: PLATFORM_ID, useValue: 'server' },
-      {
-        provide: REQUEST,
-        useValue: new Request('http://localhost/', {
-          headers: { 'accept-language': 'es-AR,es;q=0.9' },
-        }),
-      },
-    ]);
-    http.get('/api/movies/generate').subscribe();
-    const req = httpTesting.expectOne('/api/movies/generate');
-    expect(req.request.headers.get('Accept-Language')).toBe('es');
-    req.flush({});
-  });
 });

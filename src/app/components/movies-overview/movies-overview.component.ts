@@ -1,10 +1,4 @@
-import {
-  afterNextRender,
-  Component,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -28,18 +22,11 @@ export class MoviesOverviewComponent {
   private _snackBar = inject(MatSnackBar);
   private _transloco = inject(TranslocoService);
 
-  // The server can't read sessionStorage: show the library after hydration so both match.
-  private hydrated = signal(false);
-
-  loaded = computed(() => this.hydrated() && this._library.ready());
+  loaded = this._library.ready;
   history = computed(() => (this.loaded() ? this._library.history() : []));
   watchlist = computed(() =>
     this.loaded() ? this._library.watchlist() : undefined
   );
-
-  constructor() {
-    afterNextRender(() => this.hydrated.set(true));
-  }
 
   removeHistory(entry: HistoryEntry): void {
     this.run(this._library.removeHistory(entry), this._transloco.translate('overview.removeFromHistory'));

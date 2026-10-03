@@ -1,6 +1,5 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Movie } from '../interfaces/movie.interface';
 import { AuthStore } from './auth.store';
@@ -122,14 +121,6 @@ describe('SessionStore', () => {
   it('should restore the session and ignore corrupted data', () => {
     sessionStorage.setItem(SESSION_KEY, '{"history": "bad"}');
     expect(TestBed.inject(SessionStore).isEmpty()).toBeTrue();
-  });
-
-  it('should not touch sessionStorage on the server', () => {
-    TestBed.overrideProvider(PLATFORM_ID, { useValue: 'server' });
-    const store = TestBed.inject(SessionStore);
-    store.addHistory(movie(1));
-    expect(store.data().history.length).toBe(1);
-    expect(sessionStorage.getItem(SESSION_KEY)).toBeNull();
   });
 
   it('should keep the session within the API import limits', () => {

@@ -50,11 +50,11 @@ describe('MoviesOverviewComponent', () => {
     expect(compiled.textContent).toContain('will show up here');
   });
 
-  it('should render an empty library until hydration finishes', () => {
+  it('should show the guest library right away', () => {
     const movie = { tmdbId: 4, title: 'Coco', overview: '', genreIds: [], posterPath: '/c.jpg' } as unknown as Movie;
     TestBed.inject(LibraryStore).recordGenerated(movie);
     const fresh = TestBed.createComponent(MoviesOverviewComponent);
-    expect(fresh.componentInstance.history()).toEqual([]);
+    expect(fresh.componentInstance.history().map((entry) => entry.movie.tmdbId)).toEqual([4]);
   });
 
   it('should show a loading state instead of the empty message until the library is ready', async () => {

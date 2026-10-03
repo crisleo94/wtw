@@ -43,7 +43,7 @@ export class AuthStore {
     onStorageChange(GUEST_KEY, (value) => this.guest.set(value === 'true'));
   }
 
-  // Reads the session from the httpOnly cookie through the BFF.
+  // Reads the session from the API's httpOnly cookie.
   load(): Observable<User | null> {
     return this.http.get<AuthResponse>(`${API_URL}/auth/me`).pipe(
       map(({ user }) => user),

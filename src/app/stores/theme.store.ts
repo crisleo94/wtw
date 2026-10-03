@@ -1,5 +1,5 @@
-import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { computed, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { computed, inject, Injectable, signal } from '@angular/core';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 export const THEME_KEY = 'wtw.theme';
@@ -10,7 +10,6 @@ export const THEME_KEY = 'wtw.theme';
 })
 export class ThemeStore {
   private document = inject(DOCUMENT);
-  private isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private current = signal<ThemeMode>(this.read());
   private systemDark = signal(this.watchSystem());
 
@@ -27,9 +26,6 @@ export class ThemeStore {
   setMode(mode: ThemeMode): void {
     this.current.set(mode);
     this.apply(mode);
-    if (!this.isBrowser) {
-      return;
-    }
     try {
       if (mode === 'system') {
         localStorage.removeItem(THEME_KEY);
@@ -47,7 +43,7 @@ export class ThemeStore {
   }
 
   private watchSystem(): boolean {
-    if (!this.isBrowser || typeof matchMedia !== 'function') {
+    if (typeof matchMedia !== 'function') {
       return false;
     }
     const query = matchMedia('(prefers-color-scheme: dark)');
@@ -56,9 +52,6 @@ export class ThemeStore {
   }
 
   private read(): ThemeMode {
-    if (!this.isBrowser) {
-      return 'system';
-    }
     try {
       const saved = localStorage.getItem(THEME_KEY);
       return saved === 'light' || saved === 'dark' ? saved : 'system';
