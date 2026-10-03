@@ -73,6 +73,22 @@ describe('MovieCardComponent', () => {
     clearAnonymousStorage();
   });
 
+  it('should rate the movie from the card as a guest', async () => {
+    const movie = { tmdbId: 9, title: 'Heat', genreIds: [], overview: '', posterPath: '/h.jpg' };
+    TestBed.inject(AuthStore).continueAsGuest();
+    fixture.componentRef.setInput('movie', movie as unknown as Movie);
+    await fixture.whenStable();
+    component.rate(4.5);
+    await fixture.whenStable();
+    expect(TestBed.inject(LibraryStore).ratings().get(9)).toBe(4.5);
+    const slider = (fixture.nativeElement as HTMLElement).querySelector('[role="slider"]');
+    expect(slider?.getAttribute('aria-valuenow')).toBe('4.5');
+    expect(slider?.getAttribute('aria-label')).toBe('Your rating for Heat');
+    sessionStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem('wtw.guest.v1');
+  });
+
   describe('anonymous -> dialog -> login -> action', () => {
     const heat = { tmdbId: 9, title: 'Heat', genreIds: [], overview: '', posterPath: '/h.jpg' } as unknown as Movie;
     let httpTesting: HttpTestingController;

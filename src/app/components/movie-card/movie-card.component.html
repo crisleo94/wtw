@@ -1,6 +1,12 @@
 @if (movie(); as movie) {
 <ng-template #actions>
   <mat-card-actions class="actions">
+    <app-star-rating
+      class="rating"
+      [value]="rating()"
+      [label]="'rating.labelFor' | transloco: { title: movie.title }"
+      (rate)="rate($event)"
+    ></app-star-rating>
     <button
       [matButton]="inWatchlist() ? 'tonal' : 'outlined'"
       class="action"

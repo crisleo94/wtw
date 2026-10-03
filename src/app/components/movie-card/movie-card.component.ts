@@ -6,23 +6,16 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { Observable, switchMap, throwError } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { MovieList } from '../../interfaces/library.interface';
 import { Movie } from '../../interfaces/movie.interface';
-import { AuthDialogService } from '../../services/auth-dialog.service';
 import { GenresService } from '../../services/genres.service';
+import { MovieActionsService } from '../../services/movie-actions.service';
 import { LibraryStore } from '../../stores/library.store';
 import { CARD_VARIANT } from '../../types/components.types';
-import { apiErrorMessage, LibraryError } from '../../utils/api-error';
 import { posterUrl } from '../../utils/image-url';
-
-interface CardAction {
-  request: Observable<void>;
-  success: string;
-}
+import { StarRatingComponent } from '../star-rating/star-rating.component';
 
 @Component({
   selector: 'app-movie-card',
@@ -36,6 +29,7 @@ interface CardAction {
     MatMenuModule,
     MatTooltipModule,
     TranslocoPipe,
+    StarRatingComponent,
   ],
   templateUrl: './movie-card.component.html',
   styleUrl: './movie-card.component.sass',
@@ -43,10 +37,7 @@ interface CardAction {
 export class MovieCardComponent {
   private _genreService = inject(GenresService);
   private _library = inject(LibraryStore);
-  private _snackBar = inject(MatSnackBar);
-  private _authDialog = inject(AuthDialogService);
-  private _transloco = inject(TranslocoService);
-
+  private _actions = inject(MovieActionsService);
 
   variant = input<CARD_VARIANT>('simple');
   movie = input<Movie | null>(null);
@@ -64,6 +55,11 @@ export class MovieCardComponent {
   isWatched = computed(() => {
     const movie = this.movie();
     return !!movie && this._library.watchedIds().has(movie.tmdbId);
+  });
+
+  rating = computed(() => {
+    const movie = this.movie();
+    return movie ? (this._library.ratings().get(movie.tmdbId) ?? null) : null;
   });
 
   inWatchlist = computed(() => {
@@ -89,78 +85,25 @@ export class MovieCardComponent {
   }
 
   toggleWatchlist(): void {
-    this.run((movie) => {
-      const watchlist = this._library.watchlist();
-      return watchlist && this._library.watchlistIds().has(movie.tmdbId)
-        ? {
-            request: this._library.removeFromList(watchlist, movie.tmdbId),
-            success: this._transloco.translate('card.removedFromWatchlist'),
-          }
-        : {
-            request: this._library.addToWatchlist(movie),
-            success: this._transloco.translate('card.addedToWatchlist'),
-          };
-    });
+    this.withMovie((movie) => this._actions.toggleWatchlist(movie));
   }
 
   toggleWatched(): void {
-    this.run((movie) => {
-      const watched = !this._library.watchedIds().has(movie.tmdbId);
-      return {
-        request: this._library.setWatched(movie, watched),
-        success: this._transloco.translate(watched ? 'card.markedWatched' : 'card.markedNotWatched'),
-      };
-    });
+    this.withMovie((movie) => this._actions.toggleWatched(movie));
   }
 
-  // The menu list may be a session list; after logging in use the account's one.
   addToList(list: MovieList): void {
-    this.run((movie) => {
-      const name = list.name.toLowerCase();
-      const target = this._library
-        .lists()
-        .find((candidate) => candidate.name.toLowerCase() === name);
-      return {
-        request: target
-          ? this._library.addToList(target, movie)
-          : throwError(
-              () =>
-                new LibraryError(this._transloco.translate('errors.listUnavailable', { name: list.name }))
-            ),
-        success: this._transloco.translate('card.addedToList', { list: list.name }),
-      };
-    });
+    this.withMovie((movie) => this._actions.addToList(movie, list));
   }
 
-  // Asks for a session, waits for the library (import + load after a login) and
-  // only then reads the current state to build the request.
-  private run(action: (movie: Movie) => CardAction): void {
+  rate(rating: number | null): void {
+    this.withMovie((movie) => this._actions.rate(movie, rating));
+  }
+
+  private withMovie(action: (movie: Movie) => void): void {
     const movie = this.movie();
-    if (!movie) {
-      return;
+    if (movie) {
+      action(movie);
     }
-    this._authDialog.ensureSession(this._transloco.translate('auth.reasonCard')).subscribe((result) => {
-      if (!result) {
-        return;
-      }
-      let success = '';
-      this._library
-        .whenReady()
-        .pipe(
-          switchMap(() => {
-            const next = action(movie);
-            success = next.success;
-            return next.request;
-          })
-        )
-        .subscribe({
-          next: () => this.notify(success),
-          error: (error) => this.notify(apiErrorMessage(error, this._transloco)),
-        });
-    });
-  }
-
-  private notify(message: string): void {
-    this._snackBar.open(message, this._transloco.translate('common.dismiss'), { duration: 2500 });
   }
 }
