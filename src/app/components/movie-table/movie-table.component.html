@@ -32,14 +32,18 @@
 
   <ng-container matColumnDef="overview">
     <th mat-header-cell *matHeaderCellDef>{{ 'table.description' | transloco }}</th>
-    <!-- Two lines; hover, keyboard focus or a tap shows the whole synopsis. -->
+    <!-- Always two lines; the full synopsis goes in a tooltip only when it is cut. -->
     <td
       mat-cell
       *matCellDef="let row"
       class="overview-cell"
-      [class.expanded]="expanded() === row.key"
       tabindex="0"
-      (click)="toggle(row)"
+      #tip="matTooltip"
+      [matTooltip]="row.movie.overview"
+      matTooltipClass="description-tooltip"
+      [matTooltipShowDelay]="300"
+      (mouseenter)="onlyIfClamped(tip, $event)"
+      (focus)="onlyIfClamped(tip, $event)"
     >
       <span class="overview">{{ row.movie.overview || ('table.noDescription' | transloco) }}</span>
     </td>

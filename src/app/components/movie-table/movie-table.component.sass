@@ -71,7 +71,6 @@ td.mat-mdc-cell
   color: var(--mat-sys-primary)
 
 .overview-cell
-  cursor: pointer
   &:focus-visible
     outline: 2px solid var(--mat-sys-primary)
     outline-offset: -2px
@@ -83,12 +82,6 @@ td.mat-mdc-cell
   line-clamp: 2
   overflow: hidden
   text-overflow: ellipsis
-
-.overview-cell:hover .overview,
-.overview-cell:focus .overview,
-.overview-cell.expanded .overview
-  -webkit-line-clamp: unset
-  line-clamp: unset
 
 .mat-column-average
   white-space: nowrap
