@@ -58,6 +58,43 @@ describe('LibraryStore', () => {
     httpTesting.expectOne('/api/me/movies').flush({ watched: [7] });
   }
 
+  it('should rate as a guest in the session, import the ratings and use the API after login', () => {
+    library.setRating(movie, 3.5).subscribe();
+    expect(library.ratings().get(7)).toBe(3.5);
+    library.setRating(movie, null).subscribe();
+    expect(library.ratings().has(7)).toBeFalse();
+    library.setRating(movie, 4).subscribe();
+
+    login();
+    const importReq = httpTesting.expectOne('/api/me/import');
+    expect(importReq.request.body.ratings).toEqual([{ tmdbId: 7, rating: 4 }]);
+    importReq.flush({ history: 0, watched: 0, lists: 0, items: 0 });
+    httpTesting.expectOne((req) => req.url === '/api/me/history').flush({ items: [], total: 0, limit: 50, offset: 0 });
+    httpTesting.expectOne('/api/me/lists').flush([]);
+    httpTesting.expectOne('/api/me/movies').flush({ watched: [], ratings: [{ tmdbId: 7, rating: 4 }] });
+    expect(library.ratings().get(7)).toBe(4);
+
+    library.setRating(movie, 2.5).subscribe();
+    const patch = httpTesting.expectOne('/api/me/movies/7');
+    expect(patch.request.method).toBe('PATCH');
+    expect(patch.request.body).toEqual({ rating: 2.5 });
+    patch.flush({ tmdbId: 7, watched: false, watchedAt: null, rating: 2.5 });
+    expect(library.ratings().get(7)).toBe(2.5);
+
+    library.setRating(movie, null).subscribe();
+    const clear = httpTesting.expectOne('/api/me/movies/7');
+    expect(clear.request.body).toEqual({ rating: null });
+    clear.flush({ tmdbId: 7, watched: false, watchedAt: null, rating: null });
+    expect(library.ratings().has(7)).toBeFalse();
+  });
+
+  it('should load without ratings from an API that does not send them yet', () => {
+    login();
+    flushReload();
+    expect(library.ratings().size).toBe(0);
+    expect(library.watchedIds().has(7)).toBeTrue();
+  });
+
   it('should keep guest activity in the session', () => {
     library.recordGenerated(movie, { yearFrom: 1990 });
     library.setWatched(movie, true).subscribe();
@@ -168,9 +205,11 @@ describe('LibraryStore', () => {
     const body = toImportBody({
       history: [{ movie: { ...movie, overview: 'long' }, generatedAt: 'x' }],
       watched: [],
+      ratings: [{ tmdbId: 7, rating: 4.5 }],
       lists: [],
       movies: { 7: { ...movie, overview: 'long' } },
     });
+    expect(body.ratings).toEqual([{ tmdbId: 7, rating: 4.5 }]);
     expect(body.history[0].movie).toEqual({ tmdbId: 7, title: 'Alien', posterPath: '/a.jpg' } as Movie);
     expect(body.movies['7'].overview).toBe('long');
   });

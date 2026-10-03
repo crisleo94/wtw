@@ -123,6 +123,52 @@ describe('SessionStore', () => {
     expect(TestBed.inject(SessionStore).isEmpty()).toBeTrue();
   });
 
+  it('should rate, change and clear ratings and keep the rated movie', () => {
+    const store = TestBed.inject(SessionStore);
+    store.setRating(movie(1), 4.5);
+    store.setRating(movie(1), 3);
+    store.setRating(movie(2), 0.5);
+    expect(store.data().ratings).toEqual([
+      { tmdbId: 1, rating: 3 },
+      { tmdbId: 2, rating: 0.5 },
+    ]);
+    expect(store.data().movies['1'].title).toBe('Movie 1');
+    expect(store.isEmpty()).toBeFalse();
+    store.setRating(movie(1), null);
+    store.setRating(movie(2), null);
+    expect(store.data().ratings).toEqual([]);
+    expect(store.isEmpty()).toBeTrue();
+  });
+
+  it('should read sessions saved before ratings and drop invalid ratings', () => {
+    sessionStorage.setItem(
+      SESSION_KEY,
+      JSON.stringify({ history: [], watched: [], lists: [], movies: {} })
+    );
+    expect(TestBed.inject(SessionStore).data().ratings).toEqual([]);
+    TestBed.resetTestingModule();
+    sessionStorage.setItem(
+      SESSION_KEY,
+      JSON.stringify({
+        history: [],
+        watched: [],
+        lists: [],
+        movies: {},
+        ratings: [{ tmdbId: 1, rating: 4 }, { tmdbId: 2, rating: 4.2 }, { tmdbId: 3, rating: 0 }, { rating: 5 }],
+      })
+    );
+    expect(TestBed.inject(SessionStore).data().ratings).toEqual([{ tmdbId: 1, rating: 4 }]);
+  });
+
+  it('should keep the ratings within the import limit', () => {
+    const ratings = Array.from({ length: SESSION_LIMITS.ratings + 3 }, (_, i) => ({ tmdbId: i + 1, rating: 5 }));
+    sessionStorage.setItem(
+      SESSION_KEY,
+      JSON.stringify({ history: [], watched: [], lists: [], movies: {}, ratings })
+    );
+    expect(TestBed.inject(SessionStore).data().ratings.length).toBe(SESSION_LIMITS.ratings);
+  });
+
   it('should keep the session within the API import limits', () => {
     const store = TestBed.inject(SessionStore);
     for (let id = 1; id <= SESSION_LIMITS.history + 5; id++) {

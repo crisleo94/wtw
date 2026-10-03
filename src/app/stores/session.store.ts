@@ -1,5 +1,6 @@
 import { computed, effect, inject, Injectable, signal, untracked } from '@angular/core';
 import {
+  MovieRating,
   SessionData,
   SessionList,
   WATCHLIST_NAME,
@@ -13,6 +14,7 @@ import {
   onStorageChange,
 } from '../utils/browser-storage';
 import { AuthStore } from './auth.store';
+import { isValidRating } from '../utils/rating';
 import { GUEST_ACTIVE_KEY, REJECTED_KEY, SESSION_KEY } from './guest-storage';
 
 export { SESSION_KEY } from './guest-storage';
@@ -21,6 +23,7 @@ export { SESSION_KEY } from './guest-storage';
 export const SESSION_LIMITS = {
   history: 500,
   watched: 2000,
+  ratings: 2000,
   lists: 50,
   listItems: 500,
 };
@@ -28,6 +31,7 @@ export const SESSION_LIMITS = {
 export const emptySession = (): SessionData => ({
   history: [],
   watched: [],
+  ratings: [],
   lists: [{ name: WATCHLIST_NAME, isSystem: true, items: [] }],
   movies: {},
 });
@@ -61,10 +65,11 @@ export class SessionStore {
   }
 
   readonly isEmpty = computed(() => {
-    const { history, watched, lists } = this.state();
+    const { history, watched, ratings, lists } = this.state();
     return (
       !history.length &&
       !watched.length &&
+      !ratings.length &&
       lists.every((list) => list.isSystem && !list.items.length)
     );
   });
@@ -98,6 +103,18 @@ export class SessionStore {
         : data.watched.filter((id) => id !== movie.tmdbId),
       movies: { ...data.movies, [movie.tmdbId]: movie },
     }));
+  }
+
+  // null removes the rating; the movie data is kept for the import.
+  setRating(movie: Movie, rating: number | null): void {
+    this.commit((data) => {
+      const others = data.ratings.filter((entry) => entry.tmdbId !== movie.tmdbId);
+      return {
+        ...data,
+        ratings: rating === null ? others : [...others, { tmdbId: movie.tmdbId, rating }],
+        movies: { ...data.movies, [movie.tmdbId]: movie },
+      };
+    });
   }
 
   addToList(name: string, movie: Movie): void {
@@ -246,7 +263,8 @@ function isSessionData(value: unknown): value is SessionData {
   );
 }
 
-// Newest history first; new watched ids, lists and items beyond the limits are dropped.
+// Newest history first; new watched ids, ratings, lists and items beyond the limits
+// are dropped. Sessions saved before ratings existed get an empty list.
 function withinLimits(data: SessionData): SessionData {
   const lists = [
     ...data.lists.filter((list) => list.isSystem).slice(0, 1),
@@ -256,6 +274,7 @@ function withinLimits(data: SessionData): SessionData {
     ...data,
     history: data.history.slice(0, SESSION_LIMITS.history),
     watched: data.watched.slice(0, SESSION_LIMITS.watched),
+    ratings: validRatings(data.ratings).slice(0, SESSION_LIMITS.ratings),
     lists: lists.map((list) => ({
       ...list,
       items: list.items.slice(0, SESSION_LIMITS.listItems),
@@ -268,10 +287,21 @@ function withoutOrphanMovies(data: SessionData): SessionData {
   const used = new Set<number>([
     ...data.history.map((entry) => entry.movie.tmdbId),
     ...data.watched,
+    ...data.ratings.map((entry) => entry.tmdbId),
     ...data.lists.flatMap((list) => list.items),
   ]);
   const movies = Object.fromEntries(
     Object.entries(data.movies).filter(([id]) => used.has(Number(id)))
   );
   return { ...data, movies };
+}
+
+function validRatings(ratings: unknown): MovieRating[] {
+  if (!Array.isArray(ratings)) {
+    return [];
+  }
+  return ratings.filter(
+    (entry): entry is MovieRating =>
+      !!entry && Number.isInteger(entry.tmdbId) && isValidRating(entry.rating)
+  );
 }

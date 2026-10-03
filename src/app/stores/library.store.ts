@@ -30,6 +30,7 @@ import {
   ImportSummary,
   MovieList,
   MovieListItem,
+  MovieRating,
   SessionData,
 } from '../interfaces/library.interface';
 import { MovieFilters } from '../interfaces/movie-filters.interface';
@@ -58,6 +59,7 @@ export class LibraryStore {
   private remoteHistory = signal<HistoryEntry[]>([]);
   private remoteLists = signal<MovieList[]>([]);
   private remoteWatched = signal<number[]>([]);
+  private remoteRatings = signal<MovieRating[]>([]);
   private importInProgress = signal(false);
   private remoteLoaded = signal(false);
 
@@ -74,6 +76,16 @@ export class LibraryStore {
         this.authStore.isLoggedIn()
           ? this.remoteWatched()
           : this.session.data().watched
+      )
+  );
+
+  // tmdbId -> rating (0.5 to 5); movies without an entry are not rated.
+  readonly ratings = computed(
+    () =>
+      new Map(
+        (this.authStore.isLoggedIn() ? this.remoteRatings() : this.session.data().ratings).map(
+          ({ tmdbId, rating }) => [tmdbId, rating]
+        )
       )
   );
 
@@ -172,6 +184,25 @@ export class LibraryStore {
               ? [...new Set([...ids, movie.tmdbId])]
               : ids.filter((id) => id !== movie.tmdbId)
           )
+        ),
+        map(() => undefined)
+      );
+  }
+
+  // null clears the rating; `watched` is not touched (same as the API).
+  setRating(movie: Movie, rating: number | null): Observable<void> {
+    if (!this.authStore.isLoggedIn()) {
+      this.session.setRating(movie, rating);
+      return of(undefined);
+    }
+    return this.http
+      .patch<unknown>(`${API_URL}/me/movies/${movie.tmdbId}`, { rating })
+      .pipe(
+        tap(() =>
+          this.remoteRatings.update((ratings) => [
+            ...ratings.filter((entry) => entry.tmdbId !== movie.tmdbId),
+            ...(rating === null ? [] : [{ tmdbId: movie.tmdbId, rating }]),
+          ])
         ),
         map(() => undefined)
       );
@@ -355,14 +386,16 @@ export class LibraryStore {
         })
         .pipe(map((page) => page.items)),
       lists: this.http.get<MovieList[]>(`${API_URL}/me/lists`),
-      watched: this.http
-        .get<{ watched: number[] }>(`${API_URL}/me/movies`)
-        .pipe(map((response) => response.watched)),
+      movies: this.http.get<{ watched: number[]; ratings?: MovieRating[] }>(
+        `${API_URL}/me/movies`
+      ),
     }).subscribe({
-      next: ({ history, lists, watched }) => {
+      next: ({ history, lists, movies }) => {
         this.remoteHistory.set(history);
         this.remoteLists.set(lists);
-        this.remoteWatched.set(watched);
+        this.remoteWatched.set(movies.watched);
+        // An API without ratings yet answers only `watched`.
+        this.remoteRatings.set(movies.ratings ?? []);
         this.remoteLoaded.set(true);
       },
       error: () => {
@@ -423,6 +456,7 @@ export class LibraryStore {
     this.remoteHistory.set([]);
     this.remoteLists.set([]);
     this.remoteWatched.set([]);
+    this.remoteRatings.set([]);
   }
 
   private offerDiscard(): void {
