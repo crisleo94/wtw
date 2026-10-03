@@ -1,6 +1,11 @@
 @use '@angular/material' as mat;
 @use './theme-colors' as theme-colors;
 
+@font-face {
+  font-family: American Typewriter;
+  src: url(./assets/fonts/AmericanTypewriter/AmericanTypewriter.ttf) format('truetype');
+}
+
 // Material 3 theme; `color-scheme` picks light or dark (the toggle can force one).
 html {
   color-scheme: light dark;
@@ -12,6 +17,7 @@ html {
     typography: (
       plain-family: 'Clarity City',
       brand-family: 'Clarity City',
+      title-family: 'American Typewriter'
     ),
     density: 0,
   ));

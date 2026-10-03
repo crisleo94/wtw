@@ -6,8 +6,7 @@ import { TranslocoService } from '@jsverse/transloco';
 @Component({
   selector: 'app-logo',
   template: `<img
-    src="assets/images/wtwlogo-96.jpg"
-    srcset="assets/images/wtwlogo-96.jpg 2x, assets/images/wtwlogo-144.jpg 3x"
+    src="assets/images/logo.svg"
     width="48"
     height="48"
     [alt]="label()"
