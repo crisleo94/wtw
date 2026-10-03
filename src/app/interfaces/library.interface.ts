@@ -25,9 +25,24 @@ export interface MovieRating {
 export interface SessionData {
   history: SessionHistoryEntry[];
   watched: number[];
+  // tmdbId -> ISO date; older sessions have none (ordered by position instead).
+  watchedAt?: Record<string, string>;
   ratings: MovieRating[];
   lists: SessionList[];
   movies: Record<string, Movie>;
+}
+
+export interface WatchedEntry {
+  movie: Movie;
+  watchedAt: string | null;
+  rating?: number | null;
+}
+
+export interface WatchedPage {
+  items: WatchedEntry[];
+  total: number;
+  page: number;
+  limit: number;
 }
 
 export interface ImportSummary {

@@ -205,10 +205,12 @@ describe('LibraryStore', () => {
     const body = toImportBody({
       history: [{ movie: { ...movie, overview: 'long' }, generatedAt: 'x' }],
       watched: [],
+      watchedAt: { 7: '2026-10-02T10:00:00.000Z' },
       ratings: [{ tmdbId: 7, rating: 4.5 }],
       lists: [],
       movies: { 7: { ...movie, overview: 'long' } },
     });
+    expect('watchedAt' in body).toBeFalse();
     expect(body.ratings).toEqual([{ tmdbId: 7, rating: 4.5 }]);
     expect(body.history[0].movie).toEqual({ tmdbId: 7, title: 'Alien', posterPath: '/a.jpg' } as Movie);
     expect(body.movies['7'].overview).toBe('long');

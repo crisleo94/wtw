@@ -96,13 +96,21 @@ export class SessionStore {
   }
 
   setWatched(movie: Movie, watched: boolean): void {
-    this.commit((data) => ({
-      ...data,
-      watched: watched
-        ? [...new Set([...data.watched, movie.tmdbId])]
-        : data.watched.filter((id) => id !== movie.tmdbId),
-      movies: { ...data.movies, [movie.tmdbId]: movie },
-    }));
+    this.commit((data) => {
+      const { [movie.tmdbId]: _previous, ...watchedAt } = data.watchedAt ?? {};
+      const already = data.watched.includes(movie.tmdbId);
+      return {
+        ...data,
+        watched: watched
+          ? [...new Set([...data.watched, movie.tmdbId])]
+          : data.watched.filter((id) => id !== movie.tmdbId),
+        // Marking again keeps the first date, like the API keeps watchedAt.
+        watchedAt: watched
+          ? { ...watchedAt, [movie.tmdbId]: (already && _previous) || new Date().toISOString() }
+          : watchedAt,
+        movies: { ...data.movies, [movie.tmdbId]: movie },
+      };
+    });
   }
 
   // null removes the rating; the movie data is kept for the import.
@@ -274,6 +282,7 @@ function withinLimits(data: SessionData): SessionData {
     ...data,
     history: data.history.slice(0, SESSION_LIMITS.history),
     watched: data.watched.slice(0, SESSION_LIMITS.watched),
+    watchedAt: watchedDates(data),
     ratings: validRatings(data.ratings).slice(0, SESSION_LIMITS.ratings),
     lists: lists.map((list) => ({
       ...list,
@@ -304,4 +313,32 @@ function validRatings(ratings: unknown): MovieRating[] {
     (entry): entry is MovieRating =>
       !!entry && Number.isInteger(entry.tmdbId) && isValidRating(entry.rating)
   );
+}
+
+// Only valid dates of movies still marked as watched.
+function watchedDates(data: SessionData): Record<string, string> {
+  const ids = new Set(data.watched.map(String));
+  const source = data.watchedAt && typeof data.watchedAt === 'object' ? data.watchedAt : {};
+  return Object.fromEntries(
+    Object.entries(source).filter(
+      ([id, date]) => ids.has(id) && typeof date === 'string' && !Number.isNaN(Date.parse(date))
+    )
+  );
+}
+
+// Newest first: dated entries by date, then older undated ones by position
+// (each mark appends the id, so the last one in the array is the newest).
+export function watchedOrder(data: SessionData): number[] {
+  const dates = data.watchedAt ?? {};
+  return data.watched
+    .map((tmdbId, index) => ({ tmdbId, index, time: Date.parse(dates[tmdbId] ?? '') }))
+    .sort((a, b) => {
+      const aDated = !Number.isNaN(a.time);
+      const bDated = !Number.isNaN(b.time);
+      if (aDated !== bDated) {
+        return aDated ? -1 : 1;
+      }
+      return (aDated && b.time !== a.time ? b.time - a.time : 0) || b.index - a.index;
+    })
+    .map((entry) => entry.tmdbId);
 }
