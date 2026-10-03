@@ -5,6 +5,8 @@ import {
 } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MatTabGroup } from '@angular/material/tabs';
+import { By } from '@angular/platform-browser';
 import { TranslocoService } from '@jsverse/transloco';
 import { AuthStore } from '../../stores/auth.store';
 import { AuthDialogComponent } from './auth-dialog.component';
@@ -57,6 +59,35 @@ describe('AuthDialogComponent', () => {
       }
     }
     ref.close();
+  });
+
+  it('should animate the height and fade the form in between Login and Register', async () => {
+    const tabs = fixture.debugElement.query(By.directive(MatTabGroup)).componentInstance as MatTabGroup;
+    expect(tabs.dynamicHeight).toBeTrue();
+    expect(tabs.animationDuration).toBe('225ms');
+    const wrapper = fixture.nativeElement.querySelector('.mat-mdc-tab-body-wrapper') as HTMLElement;
+    expect(getComputedStyle(wrapper).transitionProperty).toContain('height');
+    expect(getComputedStyle(wrapper).transitionDuration).toBe('0.225s');
+
+    component.onTabChange(1);
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    const form = fixture.nativeElement.querySelector('.mat-mdc-tab-body-active .auth-form') as HTMLElement;
+    expect(form.querySelector('[formcontrolname="fullName"]')).not.toBeNull();
+    expect(getComputedStyle(form).animationName).toContain('auth-form-fade');
+    expect(getComputedStyle(form).animationDuration).toBe('0.2s');
+  });
+
+  it('should not animate the tabs when the user prefers reduced motion', async () => {
+    const real = window.matchMedia.bind(window);
+    spyOn(window, 'matchMedia').and.callFake((query: string) =>
+      query.includes('prefers-reduced-motion') ? ({ matches: true } as MediaQueryList) : real(query)
+    );
+    const reduced = TestBed.createComponent(AuthDialogComponent);
+    await reduced.whenStable();
+    expect(reduced.componentInstance.tabAnimation).toBe('0ms');
+    const tabs = reduced.debugElement.query(By.directive(MatTabGroup)).componentInstance as MatTabGroup;
+    expect(tabs.animationDuration).toBe('0ms');
   });
 
   it('should validate email and password length', () => {

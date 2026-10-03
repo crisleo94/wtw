@@ -9,7 +9,10 @@
   <mat-tab-group
     [selectedIndex]="selectedTab()"
     (selectedIndexChange)="onTabChange($event)"
+    class="auth-tabs"
     mat-stretch-tabs
+    dynamicHeight
+    [animationDuration]="tabAnimation"
   >
     <mat-tab [label]="'auth.loginTab' | transloco">
       <form class="auth-form" [formGroup]="loginForm" (ngSubmit)="login()">
