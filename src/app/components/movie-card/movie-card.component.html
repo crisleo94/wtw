@@ -1,6 +1,12 @@
 @if (movie(); as movie) {
 <ng-template #actions>
   <mat-card-actions class="actions">
+    <app-star-rating
+      class="rating"
+      [value]="rating()"
+      [label]="'rating.labelFor' | transloco: { title: movie.title }"
+      (rate)="rate($event)"
+    ></app-star-rating>
     <button
       [matButton]="inWatchlist() ? 'tonal' : 'outlined'"
       class="action"
@@ -39,21 +45,9 @@
       <button mat-menu-item disabled>{{ 'card.noLists' | transloco }}</button>
       }
     </mat-menu>
-    @if (removable()) {
-    <button
-      mat-icon-button
-      class="warn-button"
-      [matTooltip]="removeLabel() || ('card.removeLabel' | transloco)"
-      [attr.aria-label]="removeLabel() || ('card.removeLabel' | transloco)"
-      (click)="remove.emit()"
-    >
-      <mat-icon>delete</mat-icon>
-    </button>
-    }
   </mat-card-actions>
 </ng-template>
 
-@if (variant() === 'simple') {
 <mat-card class="card">
   <div class="card-content">
     <mat-card-header>
@@ -92,48 +86,4 @@
     <ng-container *ngTemplateOutlet="actions"></ng-container>
   </div>
 </mat-card>
-}
-<!-- COMPOSED VARIANT FOR OVERVIEW COMPONENT -->
-@if (variant() === 'composed') {
-<mat-card class="card-composed">
-  <div>
-    <img
-      mat-card-image
-      class="poster-composed"
-      [src]="buildImageUrl(movie.posterPath)"
-      [alt]="movie.title"
-    />
-    <mat-card-header>
-      <mat-card-title-group>
-        <mat-card-title>{{ movie.title }}</mat-card-title>
-        <mat-card-subtitle
-          >{{ 'card.releaseDate' | transloco }} {{ movie.releaseDate ?? ('card.unknown' | transloco) }}</mat-card-subtitle
-        >
-        <mat-card-subtitle class="average"
-          >{{ 'card.average' | transloco }} {{ movie.voteAverage }}</mat-card-subtitle
-        >
-        <mat-card-subtitle class="count"
-          >{{ 'card.votesCount' | transloco }} {{ movie.voteCount }}</mat-card-subtitle
-        >
-        @if (isWatched()) {
-        <mat-card-subtitle class="watched-label">{{ 'card.watched' | transloco }}</mat-card-subtitle>
-        }
-      </mat-card-title-group>
-    </mat-card-header>
-    <mat-card-content>
-      @if (!showMore()) {
-      <b>{{ 'card.synopsis' | transloco }} </b> {{ movie.overview.slice(0, 80) }}
-      } @if (showMore()) {
-      <b>{{ 'card.synopsis' | transloco }} </b> {{ movie.overview }}
-      }
-      <button mat-stroked-button (click)="toggleReadMore()">
-        {{ showMore() ? ('card.less' | transloco) : ('card.more' | transloco) }}
-      </button>
-    </mat-card-content>
-  </div>
-  <div>
-    <ng-container *ngTemplateOutlet="actions"></ng-container>
-  </div>
-</mat-card>
-}
 }

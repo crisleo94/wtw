@@ -45,22 +45,8 @@
   color: var(--mat-sys-on-secondary-container) !important
   border: none !important
 
-// COMPOSED CARD
 :host
   display: block
-
-// Fills its grid cell; actions stay at the bottom so rows line up.
-.card-composed
-  height: 100%
-  display: flex
-  flex-direction: column
-  > div:first-child
-    flex: 1
-
-.poster-composed
-  width: 100%
-  aspect-ratio: 2 / 3
-  object-fit: cover
 
 .actions
   display: flex
@@ -71,6 +57,3 @@
 .action
   --mat-button-outlined-horizontal-padding: 12px
   --mat-button-tonal-horizontal-padding: 12px
-
-.watched-label
-  font-weight: bold

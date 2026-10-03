@@ -1,5 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatButtonModule } from '@angular/material/button';
 import { MatTabsModule } from '@angular/material/tabs';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Observable } from 'rxjs';
@@ -9,11 +10,11 @@ import {
 } from '../../interfaces/library.interface';
 import { LibraryStore } from '../../stores/library.store';
 import { apiErrorMessage } from '../../utils/api-error';
-import { MovieCardComponent } from '../movie-card/movie-card.component';
+import { MovieTableComponent, MovieTableRow } from '../movie-table/movie-table.component';
 
 @Component({
   selector: 'app-movies-overview',
-  imports: [MovieCardComponent, MatTabsModule, TranslocoPipe],
+  imports: [MovieTableComponent, MatButtonModule, MatTabsModule, TranslocoPipe],
   templateUrl: './movies-overview.component.html',
   styleUrl: './movies-overview.component.sass',
 })
@@ -27,6 +28,41 @@ export class MoviesOverviewComponent {
   watchlist = computed(() =>
     this.loaded() ? this._library.watchlist() : undefined
   );
+
+  historyRows = computed<MovieTableRow[]>(() =>
+    this.history().map((entry) => ({ key: historyKey(entry), movie: entry.movie }))
+  );
+  watchedRows = computed<MovieTableRow[]>(() =>
+    (this.loaded() ? this._library.watchedMovies() : []).map((entry) => ({
+      key: String(entry.movie.tmdbId),
+      movie: entry.movie,
+    }))
+  );
+  watchedLoading = this._library.watchedLoading;
+  watchedFailed = this._library.watchedFailed;
+  hasMoreWatched = this._library.hasMoreWatched;
+
+  watchlistRows = computed<MovieTableRow[]>(() =>
+    (this.watchlist()?.items ?? []).map((item) => ({ key: String(item.tmdbId), movie: item.movie }))
+  );
+
+  removeHistoryRow(row: MovieTableRow): void {
+    const entry = this.history().find((candidate) => historyKey(candidate) === row.key);
+    if (entry) {
+      this.removeHistory(entry);
+    }
+  }
+
+  loadMoreWatched(): void {
+    this._library.loadMoreWatched();
+  }
+
+  removeWatchlistRow(row: MovieTableRow): void {
+    const item = this.watchlist()?.items.find((candidate) => candidate.tmdbId === row.movie.tmdbId);
+    if (item) {
+      this.removeFromWatchlist(item);
+    }
+  }
 
   removeHistory(entry: HistoryEntry): void {
     this.run(this._library.removeHistory(entry), this._transloco.translate('overview.removeFromHistory'));
@@ -52,4 +88,8 @@ export class MoviesOverviewComponent {
   private notify(message: string): void {
     this._snackBar.open(message, this._transloco.translate('common.dismiss'), { duration: 2500 });
   }
+}
+
+function historyKey(entry: HistoryEntry): string {
+  return entry.id ?? `${entry.generatedAt}:${entry.movie.tmdbId}`;
 }

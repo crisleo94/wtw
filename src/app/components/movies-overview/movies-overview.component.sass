@@ -3,20 +3,19 @@
   display: block
   min-height: 100vh
 
-.history-container,
-.watchlist-container
-  background-color: var(--mat-sys-surface-container-low)
-  display: grid
-  // Four columns as before on desktop; fewer when a quarter is narrower than 260px.
-  grid-template-columns: repeat(auto-fill, minmax(max(260px, calc((100% - 60px) / 4)), 1fr))
-  grid-auto-rows: auto
-  gap: 20px
+app-movie-table,
+.empty
   margin-top: 10px
+  background-color: var(--mat-sys-surface-container-low)
 
 .empty
-  grid-column: 1 / -1
   padding: 16px
   text-align: center
+
+.load-more
+  display: flex
+  justify-content: center
+  padding: 12px
 
 mat-tab-header
   background-color: var(--mat-sys-surface-container-low) !important

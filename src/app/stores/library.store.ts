@@ -30,19 +30,23 @@ import {
   ImportSummary,
   MovieList,
   MovieListItem,
+  MovieRating,
   SessionData,
+  WatchedEntry,
+  WatchedPage,
 } from '../interfaces/library.interface';
 import { MovieFilters } from '../interfaces/movie-filters.interface';
 import { Movie } from '../interfaces/movie.interface';
 import { LibraryError } from '../utils/api-error';
 import { AuthStore } from './auth.store';
 import { LanguageStore } from './language.store';
-import { SessionStore } from './session.store';
+import { SessionStore, watchedOrder } from './session.store';
 
 export const HISTORY_PAGE_SIZE = 50;
 export const MAX_LISTS = 50;
 export const MAX_LIST_ITEMS = 500;
 export const MAX_WATCHED = 2000;
+const WATCHED_PAGE_SIZE = 20;
 
 // Facade over the user library: the API when logged in, the session otherwise.
 @Injectable({
@@ -58,6 +62,15 @@ export class LibraryStore {
   private remoteHistory = signal<HistoryEntry[]>([]);
   private remoteLists = signal<MovieList[]>([]);
   private remoteWatched = signal<number[]>([]);
+  private remoteRatings = signal<MovieRating[]>([]);
+  private remoteWatchedItems = signal<WatchedEntry[]>([]);
+  private watchedTotal = signal(0);
+  private watchedPage = signal(0);
+  private watchedLoadingState = signal(false);
+  private watchedFailedState = signal(false);
+
+  readonly watchedLoading = this.watchedLoadingState.asReadonly();
+  readonly watchedFailed = this.watchedFailedState.asReadonly();
   private importInProgress = signal(false);
   private remoteLoaded = signal(false);
 
@@ -75,6 +88,31 @@ export class LibraryStore {
           ? this.remoteWatched()
           : this.session.data().watched
       )
+  );
+
+  // tmdbId -> rating (0.5 to 5); movies without an entry are not rated.
+  readonly ratings = computed(
+    () =>
+      new Map(
+        (this.authStore.isLoggedIn() ? this.remoteRatings() : this.session.data().ratings).map(
+          ({ tmdbId, rating }) => [tmdbId, rating]
+        )
+      )
+  );
+
+  // Watched tab, newest first: API pages for users, the session for guests.
+  readonly watchedMovies = computed<WatchedEntry[]>(() => {
+    if (this.authStore.isLoggedIn()) {
+      return this.remoteWatchedItems();
+    }
+    const data = this.session.data();
+    return watchedOrder(data)
+      .filter((tmdbId) => data.movies[tmdbId])
+      .map((tmdbId) => ({ movie: data.movies[tmdbId], watchedAt: data.watchedAt?.[tmdbId] ?? null }));
+  });
+
+  readonly hasMoreWatched = computed(
+    () => this.authStore.isLoggedIn() && this.remoteWatchedItems().length < this.watchedTotal()
   );
 
   readonly history = computed<HistoryEntry[]>(() => {
@@ -166,12 +204,32 @@ export class LibraryStore {
     return this.http
       .patch<unknown>(`${API_URL}/me/movies/${movie.tmdbId}`, { watched })
       .pipe(
-        tap(() =>
+        tap(() => {
           this.remoteWatched.update((ids) =>
             watched
               ? [...new Set([...ids, movie.tmdbId])]
               : ids.filter((id) => id !== movie.tmdbId)
-          )
+          );
+          this.updateWatchedTab(movie, watched);
+        }),
+        map(() => undefined)
+      );
+  }
+
+  // null clears the rating; `watched` is not touched (same as the API).
+  setRating(movie: Movie, rating: number | null): Observable<void> {
+    if (!this.authStore.isLoggedIn()) {
+      this.session.setRating(movie, rating);
+      return of(undefined);
+    }
+    return this.http
+      .patch<unknown>(`${API_URL}/me/movies/${movie.tmdbId}`, { rating })
+      .pipe(
+        tap(() =>
+          this.remoteRatings.update((ratings) => [
+            ...ratings.filter((entry) => entry.tmdbId !== movie.tmdbId),
+            ...(rating === null ? [] : [{ tmdbId: movie.tmdbId, rating }]),
+          ])
         ),
         map(() => undefined)
       );
@@ -355,21 +413,66 @@ export class LibraryStore {
         })
         .pipe(map((page) => page.items)),
       lists: this.http.get<MovieList[]>(`${API_URL}/me/lists`),
-      watched: this.http
-        .get<{ watched: number[] }>(`${API_URL}/me/movies`)
-        .pipe(map((response) => response.watched)),
+      movies: this.http.get<{ watched: number[]; ratings?: MovieRating[] }>(
+        `${API_URL}/me/movies`
+      ),
     }).subscribe({
-      next: ({ history, lists, watched }) => {
+      next: ({ history, lists, movies }) => {
         this.remoteHistory.set(history);
         this.remoteLists.set(lists);
-        this.remoteWatched.set(watched);
+        this.remoteWatched.set(movies.watched);
+        // An API without ratings yet answers only `watched`.
+        this.remoteRatings.set(movies.ratings ?? []);
         this.remoteLoaded.set(true);
+        this.loadWatched(1);
       },
       error: () => {
         this.remoteLoaded.set(true);
         this.notify(this.transloco.translate('errors.libraryFailed'));
       },
     });
+  }
+
+  loadMoreWatched(): void {
+    if (this.hasMoreWatched() && !this.watchedLoadingState()) {
+      this.loadWatched(this.watchedPage() + 1);
+    }
+  }
+
+  // Page 1 replaces the list (login, language change); later pages are appended.
+  private loadWatched(page: number): void {
+    this.watchedLoadingState.set(true);
+    this.watchedFailedState.set(false);
+    this.http
+      .get<WatchedPage>(`${API_URL}/me/movies/watched`, {
+        params: { page, limit: WATCHED_PAGE_SIZE },
+      })
+      .pipe(finalize(() => this.watchedLoadingState.set(false)))
+      .subscribe({
+        next: (result) => {
+          this.remoteWatchedItems.update((items) => {
+            const current = page === 1 ? [] : items;
+            const known = new Set(current.map((item) => item.movie.tmdbId));
+            return [...current, ...result.items.filter((item) => !known.has(item.movie.tmdbId))];
+          });
+          this.watchedTotal.set(result.total);
+          this.watchedPage.set(page);
+        },
+        error: () => this.watchedFailedState.set(true),
+      });
+  }
+
+  // Keeps the loaded pages in sync with marks made anywhere, without a request.
+  private updateWatchedTab(movie: Movie, watched: boolean): void {
+    const present = this.remoteWatchedItems().some((item) => item.movie.tmdbId === movie.tmdbId);
+    if (watched && !present) {
+      const entry = { movie, watchedAt: new Date().toISOString(), rating: this.ratings().get(movie.tmdbId) ?? null };
+      this.remoteWatchedItems.update((items) => [entry, ...items]);
+      this.watchedTotal.update((total) => total + 1);
+    } else if (!watched && present) {
+      this.remoteWatchedItems.update((items) => items.filter((item) => item.movie.tmdbId !== movie.tmdbId));
+      this.watchedTotal.update((total) => Math.max(0, total - 1));
+    }
   }
 
   // Emits once the library matches the current user (right away if it already does).
@@ -423,6 +526,11 @@ export class LibraryStore {
     this.remoteHistory.set([]);
     this.remoteLists.set([]);
     this.remoteWatched.set([]);
+    this.remoteRatings.set([]);
+    this.remoteWatchedItems.set([]);
+    this.watchedTotal.set(0);
+    this.watchedPage.set(0);
+    this.watchedFailedState.set(false);
   }
 
   private offerDiscard(): void {
@@ -461,9 +569,17 @@ function toMovieLists(data: SessionData, watched: Set<number>): MovieList[] {
 }
 
 // History entries only carry the required movie fields: the full data goes in `movies`.
+// `watchedAt` only carries real dates of movies still watched; old undated marks
+// are left out (the API dates them on import). Omitted when there is none.
 export function toImportBody(data: SessionData): SessionData {
+  const { watchedAt: _dates, ...body } = data;
+  const watched = new Set(data.watched.map(String));
+  const watchedAt = Object.fromEntries(
+    Object.entries(data.watchedAt ?? {}).filter(([id, date]) => watched.has(id) && !!date)
+  );
   return {
-    ...data,
+    ...body,
+    ...(Object.keys(watchedAt).length ? { watchedAt } : {}),
     history: data.history.map(({ movie, ...entry }) => ({
       ...entry,
       movie: {

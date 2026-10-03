@@ -78,10 +78,7 @@
     "unknown": "Desconocida",
     "average": "Promedio:",
     "votesCount": "Cantidad de votos:",
-    "synopsis": "Sinopsis:",
-    "more": "Más",
-    "less": "Menos",
-    "removeLabel": "Eliminar"
+    "synopsis": "Sinopsis:"
   },
   "overview": {
     "historyTab": "Historial",
@@ -91,7 +88,12 @@
     "watchlistEmpty": "Usa el botón de marcador en una película para guardarla aquí.",
     "watchlistLoading": "Cargando tus películas...",
     "removeFromHistory": "Eliminar del historial",
-    "removeFromWatchlist": "Quitar de Por ver"
+    "removeFromWatchlist": "Quitar de Por ver",
+    "watchedTab": "Vistas",
+    "watchedEmpty": "Las películas que marques como vistas aparecerán aquí.",
+    "watchedLoading": "Cargando tus películas...",
+    "watchedFailed": "No pudimos cargar tus películas vistas. Intenta de nuevo más tarde.",
+    "loadMore": "Cargar más"
   },
   "panel": {
     "guest": "Invitado",
@@ -163,5 +165,25 @@
     "ok": "Entendido",
     "cancel": "Cancelar",
     "discard": "Descartar"
+  },
+  "rating": {
+    "label": "Tu calificación",
+    "labelFor": "Tu calificación para {{title}}",
+    "none": "Sin calificar",
+    "value": "{{value}} de 5 estrellas",
+    "clear": "Quitar calificación",
+    "column": "Tu calificación",
+    "saved": "Calificación guardada.",
+    "cleared": "Calificación quitada."
+  },
+  "table": {
+    "poster": "Póster",
+    "title": "Título",
+    "description": "Descripción",
+    "average": "Promedio",
+    "actions": "Acciones",
+    "noDescription": "Sin sinopsis disponible.",
+    "showDescription": "{{title}}: mostrar u ocultar la sinopsis",
+    "moreActions": "Más acciones para {{title}}"
   }
 }

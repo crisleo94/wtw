@@ -45,3 +45,6 @@ Thumbs.db
 
 # Environment variables
 .env
+
+# Owner's 2048px logo source (1.5MB): only the optimized copies are versioned and shipped
+/src/assets/images/wtwlogo.jpg

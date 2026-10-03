@@ -1,36 +1,53 @@
 <mat-tab-group animate.enter="insert-overview">
   <mat-tab [label]="'overview.historyTab' | transloco">
-    <div class="history-container">
-      @for (entry of history(); track entry.id ?? entry.generatedAt + entry.movie.tmdbId) {
-      <app-movie-card
-        [movie]="entry.movie"
-        variant="composed"
-        [removable]="true"
-        [removeLabel]="'overview.removeFromHistory' | transloco"
-        (remove)="removeHistory(entry)"
-      ></app-movie-card>
-      } @empty {
-      <p class="empty">
-        {{ loaded() ? ('overview.historyEmpty' | transloco) : ('overview.historyLoading' | transloco) }}
-      </p>
-      }
-    </div>
+    @if (historyRows().length) {
+    <app-movie-table
+      [rows]="historyRows()"
+      [removeLabel]="'overview.removeFromHistory' | transloco"
+      (remove)="removeHistoryRow($event)"
+    ></app-movie-table>
+    } @else {
+    <p class="empty">
+      {{ loaded() ? ('overview.historyEmpty' | transloco) : ('overview.historyLoading' | transloco) }}
+    </p>
+    }
   </mat-tab>
   <mat-tab [label]="'overview.watchlistTab' | transloco">
-    <div class="watchlist-container">
-      @for (item of watchlist()?.items ?? []; track item.tmdbId) {
-      <app-movie-card
-        [movie]="item.movie"
-        variant="composed"
-        [removable]="true"
-        [removeLabel]="'overview.removeFromWatchlist' | transloco"
-        (remove)="removeFromWatchlist(item)"
-      ></app-movie-card>
-      } @empty {
-      <p class="empty">
-        {{ loaded() ? ('overview.watchlistEmpty' | transloco) : ('overview.watchlistLoading' | transloco) }}
-      </p>
-      }
+    @if (watchlistRows().length) {
+    <app-movie-table
+      [rows]="watchlistRows()"
+      [removeLabel]="'overview.removeFromWatchlist' | transloco"
+      (remove)="removeWatchlistRow($event)"
+    ></app-movie-table>
+    } @else {
+    <p class="empty">
+      {{ loaded() ? ('overview.watchlistEmpty' | transloco) : ('overview.watchlistLoading' | transloco) }}
+    </p>
+    }
+  </mat-tab>
+  <mat-tab [label]="'overview.watchedTab' | transloco">
+    @if (watchedRows().length) {
+    <app-movie-table
+      [rows]="watchedRows()"
+      [removable]="false"
+    ></app-movie-table>
+    @if (hasMoreWatched()) {
+    <div class="load-more">
+      <button mat-stroked-button [disabled]="watchedLoading()" (click)="loadMoreWatched()">
+        {{ (watchedLoading() ? 'overview.watchedLoading' : 'overview.loadMore') | transloco }}
+      </button>
     </div>
+    }
+    } @else {
+    <p class="empty" [attr.role]="watchedFailed() ? 'alert' : null">
+      @if (!loaded() || watchedLoading()) {
+      {{ 'overview.watchedLoading' | transloco }}
+      } @else if (watchedFailed()) {
+      {{ 'overview.watchedFailed' | transloco }}
+      } @else {
+      {{ 'overview.watchedEmpty' | transloco }}
+      }
+    </p>
+    }
   </mat-tab>
 </mat-tab-group>

@@ -5,6 +5,8 @@ import {
 } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MatTabGroup } from '@angular/material/tabs';
+import { By } from '@angular/platform-browser';
 import { TranslocoService } from '@jsverse/transloco';
 import { AuthStore } from '../../stores/auth.store';
 import { AuthDialogComponent } from './auth-dialog.component';
@@ -48,15 +50,81 @@ describe('AuthDialogComponent', () => {
       data: { reason: 'Inicia sesión para guardar tus listas, o continúa como invitado.' },
     });
     const surface = document.querySelector('.auth-dialog .mat-mdc-dialog-surface') as HTMLElement;
+    const content = surface.querySelector('.mat-mdc-dialog-content') as HTMLElement;
     for (const lang of ['en', 'es']) {
       TestBed.inject(TranslocoService).setActiveLang(lang);
       for (const tab of [0, 1]) {
         ref.componentInstance.onTabChange(tab);
         await new Promise((resolve) => setTimeout(resolve, 600));
         expect(overflowingElements(surface)).withContext(`${lang} tab ${tab}`).toEqual([]);
+        // The parked tab must not let the content scroll sideways.
+        expect(content.scrollWidth).withContext(`${lang} tab ${tab}`).toBeLessThanOrEqual(content.clientWidth);
+        expect(surface.scrollWidth).toBeLessThanOrEqual(surface.clientWidth);
       }
     }
     ref.close();
+  });
+
+  it('should animate the modal height in both directions', async () => {
+    const ref = TestBed.inject(MatDialog).open(AuthDialogComponent, { width: '400px', panelClass: 'auth-dialog' });
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    const wrapper = document.querySelector('.auth-dialog .mat-mdc-tab-body-wrapper') as HTMLElement;
+
+    // Heights frame by frame while switching tabs.
+    async function heightsWhileSwitching(tab: number): Promise<number[]> {
+      const heights: number[] = [];
+      ref.componentInstance.onTabChange(tab);
+      const end = performance.now() + 500;
+      while (performance.now() < end) {
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        heights.push(Math.round(wrapper.getBoundingClientRect().height));
+      }
+      return heights;
+    }
+
+    const login = Math.round(wrapper.getBoundingClientRect().height);
+    const toRegister = await heightsWhileSwitching(1);
+    const register = toRegister.at(-1)!;
+    expect(register).toBeGreaterThan(login + 20);
+    expect(toRegister.some((h) => h > login + 2 && h < register - 2))
+      .withContext(`no intermediate height: ${toRegister.join(',')}`)
+      .toBeTrue();
+
+    const toLogin = await heightsWhileSwitching(0);
+    expect(toLogin.at(-1)).toBe(login);
+    expect(toLogin.some((h) => h > login + 2 && h < register - 2))
+      .withContext(`no intermediate height: ${toLogin.join(',')}`)
+      .toBeTrue();
+    ref.close();
+  });
+
+  it('should animate the height and fade the form in between Login and Register', async () => {
+    const tabs = fixture.debugElement.query(By.directive(MatTabGroup)).componentInstance as MatTabGroup;
+    expect(tabs.dynamicHeight).toBeTrue();
+    expect(tabs.animationDuration).toBe('225ms');
+    const wrapper = fixture.nativeElement.querySelector('.mat-mdc-tab-body-wrapper') as HTMLElement;
+    expect(getComputedStyle(wrapper).transitionProperty).toContain('height');
+    expect(getComputedStyle(wrapper).transitionDuration).toBe('0.225s');
+
+    component.onTabChange(1);
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    const form = fixture.nativeElement.querySelector('.mat-mdc-tab-body-active .auth-form') as HTMLElement;
+    expect(form.querySelector('[formcontrolname="fullName"]')).not.toBeNull();
+    expect(getComputedStyle(form).animationName).toContain('auth-form-fade');
+    expect(getComputedStyle(form).animationDuration).toBe('0.2s');
+  });
+
+  it('should not animate the tabs when the user prefers reduced motion', async () => {
+    const real = window.matchMedia.bind(window);
+    spyOn(window, 'matchMedia').and.callFake((query: string) =>
+      query.includes('prefers-reduced-motion') ? ({ matches: true } as MediaQueryList) : real(query)
+    );
+    const reduced = TestBed.createComponent(AuthDialogComponent);
+    await reduced.whenStable();
+    expect(reduced.componentInstance.tabAnimation).toBe('0ms');
+    const tabs = reduced.debugElement.query(By.directive(MatTabGroup)).componentInstance as MatTabGroup;
+    expect(tabs.animationDuration).toBe('0ms');
   });
 
   it('should validate email and password length', () => {

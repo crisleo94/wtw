@@ -31,7 +31,8 @@ export function overflowingElements(root: HTMLElement): string[] {
   return Array.from(root.querySelectorAll<HTMLElement>('*'))
     .filter((element) => {
       const rect = element.getBoundingClientRect();
-      return rect.width > 0 && (rect.right > box.right + 1 || rect.left < box.left - 1);
+      const visible = rect.width > 0 && getComputedStyle(element).visibility !== 'hidden';
+      return visible && (rect.right > box.right + 1 || rect.left < box.left - 1);
     })
     .map((element) => `${element.tagName.toLowerCase()}.${element.className}`);
 }

@@ -15,12 +15,34 @@ export interface SessionList {
   items: number[];
 }
 
+// 0.5 to 5 in half steps; a movie without an entry is not rated.
+export interface MovieRating {
+  tmdbId: number;
+  rating: number;
+}
+
 // Shape of `wtw.session.v1`, also the body of POST /api/me/import.
 export interface SessionData {
   history: SessionHistoryEntry[];
   watched: number[];
+  // tmdbId -> ISO date; older sessions have none (ordered by position instead).
+  watchedAt?: Record<string, string>;
+  ratings: MovieRating[];
   lists: SessionList[];
   movies: Record<string, Movie>;
+}
+
+export interface WatchedEntry {
+  movie: Movie;
+  watchedAt: string | null;
+  rating?: number | null;
+}
+
+export interface WatchedPage {
+  items: WatchedEntry[];
+  total: number;
+  page: number;
+  limit: number;
 }
 
 export interface ImportSummary {
