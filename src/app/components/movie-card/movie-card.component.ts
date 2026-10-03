@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
@@ -13,7 +13,6 @@ import { Movie } from '../../interfaces/movie.interface';
 import { GenresService } from '../../services/genres.service';
 import { MovieActionsService } from '../../services/movie-actions.service';
 import { LibraryStore } from '../../stores/library.store';
-import { CARD_VARIANT } from '../../types/components.types';
 import { posterUrl } from '../../utils/image-url';
 import { StarRatingComponent } from '../star-rating/star-rating.component';
 
@@ -39,12 +38,7 @@ export class MovieCardComponent {
   private _library = inject(LibraryStore);
   private _actions = inject(MovieActionsService);
 
-  variant = input<CARD_VARIANT>('simple');
   movie = input<Movie | null>(null);
-  removable = input(false);
-  removeLabel = input('');
-  remove = output<void>();
-  showMore = signal(false);
 
   movieGenres = computed(() =>
     (this.movie()?.genreIds ?? []).map(
@@ -78,10 +72,6 @@ export class MovieCardComponent {
 
   buildImageUrl(path: string): string {
     return posterUrl(path);
-  }
-
-  toggleReadMore(): void {
-    this.showMore.update((showMore) => !showMore);
   }
 
   toggleWatchlist(): void {

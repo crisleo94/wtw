@@ -78,10 +78,7 @@
     "unknown": "Unknown",
     "average": "Average:",
     "votesCount": "Votes Count:",
-    "synopsis": "Synopsis:",
-    "more": "More",
-    "less": "Less",
-    "removeLabel": "Remove"
+    "synopsis": "Synopsis:"
   },
   "overview": {
     "historyTab": "History",
