@@ -48,6 +48,14 @@ textarea {
   backdrop-filter: blur(3px);
 }
 
+// Full synopsis of the compact table: wider than the default 200px tooltip.
+.description-tooltip .mdc-tooltip__surface {
+  max-width: min(420px, calc(100vw - 32px));
+  padding-block: 8px;
+  text-align: left;
+  line-height: 1.4;
+}
+
 // Material animates the tab height in a fixed 500ms; match the 225ms tab slide.
 .auth-tabs .mat-mdc-tab-body-wrapper {
   transition-duration: 225ms;

@@ -3,7 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTableModule } from '@angular/material/table';
-import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatTooltip, MatTooltipModule } from '@angular/material/tooltip';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { THUMBNAIL_URL } from '../../constants';
 import { MovieList } from '../../interfaces/library.interface';
@@ -81,7 +81,13 @@ export class MovieTableComponent {
     return list.items.some((item) => item.tmdbId === movie.tmdbId);
   }
 
-  // Tap or click: on touch screens hover does not exist.
+  // Runs before MatTooltip's own listeners, so a short synopsis shows no tooltip.
+  onlyIfClamped(tooltip: MatTooltip, event: Event): void {
+    const text = (event.currentTarget as HTMLElement).querySelector('.overview');
+    tooltip.disabled = !text || text.scrollHeight <= text.clientHeight + 1;
+  }
+
+  // Phones: a tap on the title opens the synopsis row (there is no hover).
   toggle(row: MovieTableRow): void {
     this.expanded.update((key) => (key === row.key ? null : row.key));
   }

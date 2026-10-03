@@ -1,5 +1,8 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { FocusMonitor } from '@angular/cdk/a11y';
+import { MatTooltip } from '@angular/material/tooltip';
+import { By } from '@angular/platform-browser';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslocoService } from '@jsverse/transloco';
 import { Movie } from '../../interfaces/movie.interface';
@@ -132,28 +135,112 @@ describe('MovieTableComponent', () => {
     expect(button.title).toBe('El corredor del laberinto III: La cura mortal y otras historias largas');
   });
 
-  it('should open the synopsis with a tap on the title on phones', async () => {
+  it('should open and close the synopsis on phones with a height animation', async () => {
     await atWidth('320px');
     const title = host.querySelector<HTMLButtonElement>('.title-button')!;
-    expect(visible('tr.detail-row')).toBeFalse();
-    title.click();
-    await fixture.whenStable();
+    const detail = host.querySelector<HTMLElement>('tr.detail-row')!;
+    const height = () => Math.round(detail.getBoundingClientRect().height);
+    expect(height()).toBe(0);
+    expect(detail.getAttribute('aria-hidden')).toBe('true');
+    expect(getComputedStyle(detail.querySelector('.detail')!).transitionDuration).toBe('0.225s');
+
+    async function heightsAfterTap(): Promise<number[]> {
+      title.click();
+      await fixture.whenStable();
+      const heights: number[] = [];
+      const end = performance.now() + 400;
+      while (performance.now() < end) {
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        heights.push(height());
+      }
+      return heights;
+    }
+
+    const opening = await heightsAfterTap();
+    const open = opening.at(-1)!;
     expect(title.getAttribute('aria-expanded')).toBe('true');
-    expect(visible('tr.detail-row.expanded')).toBeTrue();
-    title.click();
-    await fixture.whenStable();
+    expect(detail.getAttribute('aria-hidden')).toBe('false');
+    expect(open).toBeGreaterThan(40);
+    expect(opening.some((h) => h > 0 && h < open - 2)).withContext(opening.join(',')).toBeTrue();
+
+    const closing = await heightsAfterTap();
+    expect(closing.at(-1)).toBe(0);
+    expect(closing.some((h) => h > 2 && h < open)).withContext(closing.join(',')).toBeTrue();
     expect(host.querySelector('tr.detail-row.expanded')).toBeNull();
   });
 
-  it('should expand the clamped description on tap and keep it focusable', async () => {
+  it('should keep the synopsis row hidden on wider tables', async () => {
+    await atWidth('768px');
+    host.querySelector<HTMLButtonElement>('.title-button')!.click();
+    await fixture.whenStable();
+    expect(visible('tr.detail-row')).toBeFalse();
+  });
+
+  it('should keep the description at two lines and the row height on hover, focus and click', async () => {
     await atWidth('1200px');
     const cell = host.querySelector<HTMLElement>('td.overview-cell')!;
+    const row = host.querySelector<HTMLElement>('tr.movie-row')!;
+    const height = row.getBoundingClientRect().height;
     expect(cell.tabIndex).toBe(0);
-    expect(getComputedStyle(cell.querySelector('.overview')!).webkitLineClamp).toBe('2');
+    cell.dispatchEvent(new MouseEvent('mouseenter'));
+    cell.focus();
     cell.click();
     await fixture.whenStable();
-    expect(cell.classList).toContain('expanded');
-    expect(getComputedStyle(cell.querySelector('.overview')!).webkitLineClamp).toBe('none');
+    expect(getComputedStyle(cell.querySelector('.overview')!).webkitLineClamp).toBe('2');
+    expect(row.getBoundingClientRect().height).toBe(height);
+    cell.blur();
+  });
+
+  describe('description tooltip', () => {
+    const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+    // The tooltip of one cell, not a leftover overlay from another spec.
+    const tipOf = (cell: HTMLElement) =>
+      fixture.debugElement
+        .queryAll(By.directive(MatTooltip))
+        .find((debug) => debug.nativeElement === cell)!
+        .injector.get(MatTooltip);
+    // The newest panel is the one just opened.
+    const latestPanel = () => Array.from(document.querySelectorAll('.description-tooltip')).at(-1);
+
+    beforeEach(() => atWidth('1200px'));
+
+    it('should show the full synopsis after 300ms when it is cut', async () => {
+      const cell = host.querySelectorAll<HTMLElement>('td.overview-cell')[0];
+      cell.dispatchEvent(new MouseEvent('mouseenter'));
+      await wait(150);
+      expect(tipOf(cell)._isTooltipVisible()).toBeFalse();
+      await wait(300);
+      await fixture.whenStable();
+      expect(tipOf(cell)._isTooltipVisible()).toBeTrue();
+      const panel = latestPanel()!;
+      expect(panel.textContent?.trim()).toBe(rows[0].movie.overview.trim());
+      const surface = panel.querySelector('.mdc-tooltip__surface')!;
+      expect(getComputedStyle(surface).textAlign).toBe('left');
+      expect(parseFloat(getComputedStyle(surface).maxWidth)).toBeGreaterThanOrEqual(400);
+      // Screen readers get the same text through aria-describedby.
+      expect(cell.getAttribute('aria-describedby')).toBeTruthy();
+      cell.dispatchEvent(new MouseEvent('mouseleave'));
+    });
+
+    it('should not show a tooltip for a synopsis that fits', async () => {
+      fixture.componentRef.setInput('rows', [{ key: 'c', movie: movie(3, { overview: 'Corta.' }) }]);
+      await fixture.whenStable();
+      const cell = host.querySelector<HTMLElement>('td.overview-cell')!;
+      cell.dispatchEvent(new MouseEvent('mouseenter'));
+      await wait(450);
+      expect(tipOf(cell).disabled).toBeTrue();
+      expect(tipOf(cell)._isTooltipVisible()).toBeFalse();
+    });
+
+    it('should open with the keyboard too', async () => {
+      const cell = host.querySelectorAll<HTMLElement>('td.overview-cell')[0];
+      TestBed.inject(FocusMonitor).focusVia(cell, 'keyboard');
+      await wait(450);
+      await fixture.whenStable();
+      expect(tipOf(cell)._isTooltipVisible()).toBeTrue();
+      expect(tipOf(cell).message).toContain('Una sinopsis larga');
+      cell.blur();
+    });
   });
 
   it('should hide remove in the row and in the phone menu when not removable', async () => {
