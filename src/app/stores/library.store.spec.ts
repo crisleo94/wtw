@@ -56,7 +56,39 @@ describe('LibraryStore', () => {
       .expectOne('/api/me/lists')
       .flush([{ id: 'w1', name: 'Watchlist', isSystem: true, position: 0, items: [] }]);
     httpTesting.expectOne('/api/me/movies').flush({ watched: [7] });
+    flushWatched([{ movie, watchedAt: '2026-10-02T10:00:00.000Z', rating: null }], 1);
   }
+
+  function flushWatched(items: object[], total: number, page = 1): void {
+    const req = httpTesting.expectOne((r) => r.url === '/api/me/movies/watched');
+    expect(req.request.params.get('page')).toBe(String(page));
+    expect(req.request.params.get('limit')).toBe('20');
+    req.flush({ items, total, page, limit: 20 });
+  }
+
+  it('should import the dates of guest watched movies and leave old undated ones out', () => {
+    sessionStorage.setItem(
+      SESSION_KEY,
+      JSON.stringify({ history: [], watched: [3], lists: [], movies: { 3: { ...movie, tmdbId: 3 } }, ratings: [] })
+    );
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [getTranslocoTestingModule()],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    library = TestBed.inject(LibraryStore);
+    auth = TestBed.inject(AuthStore);
+    httpTesting = TestBed.inject(HttpTestingController);
+    TestBed.tick();
+
+    library.setWatched(movie, true).subscribe();
+    const date = TestBed.inject(SessionStore).data().watchedAt?.['7'];
+    expect(date).toEqual(jasmine.any(String));
+    login();
+    const importReq = httpTesting.expectOne('/api/me/import');
+    expect(importReq.request.body.watched).toEqual([3, 7]);
+    expect(importReq.request.body.watchedAt).toEqual({ 7: date });
+  });
 
   it('should rate as a guest in the session, import the ratings and use the API after login', () => {
     library.setRating(movie, 3.5).subscribe();
@@ -86,6 +118,60 @@ describe('LibraryStore', () => {
     expect(clear.request.body).toEqual({ rating: null });
     clear.flush({ tmdbId: 7, watched: false, watchedAt: null, rating: null });
     expect(library.ratings().has(7)).toBeFalse();
+  });
+
+  it('should list a user\'s watched movies, load more pages and follow new marks', () => {
+    login();
+    flushReload();
+    expect(library.watchedMovies().map((item) => item.movie.tmdbId)).toEqual([7]);
+    expect(library.hasMoreWatched()).toBeFalse();
+
+    library.reload();
+    httpTesting.expectOne((req) => req.url === '/api/me/history').flush({ items: [], total: 0, limit: 50, offset: 0 });
+    httpTesting.expectOne('/api/me/lists').flush([]);
+    httpTesting.expectOne('/api/me/movies').flush({ watched: [7, 8] });
+    const eight = { ...movie, tmdbId: 8, title: 'Aliens' };
+    flushWatched([{ movie: eight, watchedAt: '2026-10-03T10:00:00.000Z', rating: 5 }], 2);
+    expect(library.hasMoreWatched()).toBeTrue();
+
+    library.loadMoreWatched();
+    flushWatched([{ movie: eight, watchedAt: 'dup' }, { movie, watchedAt: '2026-10-01T10:00:00.000Z' }], 2, 2);
+    expect(library.watchedMovies().map((item) => item.movie.tmdbId)).toEqual([8, 7]);
+    expect(library.hasMoreWatched()).toBeFalse();
+
+    library.setWatched(eight, false).subscribe();
+    httpTesting.expectOne('/api/me/movies/8').flush({});
+    expect(library.watchedMovies().map((item) => item.movie.tmdbId)).toEqual([7]);
+    const nine = { ...movie, tmdbId: 9, title: 'Prometheus' };
+    library.setWatched(nine, true).subscribe();
+    httpTesting.expectOne('/api/me/movies/9').flush({});
+    expect(library.watchedMovies().map((item) => item.movie.tmdbId)).toEqual([9, 7]);
+    httpTesting.verify();
+  });
+
+  it('should keep the rest of the library when the watched list fails', () => {
+    login();
+    httpTesting.expectOne((req) => req.url === '/api/me/history').flush({ items: [], total: 0, limit: 50, offset: 0 });
+    httpTesting.expectOne('/api/me/lists').flush([]);
+    httpTesting.expectOne('/api/me/movies').flush({ watched: [7] });
+    httpTesting
+      .expectOne((req) => req.url === '/api/me/movies/watched')
+      .flush({}, { status: 404, statusText: 'Not Found' });
+    expect(library.ready()).toBeTrue();
+    expect(library.watchedIds().has(7)).toBeTrue();
+    expect(library.watchedFailed()).toBeTrue();
+    expect(library.watchedMovies()).toEqual([]);
+  });
+
+  it('should list a guest\'s watched movies from the session, newest first', () => {
+    const eight = { ...movie, tmdbId: 8, title: 'Aliens' };
+    library.setWatched(movie, true).subscribe();
+    library.setWatched(eight, true).subscribe();
+    expect(library.watchedMovies().map((item) => item.movie.tmdbId)).toEqual([8, 7]);
+    expect(library.watchedMovies()[0].watchedAt).toEqual(jasmine.any(String));
+    library.setWatched(eight, false).subscribe();
+    expect(library.watchedMovies().map((item) => item.movie.tmdbId)).toEqual([7]);
+    expect(library.hasMoreWatched()).toBeFalse();
   });
 
   it('should load without ratings from an API that does not send them yet', () => {
@@ -204,11 +290,15 @@ describe('LibraryStore', () => {
   it('should strip duplicated movie data from history entries', () => {
     const body = toImportBody({
       history: [{ movie: { ...movie, overview: 'long' }, generatedAt: 'x' }],
-      watched: [],
+      watched: [7],
+      watchedAt: { 7: '2026-10-02T10:00:00.000Z', 8: '2026-10-02T10:00:00.000Z' },
       ratings: [{ tmdbId: 7, rating: 4.5 }],
       lists: [],
       movies: { 7: { ...movie, overview: 'long' } },
     });
+    expect(body.watchedAt).toEqual({ 7: '2026-10-02T10:00:00.000Z' });
+    const undated = toImportBody({ history: [], watched: [7], ratings: [], lists: [], movies: {} });
+    expect('watchedAt' in undated).toBeFalse();
     expect(body.ratings).toEqual([{ tmdbId: 7, rating: 4.5 }]);
     expect(body.history[0].movie).toEqual({ tmdbId: 7, title: 'Alien', posterPath: '/a.jpg' } as Movie);
     expect(body.movies['7'].overview).toBe('long');

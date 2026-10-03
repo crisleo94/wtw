@@ -3,7 +3,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Movie } from '../interfaces/movie.interface';
 import { AuthStore } from './auth.store';
-import { SESSION_KEY, SESSION_LIMITS, SessionStore } from './session.store';
+import { SESSION_KEY, SESSION_LIMITS, SessionStore, watchedOrder } from './session.store';
 import { clearAnonymousStorage } from '../testing/guest-storage-testing';
 
 const movie = (tmdbId: number) =>
@@ -167,6 +167,53 @@ describe('SessionStore', () => {
       JSON.stringify({ history: [], watched: [], lists: [], movies: {}, ratings })
     );
     expect(TestBed.inject(SessionStore).data().ratings.length).toBe(SESSION_LIMITS.ratings);
+  });
+
+  it('should date watched movies, keep the first date and drop it when unmarked', () => {
+    jasmine.clock().install();
+    jasmine.clock().mockDate(new Date('2026-10-01T10:00:00Z'));
+    const store = TestBed.inject(SessionStore);
+    store.setWatched(movie(1), true);
+    jasmine.clock().mockDate(new Date('2026-10-02T10:00:00Z'));
+    store.setWatched(movie(2), true);
+    store.setWatched(movie(1), true);
+    jasmine.clock().uninstall();
+    expect(store.data().watchedAt).toEqual({
+      '1': '2026-10-01T10:00:00.000Z',
+      '2': '2026-10-02T10:00:00.000Z',
+    });
+    expect(watchedOrder(store.data())).toEqual([2, 1]);
+    store.setWatched(movie(2), false);
+    expect(store.data().watchedAt).toEqual({ '1': '2026-10-01T10:00:00.000Z' });
+  });
+
+  it('should order old sessions without dates by position, newest first', () => {
+    sessionStorage.setItem(
+      SESSION_KEY,
+      JSON.stringify({ history: [], watched: [3, 1, 2], lists: [], movies: {}, ratings: [] })
+    );
+    const store = TestBed.inject(SessionStore);
+    expect(store.data().watched).toEqual([3, 1, 2]);
+    expect(watchedOrder(store.data())).toEqual([2, 1, 3]);
+
+    // New marks get a date and go first; the undated ones keep their order after them.
+    store.setWatched(movie(9), true);
+    expect(watchedOrder(store.data())).toEqual([9, 2, 1, 3]);
+  });
+
+  it('should drop invalid or orphan dates when reading a session', () => {
+    sessionStorage.setItem(
+      SESSION_KEY,
+      JSON.stringify({
+        history: [],
+        watched: [1, 2],
+        watchedAt: { 1: 'not a date', 2: '2026-10-02T10:00:00.000Z', 7: '2026-10-02T10:00:00.000Z' },
+        lists: [],
+        movies: {},
+        ratings: [],
+      })
+    );
+    expect(TestBed.inject(SessionStore).data().watchedAt).toEqual({ '2': '2026-10-02T10:00:00.000Z' });
   });
 
   it('should keep the session within the API import limits', () => {

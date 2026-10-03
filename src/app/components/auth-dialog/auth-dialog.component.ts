@@ -60,6 +60,8 @@ export class AuthDialogComponent {
   selectedTab = signal(this.data?.tab === 'register' ? 1 : 0);
   isSubmitting = signal(false);
   errorMessage = signal<string | null>(null);
+  // Short slide and height change between Login and Register; none if the user asks.
+  readonly tabAnimation = prefersReducedMotion() ? '0ms' : '225ms';
 
   private passwordValidators = [
     Validators.required,
@@ -129,4 +131,8 @@ export class AuthDialogComponent {
       },
     });
   }
+}
+
+function prefersReducedMotion(): boolean {
+  return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 }

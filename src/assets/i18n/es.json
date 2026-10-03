@@ -88,7 +88,12 @@
     "watchlistEmpty": "Usa el botón de marcador en una película para guardarla aquí.",
     "watchlistLoading": "Cargando tus películas...",
     "removeFromHistory": "Eliminar del historial",
-    "removeFromWatchlist": "Quitar de Por ver"
+    "removeFromWatchlist": "Quitar de Por ver",
+    "watchedTab": "Vistas",
+    "watchedEmpty": "Las películas que marques como vistas aparecerán aquí.",
+    "watchedLoading": "Cargando tus películas...",
+    "watchedFailed": "No pudimos cargar tus películas vistas. Intenta de nuevo más tarde.",
+    "loadMore": "Cargar más"
   },
   "panel": {
     "guest": "Invitado",

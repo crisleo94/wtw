@@ -88,7 +88,12 @@
     "watchlistEmpty": "Use the bookmark button on a movie to save it here.",
     "watchlistLoading": "Loading your movies...",
     "removeFromHistory": "Remove from history",
-    "removeFromWatchlist": "Remove from watchlist"
+    "removeFromWatchlist": "Remove from watchlist",
+    "watchedTab": "Watched",
+    "watchedEmpty": "Movies you mark as watched will show up here.",
+    "watchedLoading": "Loading your movies...",
+    "watchedFailed": "Your watched movies could not be loaded. Try again later.",
+    "loadMore": "Load more"
   },
   "panel": {
     "guest": "Guest",
