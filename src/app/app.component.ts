@@ -18,6 +18,7 @@ import { AuthStore } from './stores/auth.store';
 import { LanguageStore } from './stores/language.store';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { catchError, EMPTY, switchMap } from 'rxjs';
+import { MatDividerModule } from '@angular/material/divider';
 
 @Component({
   selector: 'app-root',
@@ -34,6 +35,7 @@ import { catchError, EMPTY, switchMap } from 'rxjs';
     MatIconModule,
     MatTooltipModule,
     TranslocoPipe,
+    MatDividerModule
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.sass',
