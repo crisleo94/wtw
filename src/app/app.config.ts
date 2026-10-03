@@ -13,6 +13,7 @@ import {
   withInterceptors,
 } from '@angular/common/http';
 import { routes } from './app.routes';
+import { credentialsInterceptor } from './interceptors/credentials.interceptor';
 import { languageInterceptor } from './interceptors/language.interceptor';
 import { sessionExpiredInterceptor } from './interceptors/session-expired.interceptor';
 import { provideTransloco } from '@jsverse/transloco';
@@ -21,15 +22,17 @@ import { JsonTranslocoLoader } from './i18n/transloco-loader';
 import { AuthStore } from './stores/auth.store';
 import { LanguageStore } from './stores/language.store';
 
+// Anonymous visitors skip /auth/me, so the console stays free of 401s.
 export function loadUser() {
-  return inject(AuthStore).load();
+  const authStore = inject(AuthStore);
+  return authStore.hasSession() ? authStore.load() : undefined;
 }
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
     provideRouter(routes),
-    provideHttpClient(withFetch(), withInterceptors([languageInterceptor, sessionExpiredInterceptor])),
+    provideHttpClient(withFetch(), withInterceptors([credentialsInterceptor, languageInterceptor, sessionExpiredInterceptor])),
     provideAppInitializer(loadUser),
     provideTransloco({
       config: {
