@@ -46,12 +46,24 @@
                   "maximumError": "4kb"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "src/app/config/api-url.ts",
+                  "with": "src/app/config/api-url.generated.ts"
+                }
+              ]
             },
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/app/config/api-url.ts",
+                  "with": "src/app/config/api-url.generated.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"

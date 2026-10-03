@@ -3,10 +3,14 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
+    "prestart": "node scripts/generate-api-config.mjs",
     "start": "ng serve",
+    "prebuild": "node scripts/generate-api-config.mjs",
     "build": "ng build",
+    "prewatch": "node scripts/generate-api-config.mjs",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "test:scripts": "node --test scripts/*.test.mjs"
   },
   "private": true,
   "dependencies": {
