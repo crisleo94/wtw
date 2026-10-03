@@ -128,7 +128,12 @@ describe('MoviesOverviewComponent', () => {
       expect(titles()).toEqual(['Coco', 'Up']);
       expect(host.querySelector('.load-more')).toBeNull();
 
-      component.unmarkWatched(component.watchedRows()[0]);
+      // Only the watched toggle: no separate "remove" doing the same.
+      const firstRow = host.querySelector('app-movie-table tr.movie-row')!;
+      expect(firstRow.querySelector('.warn-button')).toBeNull();
+      const toggle = firstRow.querySelector<HTMLButtonElement>('.inline-actions button[aria-pressed="true"]')!;
+      expect(toggle.getAttribute('aria-label')).toBe('You watched it: click to undo');
+      toggle.click();
       await fixture.whenStable();
       expect(titles()).toEqual(['Up']);
       expect(library.watchedIds().has(6)).toBeFalse();

@@ -29,8 +29,7 @@
     @if (watchedRows().length) {
     <app-movie-table
       [rows]="watchedRows()"
-      [removeLabel]="'overview.unmarkWatched' | transloco"
-      (remove)="unmarkWatched($event)"
+      [removable]="false"
     ></app-movie-table>
     @if (hasMoreWatched()) {
     <div class="load-more">

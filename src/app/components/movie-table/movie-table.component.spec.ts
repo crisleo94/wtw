@@ -156,6 +156,24 @@ describe('MovieTableComponent', () => {
     expect(getComputedStyle(cell.querySelector('.overview')!).webkitLineClamp).toBe('none');
   });
 
+  it('should hide remove in the row and in the phone menu when not removable', async () => {
+    fixture.componentRef.setInput('removable', false);
+    await atWidth('1200px');
+    const row = host.querySelector('tr.movie-row')!;
+    expect(row.querySelectorAll('.inline-actions button').length).toBe(3);
+    expect(row.querySelector('.warn-button')).toBeNull();
+
+    await atWidth('320px');
+    row.querySelector<HTMLButtonElement>('.more-actions')!.click();
+    await fixture.whenStable();
+    const items = Array.from(document.querySelectorAll('.mat-mdc-menu-panel [mat-menu-item]')).map((item) =>
+      item.textContent?.trim()
+    );
+    expect(items.length).toBe(3);
+    expect(items.join(' ')).not.toContain('Remove');
+    expect(Array.from(document.querySelectorAll('.mat-mdc-menu-panel mat-icon')).map((i) => i.textContent)).not.toContain('delete');
+  });
+
   it('should send the actions to the shared service and emit remove', async () => {
     const actions = TestBed.inject(MovieActionsService);
     const watchlist = spyOn(actions, 'toggleWatchlist');

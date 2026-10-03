@@ -42,6 +42,8 @@ export class MovieTableComponent {
   private languageStore = inject(LanguageStore);
 
   rows = input<MovieTableRow[]>([]);
+  // Off where removing would repeat another action (Watched tab: the watched toggle).
+  removable = input(true);
   removeLabel = input('');
   remove = output<MovieTableRow>();
 

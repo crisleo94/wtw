@@ -53,14 +53,6 @@ export class MoviesOverviewComponent {
     }
   }
 
-  // Removing from this tab means "not watched".
-  unmarkWatched(row: MovieTableRow): void {
-    this.run(
-      this._library.setWatched(row.movie, false),
-      this._transloco.translate('card.markedNotWatched')
-    );
-  }
-
   loadMoreWatched(): void {
     this._library.loadMoreWatched();
   }

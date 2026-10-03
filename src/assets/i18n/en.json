@@ -93,7 +93,6 @@
     "watchedEmpty": "Movies you mark as watched will show up here.",
     "watchedLoading": "Loading your movies...",
     "watchedFailed": "Your watched movies could not be loaded. Try again later.",
-    "unmarkWatched": "Unmark as watched",
     "loadMore": "Load more"
   },
   "panel": {

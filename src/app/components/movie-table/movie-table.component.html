@@ -95,6 +95,7 @@
         >
           <mat-icon>playlist_add</mat-icon>
         </button>
+        @if (removable()) {
         <button
           mat-icon-button
           class="warn-button"
@@ -104,6 +105,7 @@
         >
           <mat-icon>delete</mat-icon>
         </button>
+        }
       </div>
       <!-- Narrow tables keep one button and move the actions into a menu. -->
       <button
@@ -127,10 +129,12 @@
           <mat-icon>playlist_add</mat-icon>
           <span>{{ 'card.addToList' | transloco }}</span>
         </button>
+        @if (removable()) {
         <button mat-menu-item (click)="remove.emit(row)">
           <mat-icon>delete</mat-icon>
           <span>{{ removeLabel() }}</span>
         </button>
+        }
       </mat-menu>
     </td>
   </ng-container>
