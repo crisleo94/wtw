@@ -5,6 +5,14 @@
   padding-top: 16px
   max-width: 360px
   margin-inline: auto
+  // Replays each time the tab shows (the inactive one is display: none).
+  animation: auth-form-fade 200ms ease-out both
+  @media (prefers-reduced-motion: reduce)
+    animation: none
+
+@keyframes auth-form-fade
+  from
+    opacity: 0
 
 mat-form-field
   width: 100%
