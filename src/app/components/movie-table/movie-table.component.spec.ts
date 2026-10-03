@@ -108,6 +108,30 @@ describe('MovieTableComponent', () => {
     expect(overflowingElements(host)).toEqual([]);
   });
 
+  it('should keep rows dense with long titles on desktop and phones', async () => {
+    TestBed.inject(LanguageStore).setLang('es');
+    fixture.componentRef.setInput('rows', [
+      { key: 'a', movie: movie(1, { title: 'El corredor del laberinto III: La cura mortal y otras historias largas' }) },
+      { key: 'b', movie: movie(2) },
+    ]);
+    for (const width of ['1440px', '1024px', '768px', '375px', '320px']) {
+      await atWidth(width);
+      const row = host.querySelector('tr.movie-row')!.getBoundingClientRect();
+      const title = host.querySelector<HTMLElement>('.title')!;
+      expect(row.height).withContext(`row at ${width}`).toBeLessThanOrEqual(76);
+      expect(title.getBoundingClientRect().height).withContext(`title at ${width}`).toBeLessThanOrEqual(42);
+      expect(getComputedStyle(title).webkitLineClamp).toBe('2');
+      expect(host.querySelector('td.mat-column-rating')!.getBoundingClientRect().height).toBeLessThanOrEqual(row.height);
+      expect(overflowingElements(host)).withContext(width).toEqual([]);
+    }
+    await atWidth('1440px');
+    const titleCell = host.querySelector('td.mat-column-title')!.getBoundingClientRect();
+    expect(titleCell.width).toBeGreaterThanOrEqual(180);
+    expect(titleCell.width).toBeLessThanOrEqual(260);
+    const button = host.querySelector<HTMLElement>('.title-button')!;
+    expect(button.title).toBe('El corredor del laberinto III: La cura mortal y otras historias largas');
+  });
+
   it('should open the synopsis with a tap on the title on phones', async () => {
     await atWidth('320px');
     const title = host.querySelector<HTMLButtonElement>('.title-button')!;

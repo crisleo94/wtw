@@ -12,17 +12,20 @@
       <button
         type="button"
         class="title-button"
+        [title]="row.movie.title"
         [attr.aria-expanded]="expanded() === row.key"
         [attr.aria-label]="'table.showDescription' | transloco: { title: row.movie.title }"
         (click)="toggle(row)"
       >
         <span class="title">{{ row.movie.title }}</span>
-        @if (year(row.movie)) {
-        <span class="year">{{ year(row.movie) }}</span>
-        }
-        @if (watchedIds().has(row.movie.tmdbId)) {
-        <span class="watched">{{ 'card.watched' | transloco }}</span>
-        }
+        <span class="meta">
+          @if (year(row.movie)) {
+          <span class="year">{{ year(row.movie) }}</span>
+          }
+          @if (watchedIds().has(row.movie.tmdbId)) {
+          <span class="watched">{{ 'card.watched' | transloco }}</span>
+          }
+        </span>
       </button>
     </td>
   </ng-container>

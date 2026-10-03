@@ -31,6 +31,8 @@ td.mat-mdc-cell
 .title-button
   display: grid
   gap: 2px
+  // Fixed width so a long synopsis can't squeeze the title; phones use what is left.
+  width: clamp(180px, 22cqi, 240px)
   padding: 0
   border: none
   background: none
@@ -44,7 +46,20 @@ td.mat-mdc-cell
     outline-offset: 2px
 
 .title
+  display: -webkit-box
+  -webkit-box-orient: vertical
+  -webkit-line-clamp: 2
+  line-clamp: 2
+  overflow: hidden
   font-weight: 600
+  line-height: 20px
+
+.meta
+  display: flex
+  gap: 6px
+  overflow: hidden
+  white-space: nowrap
+  line-height: 16px
 
 .year,
 .watched
@@ -110,6 +125,8 @@ td.mat-mdc-cell
 
 // Phone width: no description column (a tap on the title shows it), one menu button.
 @container movie-table (max-width: 599.98px)
+  .title-button
+    width: auto
   .mat-column-overview
     display: none
   .inline-actions
