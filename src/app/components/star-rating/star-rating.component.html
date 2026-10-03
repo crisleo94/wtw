@@ -1,0 +1,31 @@
+<div
+  class="stars"
+  role="slider"
+  tabindex="0"
+  aria-valuemin="0"
+  [attr.aria-valuemax]="5"
+  [attr.aria-valuenow]="value() ?? 0"
+  [attr.aria-valuetext]="valueText()"
+  [attr.aria-label]="label() || ('rating.label' | transloco)"
+  (keydown)="onKeydown($event)"
+>
+  @for (star of stars; track star) {
+  <span class="star">
+    <mat-icon aria-hidden="true">{{ icon(star) }}</mat-icon>
+    <!-- Left half picks n - 0.5, right half picks n; the slider handles the keyboard. -->
+    <span class="half left" aria-hidden="true" (click)="select(star - 0.5)"></span>
+    <span class="half right" aria-hidden="true" (click)="select(star)"></span>
+  </span>
+  }
+</div>
+<button
+  type="button"
+  class="clear"
+  [class.hidden]="!value()"
+  [attr.aria-label]="'rating.clear' | transloco"
+  [title]="'rating.clear' | transloco"
+  [disabled]="!value()"
+  (click)="clear()"
+>
+  <mat-icon aria-hidden="true">close</mat-icon>
+</button>

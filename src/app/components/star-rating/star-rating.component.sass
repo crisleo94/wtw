@@ -1,0 +1,51 @@
+:host
+  display: inline-flex
+  align-items: center
+  gap: 2px
+  color: var(--mat-sys-tertiary)
+
+.stars
+  display: inline-flex
+  border-radius: 4px
+  &:focus-visible
+    outline: 2px solid var(--mat-sys-primary)
+    outline-offset: 2px
+
+.star
+  position: relative
+  display: inline-flex
+  mat-icon
+    font-size: 20px
+    width: 20px
+    height: 20px
+
+.half
+  position: absolute
+  inset-block: 0
+  width: 50%
+  cursor: pointer
+  &.left
+    left: 0
+  &.right
+    right: 0
+
+.clear
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  width: 24px
+  height: 24px
+  padding: 0
+  border: none
+  border-radius: 50%
+  background: none
+  color: var(--mat-sys-on-surface-variant)
+  cursor: pointer
+  mat-icon
+    font-size: 16px
+    width: 16px
+    height: 16px
+  &.hidden
+    visibility: hidden
+  &:focus-visible
+    outline: 2px solid var(--mat-sys-primary)

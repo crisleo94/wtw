@@ -163,5 +163,15 @@
     "ok": "OK",
     "cancel": "Cancel",
     "discard": "Discard"
+  },
+  "rating": {
+    "label": "Your rating",
+    "labelFor": "Your rating for {{title}}",
+    "none": "Not rated",
+    "value": "{{value}} of 5 stars",
+    "clear": "Clear rating",
+    "column": "Your rating",
+    "saved": "Rating saved.",
+    "cleared": "Rating cleared."
   }
 }
