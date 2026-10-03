@@ -1,5 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatButtonModule } from '@angular/material/button';
 import { MatTabsModule } from '@angular/material/tabs';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Observable } from 'rxjs';
@@ -13,7 +14,7 @@ import { MovieTableComponent, MovieTableRow } from '../movie-table/movie-table.c
 
 @Component({
   selector: 'app-movies-overview',
-  imports: [MovieTableComponent, MatTabsModule, TranslocoPipe],
+  imports: [MovieTableComponent, MatButtonModule, MatTabsModule, TranslocoPipe],
   templateUrl: './movies-overview.component.html',
   styleUrl: './movies-overview.component.sass',
 })
@@ -31,6 +32,16 @@ export class MoviesOverviewComponent {
   historyRows = computed<MovieTableRow[]>(() =>
     this.history().map((entry) => ({ key: historyKey(entry), movie: entry.movie }))
   );
+  watchedRows = computed<MovieTableRow[]>(() =>
+    (this.loaded() ? this._library.watchedMovies() : []).map((entry) => ({
+      key: String(entry.movie.tmdbId),
+      movie: entry.movie,
+    }))
+  );
+  watchedLoading = this._library.watchedLoading;
+  watchedFailed = this._library.watchedFailed;
+  hasMoreWatched = this._library.hasMoreWatched;
+
   watchlistRows = computed<MovieTableRow[]>(() =>
     (this.watchlist()?.items ?? []).map((item) => ({ key: String(item.tmdbId), movie: item.movie }))
   );
@@ -40,6 +51,18 @@ export class MoviesOverviewComponent {
     if (entry) {
       this.removeHistory(entry);
     }
+  }
+
+  // Removing from this tab means "not watched".
+  unmarkWatched(row: MovieTableRow): void {
+    this.run(
+      this._library.setWatched(row.movie, false),
+      this._transloco.translate('card.markedNotWatched')
+    );
+  }
+
+  loadMoreWatched(): void {
+    this._library.loadMoreWatched();
   }
 
   removeWatchlistRow(row: MovieTableRow): void {

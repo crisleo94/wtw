@@ -25,4 +25,30 @@
     </p>
     }
   </mat-tab>
+  <mat-tab [label]="'overview.watchedTab' | transloco">
+    @if (watchedRows().length) {
+    <app-movie-table
+      [rows]="watchedRows()"
+      [removeLabel]="'overview.unmarkWatched' | transloco"
+      (remove)="unmarkWatched($event)"
+    ></app-movie-table>
+    @if (hasMoreWatched()) {
+    <div class="load-more">
+      <button mat-stroked-button [disabled]="watchedLoading()" (click)="loadMoreWatched()">
+        {{ (watchedLoading() ? 'overview.watchedLoading' : 'overview.loadMore') | transloco }}
+      </button>
+    </div>
+    }
+    } @else {
+    <p class="empty" [attr.role]="watchedFailed() ? 'alert' : null">
+      @if (!loaded() || watchedLoading()) {
+      {{ 'overview.watchedLoading' | transloco }}
+      } @else if (watchedFailed()) {
+      {{ 'overview.watchedFailed' | transloco }}
+      } @else {
+      {{ 'overview.watchedEmpty' | transloco }}
+      }
+    </p>
+    }
+  </mat-tab>
 </mat-tab-group>
