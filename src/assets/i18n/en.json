@@ -173,5 +173,15 @@
     "column": "Your rating",
     "saved": "Rating saved.",
     "cleared": "Rating cleared."
+  },
+  "table": {
+    "poster": "Poster",
+    "title": "Title",
+    "description": "Description",
+    "average": "Average",
+    "actions": "Actions",
+    "noDescription": "No synopsis available.",
+    "showDescription": "{{title}}: show or hide the synopsis",
+    "moreActions": "More actions for {{title}}"
   }
 }

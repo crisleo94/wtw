@@ -66,16 +66,12 @@ describe('MoviesOverviewComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Loading your movies');
   });
 
-  it('should keep four columns on desktop and fewer on narrow screens', async () => {
+  it('should list the history in the compact table', async () => {
+    const movie = { tmdbId: 4, title: 'Coco', overview: 'Miguel', genreIds: [], posterPath: '/c.jpg', releaseDate: '2017-10-27', voteAverage: 8.2 } as unknown as Movie;
+    TestBed.inject(LibraryStore).recordGenerated(movie);
+    await fixture.whenStable();
     const host = fixture.nativeElement as HTMLElement;
-    const columns = async (width: string) => {
-      host.style.display = 'block';
-      host.style.width = width;
-      await fixture.whenStable();
-      const grid = host.querySelector('.history-container')!;
-      return getComputedStyle(grid).gridTemplateColumns.split(' ').length;
-    };
-    expect(await columns('1200px')).toBe(4);
-    expect(await columns('600px')).toBe(2);
+    expect(host.querySelectorAll('app-movie-table tr.movie-row').length).toBe(1);
+    expect(host.querySelector('app-movie-table .title')?.textContent).toContain('Coco');
   });
 });

@@ -173,5 +173,15 @@
     "column": "Tu calificación",
     "saved": "Calificación guardada.",
     "cleared": "Calificación quitada."
+  },
+  "table": {
+    "poster": "Póster",
+    "title": "Título",
+    "description": "Descripción",
+    "average": "Promedio",
+    "actions": "Acciones",
+    "noDescription": "Sin sinopsis disponible.",
+    "showDescription": "{{title}}: mostrar u ocultar la sinopsis",
+    "moreActions": "Más acciones para {{title}}"
   }
 }

@@ -1,0 +1,163 @@
+<table mat-table [dataSource]="rows()" multiTemplateDataRows class="movie-table">
+  <ng-container matColumnDef="poster">
+    <th mat-header-cell *matHeaderCellDef><span class="visually-hidden">{{ 'table.poster' | transloco }}</span></th>
+    <td mat-cell *matCellDef="let row">
+      <img class="thumb" [src]="thumbnail(row.movie)" [alt]="row.movie.title" loading="lazy" width="40" height="60" />
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="title">
+    <th mat-header-cell *matHeaderCellDef>{{ 'table.title' | transloco }}</th>
+    <td mat-cell *matCellDef="let row">
+      <button
+        type="button"
+        class="title-button"
+        [attr.aria-expanded]="expanded() === row.key"
+        [attr.aria-label]="'table.showDescription' | transloco: { title: row.movie.title }"
+        (click)="toggle(row)"
+      >
+        <span class="title">{{ row.movie.title }}</span>
+        @if (year(row.movie)) {
+        <span class="year">{{ year(row.movie) }}</span>
+        }
+        @if (watchedIds().has(row.movie.tmdbId)) {
+        <span class="watched">{{ 'card.watched' | transloco }}</span>
+        }
+      </button>
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="overview">
+    <th mat-header-cell *matHeaderCellDef>{{ 'table.description' | transloco }}</th>
+    <!-- Two lines; hover, keyboard focus or a tap shows the whole synopsis. -->
+    <td
+      mat-cell
+      *matCellDef="let row"
+      class="overview-cell"
+      [class.expanded]="expanded() === row.key"
+      tabindex="0"
+      (click)="toggle(row)"
+    >
+      <span class="overview">{{ row.movie.overview || ('table.noDescription' | transloco) }}</span>
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="average">
+    <th mat-header-cell *matHeaderCellDef>{{ 'table.average' | transloco }}</th>
+    <td mat-cell *matCellDef="let row" class="average">{{ average(row.movie) }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="rating">
+    <th mat-header-cell *matHeaderCellDef>{{ 'rating.column' | transloco }}</th>
+    <td mat-cell *matCellDef="let row">
+      <app-star-rating
+        [value]="rating(row.movie)"
+        [label]="'rating.labelFor' | transloco: { title: row.movie.title }"
+        (rate)="rate(row.movie, $event)"
+      ></app-star-rating>
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="actions">
+    <th mat-header-cell *matHeaderCellDef><span class="visually-hidden">{{ 'table.actions' | transloco }}</span></th>
+    <td mat-cell *matCellDef="let row">
+      @let movie = row.movie;
+      @let inWatchlist = watchlistIds().has(movie.tmdbId);
+      @let watched = watchedIds().has(movie.tmdbId);
+      <div class="inline-actions">
+        <button
+          mat-icon-button
+          [attr.aria-pressed]="inWatchlist"
+          [matTooltip]="(inWatchlist ? 'card.inWatchlist' : 'card.watchlist') | transloco"
+          [attr.aria-label]="(inWatchlist ? 'card.inWatchlist' : 'card.watchlist') | transloco"
+          (click)="toggleWatchlist(movie)"
+        >
+          <mat-icon>{{ inWatchlist ? 'bookmark' : 'bookmark_border' }}</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          [attr.aria-pressed]="watched"
+          [matTooltip]="(watched ? 'card.watchedToggle' : 'card.unwatchedToggle') | transloco"
+          [attr.aria-label]="(watched ? 'card.watchedToggle' : 'card.unwatchedToggle') | transloco"
+          (click)="toggleWatched(movie)"
+        >
+          <mat-icon>{{ watched ? 'check_circle' : 'visibility' }}</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          [matTooltip]="'card.addToList' | transloco"
+          [attr.aria-label]="'card.addToList' | transloco"
+          [matMenuTriggerFor]="listsMenu"
+          [matMenuTriggerData]="{ movie }"
+        >
+          <mat-icon>playlist_add</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          class="warn-button"
+          [matTooltip]="removeLabel()"
+          [attr.aria-label]="removeLabel()"
+          (click)="remove.emit(row)"
+        >
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+      <!-- Narrow tables keep one button and move the actions into a menu. -->
+      <button
+        mat-icon-button
+        class="more-actions"
+        [attr.aria-label]="'table.moreActions' | transloco: { title: movie.title }"
+        [matMenuTriggerFor]="moreMenu"
+      >
+        <mat-icon>more_vert</mat-icon>
+      </button>
+      <mat-menu #moreMenu="matMenu">
+        <button mat-menu-item (click)="toggleWatchlist(movie)">
+          <mat-icon>{{ inWatchlist ? 'bookmark' : 'bookmark_border' }}</mat-icon>
+          <span>{{ (inWatchlist ? 'card.inWatchlist' : 'card.watchlist') | transloco }}</span>
+        </button>
+        <button mat-menu-item (click)="toggleWatched(movie)">
+          <mat-icon>{{ watched ? 'check_circle' : 'visibility' }}</mat-icon>
+          <span>{{ (watched ? 'card.watchedToggle' : 'card.unwatchedToggle') | transloco }}</span>
+        </button>
+        <button mat-menu-item [matMenuTriggerFor]="listsMenu" [matMenuTriggerData]="{ movie }">
+          <mat-icon>playlist_add</mat-icon>
+          <span>{{ 'card.addToList' | transloco }}</span>
+        </button>
+        <button mat-menu-item (click)="remove.emit(row)">
+          <mat-icon>delete</mat-icon>
+          <span>{{ removeLabel() }}</span>
+        </button>
+      </mat-menu>
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="detail">
+    <td mat-cell *matCellDef="let row" [attr.colspan]="columns.length" class="detail-cell">
+      {{ row.movie.overview || ('table.noDescription' | transloco) }}
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="columns"></tr>
+  <tr mat-row *matRowDef="let row; columns: columns" class="movie-row"></tr>
+  <tr
+    mat-row
+    *matRowDef="let row; columns: ['detail']"
+    class="detail-row"
+    [class.expanded]="expanded() === row.key"
+  ></tr>
+</table>
+
+<mat-menu #listsMenu="matMenu">
+  <ng-template matMenuContent let-movie="movie">
+    @for (list of customLists(); track list.name) {
+    @if (inList(list, movie)) {
+    <button mat-menu-item disabled>{{ 'panel.alreadyIn' | transloco: { name: list.name } }}</button>
+    } @else {
+    <button mat-menu-item (click)="addToList(movie, list)">{{ list.name }}</button>
+    }
+    } @empty {
+    <button mat-menu-item disabled>{{ 'card.noLists' | transloco }}</button>
+    }
+  </ng-template>
+</mat-menu>
