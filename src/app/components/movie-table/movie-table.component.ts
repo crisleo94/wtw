@@ -48,6 +48,9 @@ export class MovieTableComponent {
   readonly columns = ['poster', 'title', 'overview', 'average', 'rating', 'actions'];
   expanded = signal<string | null>(null);
 
+  // Rows are rebuilt on every library change: keep the DOM (and the focus) by key.
+  readonly trackRow = (_index: number, row: MovieTableRow) => row.key;
+
   watchedIds = this.library.watchedIds;
   watchlistIds = this.library.watchlistIds;
   ratings = this.library.ratings;

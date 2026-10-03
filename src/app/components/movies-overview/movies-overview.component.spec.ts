@@ -66,6 +66,28 @@ describe('MoviesOverviewComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Loading your movies');
   });
 
+  it('should keep the keyboard focus on the stars while rating several steps', async () => {
+    TestBed.inject(AuthStore).continueAsGuest();
+    const movie = { tmdbId: 5, title: 'Up', overview: '', genreIds: [], posterPath: '/u.jpg' } as unknown as Movie;
+    TestBed.inject(LibraryStore).recordGenerated(movie);
+    await fixture.whenStable();
+    const host = fixture.nativeElement as HTMLElement;
+    const slider = () => host.querySelector<HTMLElement>('tr.movie-row [role="slider"]')!;
+    const first = slider();
+    first.focus();
+    for (let i = 0; i < 7; i++) {
+      document.activeElement!.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true })
+      );
+      await fixture.whenStable();
+    }
+    expect(TestBed.inject(LibraryStore).ratings().get(5)).toBe(3.5);
+    expect(slider()).toBe(first);
+    expect(document.activeElement).toBe(first);
+    expect(first.getAttribute('aria-valuenow')).toBe('3.5');
+    clearAnonymousStorage();
+  });
+
   it('should list the history in the compact table', async () => {
     const movie = { tmdbId: 4, title: 'Coco', overview: 'Miguel', genreIds: [], posterPath: '/c.jpg', releaseDate: '2017-10-27', voteAverage: 8.2 } as unknown as Movie;
     TestBed.inject(LibraryStore).recordGenerated(movie);

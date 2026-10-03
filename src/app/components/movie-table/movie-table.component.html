@@ -1,4 +1,4 @@
-<table mat-table [dataSource]="rows()" multiTemplateDataRows class="movie-table">
+<table mat-table [dataSource]="rows()" [trackBy]="trackRow" multiTemplateDataRows class="movie-table">
   <ng-container matColumnDef="poster">
     <th mat-header-cell *matHeaderCellDef><span class="visually-hidden">{{ 'table.poster' | transloco }}</span></th>
     <td mat-cell *matCellDef="let row">
