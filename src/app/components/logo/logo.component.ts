@@ -1,27 +1,32 @@
 import { Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { MatIconModule } from '@angular/material/icon';
 import { TranslocoService } from '@jsverse/transloco';
 
-// Round placeholder until the real logo exists.
+// The WtW logo cut to a circle; 96/144px copies of the 2048px original keep it light.
 @Component({
   selector: 'app-logo',
-  imports: [MatIconModule],
-  host: {
-    role: 'img',
-    '[attr.aria-label]': 'label()',
-  },
-  template: `<mat-icon aria-hidden="true">movie</mat-icon>`,
+  template: `<img
+    src="assets/images/wtwlogo-96.jpg"
+    srcset="assets/images/wtwlogo-96.jpg 2x, assets/images/wtwlogo-144.jpg 3x"
+    width="48"
+    height="48"
+    [alt]="label()"
+  />`,
   styles: `
     :host
-      display: grid
-      place-items: center
+      display: block
       width: 48px
       height: 48px
       border-radius: 50%
+      overflow: hidden
       border: 2px solid var(--mat-sys-primary)
       background: var(--mat-sys-primary-container)
-      color: var(--mat-sys-on-primary-container)
+      box-sizing: border-box
+    img
+      display: block
+      width: 100%
+      height: 100%
+      object-fit: cover
   `,
 })
 export class LogoComponent {
