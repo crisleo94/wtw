@@ -13,6 +13,11 @@ const browserDistFolder = join(import.meta.dirname, '../browser');
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 
+// Liveness for Docker/Coolify: answers before the BFF and without rendering Angular.
+app.get('/healthz', (_req, res) => {
+  res.type('text/plain').send('ok');
+});
+
 // BFF: forwards /api/* to the backend inside the docker network
 app.use(
   '/api',

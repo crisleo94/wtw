@@ -19,4 +19,7 @@ WORKDIR /app
 COPY --from=build --chown=node:node /app/dist/wtw ./
 USER node
 EXPOSE 4000
+# busybox wget ships with alpine; the app listens on PORT (4000 by default)
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD wget -q -O /dev/null "http://localhost:${PORT:-4000}/healthz" || exit 1
 CMD ["node", "server/server.mjs"]
