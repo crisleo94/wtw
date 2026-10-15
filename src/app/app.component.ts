@@ -16,6 +16,7 @@ import { AuthDialogService } from './services/auth-dialog.service';
 import { MoviesService } from './services/movies.service';
 import { AuthStore } from './stores/auth.store';
 import { LanguageStore } from './stores/language.store';
+import { WatchCatalogStore } from './stores/watch-catalog.store';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { catchError, EMPTY, switchMap } from 'rxjs';
 import { MatDividerModule } from '@angular/material/divider';
@@ -65,6 +66,8 @@ export class AppComponent implements OnInit {
   message = signal<string | null>(null);
 
   constructor() {
+    // Countries are needed for the default country and the "where to watch" titles.
+    inject(WatchCatalogStore).loadRegions();
     // Shows the same movie in the new language instead of generating another.
     inject(LanguageStore)
       .changed$.pipe(

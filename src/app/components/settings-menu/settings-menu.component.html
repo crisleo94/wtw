@@ -44,4 +44,16 @@
       <span>{{ 'settings.dark' | transloco }}</span>
     </button>
   </div>
+  <mat-divider></mat-divider>
+  <div class="section-title" id="settings-streaming">{{ 'streaming.section' | transloco }}</div>
+  <div role="group" aria-labelledby="settings-streaming">
+    <button mat-menu-item class="streaming-item" (click)="openStreaming()">
+      <mat-icon>public</mat-icon>
+      <span>{{ preferences.regionName() ? ('streaming.countryMenu' | transloco: { name: preferences.regionName() }) : ('streaming.chooseCountry' | transloco) }}</span>
+    </button>
+    <button mat-menu-item class="streaming-item" (click)="openStreaming()">
+      <mat-icon>live_tv</mat-icon>
+      <span>{{ 'streaming.platformsMenu' | transloco: { count: preferences.providerIds().length } }}</span>
+    </button>
+  </div>
 </mat-menu>
