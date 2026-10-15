@@ -1,0 +1,61 @@
+:host
+  display: block
+
+.container
+  display: grid
+  grid-template-columns: minmax(0, 400px) minmax(0, 1fr)
+  min-height: 80vh
+  max-width: 1200px
+  margin: 0 auto
+  place-items: center
+
+  // Below desktop the filters and the card stack, centered at a readable width.
+  @media (max-width: 1023.98px)
+    grid-template-columns: minmax(0, 1fr)
+    place-items: stretch
+    gap: 16px
+    min-height: 0
+    max-width: 720px
+    padding-inline: 16px
+
+.menu
+  min-width: 0
+  background-color: var(--mat-sys-surface-container)
+  color: var(--mat-sys-on-surface)
+  display: grid
+  grid-template-rows: auto 1fr
+  gap: 16px
+  padding: 16px
+  border: 1px solid var(--mat-sys-outline-variant)
+  border-radius: 10px
+  box-shadow: var(--mat-sys-level2)
+  .menu-icon
+    display: flex
+    justify-content: center
+    align-items: center
+
+.content
+  min-width: 0
+  box-sizing: border-box
+  padding: 16px
+  overflow: auto
+  @media (max-width: 1023.98px)
+    padding-inline: 0
+
+.spinner-container
+  display: flex
+  justify-content: center
+  align-items: center
+  height: 100%
+
+  @media (max-width: 600px)
+    display: block
+
+.message
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 8px
+  max-width: 360px
+  margin-inline: auto
+  text-align: center

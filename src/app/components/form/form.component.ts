@@ -34,6 +34,7 @@ import { Movie } from '../../interfaces/movie.interface';
 import { GenresService } from '../../services/genres.service';
 import { MoviesService, NoProvidersMatchError } from '../../services/movies.service';
 import { StreamingSettingsService } from '../../services/streaming-settings.service';
+import { GeneratorStore } from '../../stores/generator.store';
 import { LibraryStore } from '../../stores/library.store';
 import { PreferencesStore } from '../../stores/preferences.store';
 import { rangeValidator } from '../../validators/range.validator';
@@ -66,6 +67,7 @@ export class FormComponent implements OnInit {
   private movieService = inject(MoviesService);
   private library = inject(LibraryStore);
   private streamingSettings = inject(StreamingSettingsService);
+  private generator = inject(GeneratorStore);
   preferences = inject(PreferencesStore);
   private transloco = inject(TranslocoService);
   private destroyRef = inject(DestroyRef);
@@ -112,6 +114,14 @@ export class FormComponent implements OnInit {
   );
 
   constructor() {
+    // Coming back from a movie detail shows the filters used before.
+    const saved = this.generator.filters();
+    if (saved) {
+      this.dataForm.patchValue({ ...saved, votesMax: saved.votesMax ?? null });
+    }
+    this.dataForm.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.generator.filters.set(this.buildFilters()));
     afterNextRender(() => this.watchSliderWidth());
     this.debounceSubmit$
       .pipe(debounceTime(200), takeUntilDestroyed())
