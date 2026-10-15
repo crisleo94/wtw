@@ -115,7 +115,7 @@
         <mat-icon class="handle" cdkDragHandle aria-hidden="true">drag_indicator</mat-icon>
         <img [src]="posterUrl(item.movie.posterPath)" [alt]="" />
         <span class="title">
-          {{ item.movie.title }}
+          <a [routerLink]="['/movie', item.tmdbId]" (click)="closed.emit()">{{ item.movie.title }}</a>
           @if (item.watched) {<span class="watched">{{ 'panel.watched' | transloco }}</span>}
         </span>
         <button

@@ -7,6 +7,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { MovieList } from '../../interfaces/library.interface';
 import { Movie } from '../../interfaces/movie.interface';
@@ -28,6 +29,7 @@ import { WhereToWatchComponent } from '../where-to-watch/where-to-watch.componen
     MatIconModule,
     MatMenuModule,
     MatTooltipModule,
+    RouterLink,
     TranslocoPipe,
     StarRatingComponent,
     WhereToWatchComponent,

@@ -1,3 +1,4 @@
+import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { FocusMonitor } from '@angular/cdk/a11y';
@@ -42,7 +43,7 @@ describe('MovieTableComponent', () => {
     clearAnonymousStorage();
     await TestBed.configureTestingModule({
       imports: [MovieTableComponent, getTranslocoTestingModule()],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     }).compileComponents();
     fixture = TestBed.createComponent(MovieTableComponent);
     fixture.componentRef.setInput('rows', rows);
@@ -256,7 +257,7 @@ describe('MovieTableComponent', () => {
     const items = Array.from(document.querySelectorAll('.mat-mdc-menu-panel [mat-menu-item]')).map((item) =>
       item.textContent?.trim()
     );
-    expect(items.length).toBe(3);
+    expect(items.length).toBe(4);
     expect(items.join(' ')).not.toContain('Remove');
     expect(Array.from(document.querySelectorAll('.mat-mdc-menu-panel mat-icon')).map((i) => i.textContent)).not.toContain('delete');
   });
@@ -281,5 +282,17 @@ describe('MovieTableComponent', () => {
     expect(rate).toHaveBeenCalledWith(rows[0].movie, 4);
     expect(removed).toEqual([rows[0]]);
     expect(buttons[3].getAttribute('aria-label')).toBe('Remove from history');
+  });
+
+  it('should open the detail from the poster and the narrow menu', async () => {
+    const link = host.querySelector<HTMLAnchorElement>('a.thumb-link')!;
+    expect(link.getAttribute('href')).toBe(`/movie/${rows[0].movie.tmdbId}`);
+    expect(link.getAttribute('aria-label')).toBe(`Details of ${rows[0].movie.title}`);
+    await atWidth('360px');
+    host.querySelector<HTMLButtonElement>('.more-actions')!.click();
+    await fixture.whenStable();
+    const item = document.querySelector<HTMLAnchorElement>('a[mat-menu-item]')!;
+    expect(item.textContent).toContain('Details');
+    expect(item.getAttribute('href')).toBe(`/movie/${rows[0].movie.tmdbId}`);
   });
 });

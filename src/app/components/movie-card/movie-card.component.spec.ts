@@ -1,3 +1,4 @@
+import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -31,6 +32,7 @@ describe('MovieCardComponent', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
+        provideRouter([]),
       ],
     })
     .compileComponents();
@@ -50,6 +52,7 @@ describe('MovieCardComponent', () => {
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('mat-card-title')?.textContent).toContain('Alien');
+    expect(compiled.querySelector('mat-card-title a')?.getAttribute('href')).toBe('/movie/1');
   });
 
   it('should show where to watch the generated movie', async () => {

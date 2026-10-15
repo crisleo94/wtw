@@ -52,7 +52,9 @@
   <div class="card-content">
     <mat-card-header>
       <mat-card-title-group>
-        <mat-card-title>{{ movie.title }}</mat-card-title>
+        <mat-card-title>
+          <a class="title-link" [routerLink]="['/movie', movie.tmdbId]">{{ movie.title }}</a>
+        </mat-card-title>
         <mat-card-subtitle
           >{{ 'card.releaseDate' | transloco }} {{ movie.releaseDate ?? ('card.unknown' | transloco) }}</mat-card-subtitle
         >

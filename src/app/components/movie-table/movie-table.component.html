@@ -2,7 +2,9 @@
   <ng-container matColumnDef="poster">
     <th mat-header-cell *matHeaderCellDef><span class="visually-hidden">{{ 'table.poster' | transloco }}</span></th>
     <td mat-cell *matCellDef="let row">
-      <img class="thumb" [src]="thumbnail(row.movie)" [alt]="row.movie.title" loading="lazy" width="40" height="60" />
+      <a class="thumb-link" [routerLink]="['/movie', row.movie.tmdbId]" [attr.aria-label]="'detail.open' | transloco: { title: row.movie.title }">
+        <img class="thumb" [src]="thumbnail(row.movie)" alt="" loading="lazy" width="40" height="60" />
+      </a>
     </td>
   </ng-container>
 
@@ -121,6 +123,10 @@
         <mat-icon>more_vert</mat-icon>
       </button>
       <mat-menu #moreMenu="matMenu">
+        <a mat-menu-item [routerLink]="['/movie', movie.tmdbId]">
+          <mat-icon>info</mat-icon>
+          <span>{{ 'detail.details' | transloco }}</span>
+        </a>
         <button mat-menu-item (click)="toggleWatchlist(movie)">
           <mat-icon>{{ inWatchlist ? 'bookmark' : 'bookmark_border' }}</mat-icon>
           <span>{{ (inWatchlist ? 'card.inWatchlist' : 'card.watchlist') | transloco }}</span>

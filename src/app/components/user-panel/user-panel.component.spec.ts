@@ -1,3 +1,4 @@
+import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -29,7 +30,7 @@ describe('UserPanelComponent', () => {
     clearAnonymousStorage();
     await TestBed.configureTestingModule({
       imports: [UserPanelComponent, getTranslocoTestingModule()],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     }).compileComponents();
     fixture = TestBed.createComponent(UserPanelComponent);
     component = fixture.componentInstance;
@@ -172,5 +173,14 @@ describe('UserPanelComponent', () => {
     component.startRename(component.panelLists()[1]);
     await fixture.whenStable();
     expect((document.activeElement as HTMLInputElement).name).toBe('rename');
+  });
+
+  it('should open a movie detail from its title and close the panel', () => {
+    const closed = jasmine.createSpy('closed');
+    component.closed.subscribe(closed);
+    const link = (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>('.item .title a')!;
+    expect(link.getAttribute('href')).toBe('/movie/1');
+    link.click();
+    expect(closed).toHaveBeenCalled();
   });
 });
