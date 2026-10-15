@@ -18,3 +18,19 @@ export interface StreamingPreferences {
 }
 
 export const MAX_PROVIDERS = 50;
+
+export type Monetization = 'flatrate' | 'free' | 'ads' | 'rent' | 'buy';
+export const MONETIZATIONS: Monetization[] = ['flatrate', 'free', 'ads', 'rent', 'buy'];
+
+// "Where to watch" in one country; `link` is the TMDB page (there are no deep links).
+export interface WatchProviders extends Record<Monetization, WatchProvider[]> {
+  region: string;
+  link: string | null;
+}
+
+// Extra params of GET /api/movies/generate.
+export interface StreamingQuery {
+  region?: string;
+  providers?: number[];
+  monetization?: Monetization[];
+}

@@ -2,12 +2,18 @@ import { HttpClient } from '@angular/common/http';
 import { computed, effect, inject, Injectable, signal, untracked } from '@angular/core';
 import { catchError, map, Observable, of, tap } from 'rxjs';
 import { API_URL } from '../constants';
-import { MAX_PROVIDERS, StreamingPreferences } from '../interfaces/streaming.interface';
+import {
+  MAX_PROVIDERS,
+  Monetization,
+  StreamingPreferences,
+  StreamingQuery,
+} from '../interfaces/streaming.interface';
 import { injectLocalStorage, onStorageChange } from '../utils/browser-storage';
 import { AuthStore } from './auth.store';
 import { WatchCatalogStore } from './watch-catalog.store';
 
 export const PREFERENCES_KEY = 'wtw.preferences.v1';
+export const ONLY_MINE_KEY = 'wtw.onlyMyPlatforms.v1';
 
 export const defaultPreferences = (): StreamingPreferences => ({
   region: null,
@@ -26,6 +32,7 @@ export class PreferencesStore {
   private local = injectLocalStorage();
   private localPrefs = signal<StreamingPreferences | null>(this.readLocal());
   private remotePrefs = signal<StreamingPreferences | null>(null);
+  private onlyMineChoice = signal(this.local.get(ONLY_MINE_KEY) === 'true');
 
   private saved = computed(
     () =>
@@ -48,6 +55,25 @@ export class PreferencesStore {
   readonly includeRentBuy = computed(() => this.saved().includeRentBuy);
   readonly hasProviders = computed(() => !!this.region() && this.providerIds().length > 0);
   readonly regionName = computed(() => this.catalog.regionName(this.region()));
+  // "Only my platforms" in the generator; remembered, but off without platforms.
+  readonly onlyMine = computed(() => this.onlyMineChoice() && this.hasProviders());
+
+  // Params for GET /api/movies/generate: always the country, platforms only when filtering.
+  readonly generateQuery = computed<StreamingQuery>(() => {
+    const region = this.region();
+    if (!region) {
+      return {};
+    }
+    if (!this.onlyMine()) {
+      return { region };
+    }
+    const monetization: Monetization[] = ['flatrate', 'free', 'ads'];
+    return {
+      region,
+      providers: this.providerIds(),
+      monetization: this.includeRentBuy() ? [...monetization, 'rent', 'buy'] : monetization,
+    };
+  });
 
   constructor() {
     effect(() => {
@@ -56,6 +82,11 @@ export class PreferencesStore {
       }
     });
     onStorageChange(PREFERENCES_KEY, () => this.localPrefs.set(this.readLocal()));
+  }
+
+  setOnlyMine(value: boolean): void {
+    this.onlyMineChoice.set(value);
+    this.local.set(ONLY_MINE_KEY, String(value));
   }
 
   // Called once the guest data was imported, so the API already has it.

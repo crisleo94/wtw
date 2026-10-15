@@ -8,7 +8,7 @@ import { clearAnonymousStorage } from '../testing/guest-storage-testing';
 import { clearLanguagePreference, getTranslocoTestingModule } from '../testing/transloco-testing';
 import { AuthStore } from './auth.store';
 import { LibraryStore } from './library.store';
-import { PREFERENCES_KEY, PreferencesStore, regionFromLocale } from './preferences.store';
+import { ONLY_MINE_KEY, PREFERENCES_KEY, PreferencesStore, regionFromLocale } from './preferences.store';
 import { WatchCatalogStore } from './watch-catalog.store';
 
 const user = { id: 'u1', email: 'a@b.co', fullName: 'Ana' };
@@ -51,6 +51,7 @@ describe('PreferencesStore', () => {
 
   afterEach(() => {
     localStorage.removeItem(PREFERENCES_KEY);
+    localStorage.removeItem(ONLY_MINE_KEY);
     clearAnonymousStorage();
     clearLanguagePreference();
   });
@@ -141,5 +142,23 @@ describe('PreferencesStore', () => {
     TestBed.tick();
     expect(store.region()).toBeNull();
     expect(store.providerIds()).toEqual([]);
+  });
+
+  it('should build the generate params and remember "only my platforms"', () => {
+    const store = setup('fr-FR');
+    expect(store.generateQuery()).toEqual({});
+    store.setOnlyMine(true);
+    expect(store.onlyMine()).toBeFalse();
+
+    store.save({ region: 'EC', providerIds: [8, 337], includeRentBuy: false }).subscribe();
+    expect(store.onlyMine()).toBeTrue();
+    expect(store.generateQuery()).toEqual({ region: 'EC', providers: [8, 337], monetization: ['flatrate', 'free', 'ads'] });
+
+    store.save({ region: 'EC', providerIds: [8], includeRentBuy: true }).subscribe();
+    expect(store.generateQuery().monetization).toEqual(['flatrate', 'free', 'ads', 'rent', 'buy']);
+
+    store.setOnlyMine(false);
+    expect(store.generateQuery()).toEqual({ region: 'EC' });
+    expect(localStorage.getItem(ONLY_MINE_KEY)).toBe('false');
   });
 });
