@@ -56,6 +56,7 @@ describe('LibraryStore', () => {
       .expectOne('/api/me/lists')
       .flush([{ id: 'w1', name: 'Watchlist', isSystem: true, position: 0, items: [] }]);
     httpTesting.expectOne('/api/me/movies').flush({ watched: [7] });
+    httpTesting.match('/api/me/preferences').forEach((req) => req.flush({ region: null, providerIds: [], includeRentBuy: false }));
     flushWatched([{ movie, watchedAt: '2026-10-02T10:00:00.000Z', rating: null }], 1);
   }
 
