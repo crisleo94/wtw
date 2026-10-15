@@ -1,0 +1,20 @@
+<footer class="footer">
+  <div class="credits">
+    <a class="tmdb" href="https://www.themoviedb.org" target="_blank" rel="noopener">
+      <!-- Official TMDB logo, unaltered (see their logos and attribution guide). -->
+      <img src="assets/images/tmdb-logo.svg" alt="The Movie Database (TMDB)" width="154" height="20" />
+      <span class="visually-hidden">{{ 'watch.newTab' | transloco }}</span>
+    </a>
+    <!-- TMDB asks for this exact sentence in English. -->
+    <p class="notice" lang="en">This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+    <p class="justwatch">
+      {{ 'footer.justwatch' | transloco }}
+      <a href="https://www.justwatch.com" target="_blank" rel="noopener">JustWatch</a>
+    </p>
+  </div>
+  <p class="signature">
+    <span lang="en">Made by CodeScripters with love</span>
+    <mat-icon class="heart" aria-hidden="true">favorite</mat-icon>
+    <span class="year">© {{ year }}</span>
+  </p>
+</footer>

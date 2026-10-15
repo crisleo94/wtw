@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { AppFooterComponent } from './components/app-footer/app-footer.component';
 import { LogoComponent } from './components/logo/logo.component';
 import { SettingsMenuComponent } from './components/settings-menu/settings-menu.component';
 import { UserPanelComponent } from './components/user-panel/user-panel.component';
@@ -22,6 +23,7 @@ import { Title } from '@angular/platform-browser';
     RouterOutlet,
     UserPanelComponent,
     SettingsMenuComponent,
+    AppFooterComponent,
     LogoComponent,
     MatButtonModule,
     MatSidenavModule,

@@ -39,6 +39,13 @@ describe('AppComponent', () => {
     expect(link.getAttribute('aria-label')).toBe('Home');
   });
 
+  it('should show the footer on every page', async () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    await fixture.whenStable();
+    const footer = (fixture.nativeElement as HTMLElement).querySelector('app-footer footer');
+    expect(footer?.textContent).toContain('Made by CodeScripters with love');
+  });
+
   it('should render title', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();

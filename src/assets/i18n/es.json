@@ -262,5 +262,8 @@
     "noDescription": "Sin sinopsis disponible.",
     "showDescription": "{{title}}: mostrar u ocultar la sinopsis",
     "moreActions": "Más acciones para {{title}}"
+  },
+  "footer": {
+    "justwatch": "Datos de streaming proporcionados por"
   }
 }

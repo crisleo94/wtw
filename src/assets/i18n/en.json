@@ -262,5 +262,8 @@
     "noDescription": "No synopsis available.",
     "showDescription": "{{title}}: show or hide the synopsis",
     "moreActions": "More actions for {{title}}"
+  },
+  "footer": {
+    "justwatch": "Streaming data provided by"
   }
 }
