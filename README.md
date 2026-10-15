@@ -26,8 +26,19 @@ The API sets the JWT in its own `httpOnly` cookie (`wtw_token`) and clears it on
 1. New resource from the Git repository, build pack **Nixpacks** (Node 22 from `.nvmrc`), and mark it as a **static site**.
 2. Build command: `npm run build`. Publish directory: `dist/wtw/browser`.
 3. Build variable: `API_URL=https://<api-domain>/api` (it must be available at build time).
-4. Enable the SPA fallback (every unknown path serves `index.html`); in Coolify, the "SPA" option of static sites.
+4. Enable the SPA fallback (every unknown path serves `index.html`); in Coolify, the "SPA" option of static sites. Without it, reloading or sharing a deep link such as `/movie/550` gives the server's 404. Check it after each deploy:
+   ```sh
+   curl -s -o /dev/null -w "%{http_code}\n" https://<front-domain>/movie/550   # must print 200
+   ```
 5. In the API, add the front domain to `CORS_ORIGINS` and set `COOKIE_SECURE=true`.
+
+## Routes
+- `/`: generator, its result and the History / Watchlist / Watched tables.
+- `/movie/:tmdbId`: movie detail (lazy loaded). Unknown paths go back to `/`.
+
+## Attribution
+- TMDB: the footer shows the official TMDB logo (`src/assets/images/tmdb-logo.svg`, unaltered) and the notice "This product uses the TMDB API but is not endorsed or certified by TMDB.", as their terms require.
+- JustWatch: streaming data ("where to watch", countries and platforms) comes from JustWatch through TMDB and must credit it; it is shown next to each "where to watch" block, in the platforms dialog and in the footer.
 
 ## Scripts
 - `npm start`: dev server on `http://localhost:4200`
