@@ -41,7 +41,23 @@
     "includeRentBuyHint": "Si no, solo cuentan como tuyas las de suscripción, gratis y con anuncios.",
     "attribution": "Datos de streaming:",
     "save": "Guardar",
-    "saved": "Ajustes de streaming guardados"
+    "saved": "Ajustes de streaming guardados",
+    "onlyMine": "Solo mis plataformas",
+    "choosePlatforms": "Elige tus plataformas"
+  },
+  "watch": {
+    "title": "Dónde ver en {{country}}",
+    "flatrate": "Suscripción",
+    "free": "Gratis",
+    "ads": "Con anuncios",
+    "rent": "Alquiler",
+    "buy": "Compra",
+    "yours": "Tu plataforma",
+    "seeAll": "Ver todas las opciones",
+    "newTab": "(se abre en una pestaña nueva)",
+    "notAvailable": "No disponible en streaming en {{country}}.",
+    "noCountry": "Elige tu país para ver dónde verla.",
+    "mayVary": "La disponibilidad puede variar."
   },
   "form": {
     "releasedFrom": "Lanzado desde:",
@@ -185,7 +201,8 @@
     "invalidCredentials": "Correo o contraseña incorrectos.",
     "emailTaken": "Este correo ya está registrado. Intenta iniciar sesión.",
     "guestImportRejected": "No pudimos guardar tu actividad de invitado en tu cuenta. ¿Quieres descartarla?",
-    "guestActivityDiscarded": "Actividad de invitado descartada."
+    "guestActivityDiscarded": "Actividad de invitado descartada.",
+    "noProvidersMatch": "Ninguna de tus plataformas tiene una película con estos filtros. Amplía los filtros o desactiva \"Solo mis plataformas\"."
   },
   "common": {
     "dismiss": "Cerrar",

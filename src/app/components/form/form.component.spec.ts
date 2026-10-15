@@ -1,5 +1,11 @@
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import {
+  HttpTestingController,
+  provideHttpClientTesting,
+} from '@angular/common/http/testing';
+import { EMPTY } from 'rxjs';
+import { StreamingSettingsService } from '../../services/streaming-settings.service';
+import { ONLY_MINE_KEY, PREFERENCES_KEY, PreferencesStore } from '../../stores/preferences.store';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { FormComponent } from './form.component';
@@ -87,5 +93,57 @@ describe('FormComponent', () => {
     expect(host.querySelector('mat-slider')).not.toBe(slider);
     expect(component.dataForm.controls.ratingMin.value).toBe(6);
     expect(component.dataForm.controls.ratingMax.value).toBe(10);
+  });
+
+  describe('only my platforms', () => {
+    afterEach(() => {
+      localStorage.removeItem(PREFERENCES_KEY);
+      localStorage.removeItem(ONLY_MINE_KEY);
+    });
+
+    const host = () => fixture.nativeElement as HTMLElement;
+
+    it('should offer to choose platforms when there are none', async () => {
+      const open = spyOn(TestBed.inject(StreamingSettingsService), 'open').and.returnValue(EMPTY);
+      await fixture.whenStable();
+      expect(host().querySelector('mat-slide-toggle')).toBeNull();
+      const link = host().querySelector<HTMLButtonElement>('.choose-platforms')!;
+      expect(link.textContent).toContain('Choose your platforms');
+      link.click();
+      expect(open).toHaveBeenCalled();
+    });
+
+    it('should filter by the saved platforms and remember the toggle', async () => {
+      const preferences = TestBed.inject(PreferencesStore);
+      preferences.save({ region: 'EC', providerIds: [8], includeRentBuy: false }).subscribe();
+      await fixture.whenStable();
+      const toggle = host().querySelector<HTMLButtonElement>('.only-mine button[role="switch"]')!;
+      expect(host().querySelector('.only-mine')!.textContent).toContain('Only my platforms');
+      expect(toggle.getAttribute('aria-checked')).toBe('false');
+      toggle.click();
+      await fixture.whenStable();
+      expect(localStorage.getItem(ONLY_MINE_KEY)).toBe('true');
+
+      const httpTesting = TestBed.inject(HttpTestingController);
+      component.generateMovies();
+      const req = httpTesting.expectOne((request) => request.url === '/api/movies/generate');
+      expect(req.request.params.get('region')).toBe('EC');
+      expect(req.request.params.get('providers')).toBe('8');
+      expect(req.request.params.get('monetization')).toBe('flatrate,free,ads');
+    });
+
+    it('should explain when the platforms have no match', () => {
+      const messages: string[] = [];
+      component.errorEvent.subscribe((key) => messages.push(key));
+      component.generateMovies();
+      TestBed.inject(HttpTestingController)
+        .expectOne((request) => request.url === '/api/movies/generate')
+        .flush({ reason: 'no_providers_match' }, { status: 404, statusText: 'Not Found' });
+      component.generateMovies();
+      TestBed.inject(HttpTestingController)
+        .expectOne((request) => request.url === '/api/movies/generate')
+        .flush(null, { status: 500, statusText: 'Error' });
+      expect(messages).toEqual(['errors.noProvidersMatch', 'errors.fetchError']);
+    });
   });
 });

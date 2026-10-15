@@ -80,8 +80,10 @@ export class AppComponent implements OnInit {
         takeUntilDestroyed()
       )
       .subscribe((movie) => {
-        if (this.movie()?.tmdbId === movie.tmdbId) {
-          this.movie.set(movie);
+        const current = this.movie();
+        if (current?.tmdbId === movie.tmdbId) {
+          // GET /movies/:id has no "where to watch"; keep the generated one.
+          this.movie.set({ ...movie, watchProviders: movie.watchProviders ?? current.watchProviders });
         }
       });
   }
@@ -104,9 +106,9 @@ export class AppComponent implements OnInit {
     this.message.set($event ? null : 'errors.noMovies');
   }
 
-  recieveError(): void {
+  recieveError(message = 'errors.fetchError'): void {
     this.movie.set(null);
-    this.message.set('errors.fetchError');
+    this.message.set(message);
   }
 
   openLogin(): void {

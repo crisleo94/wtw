@@ -41,7 +41,23 @@
     "includeRentBuyHint": "Otherwise only subscription, free and with ads count as yours.",
     "attribution": "Streaming data:",
     "save": "Save",
-    "saved": "Streaming settings saved"
+    "saved": "Streaming settings saved",
+    "onlyMine": "Only my platforms",
+    "choosePlatforms": "Choose your platforms"
+  },
+  "watch": {
+    "title": "Where to watch in {{country}}",
+    "flatrate": "Subscription",
+    "free": "Free",
+    "ads": "With ads",
+    "rent": "Rent",
+    "buy": "Buy",
+    "yours": "Your platform",
+    "seeAll": "See all options",
+    "newTab": "(opens in a new tab)",
+    "notAvailable": "Not available for streaming in {{country}}.",
+    "noCountry": "Choose your country to see where to watch it.",
+    "mayVary": "Availability may vary."
   },
   "form": {
     "releasedFrom": "Released from:",
@@ -185,7 +201,8 @@
     "invalidCredentials": "Invalid email or password.",
     "emailTaken": "This email is already registered. Try logging in instead.",
     "guestImportRejected": "Your guest activity could not be saved to your account. Discard it?",
-    "guestActivityDiscarded": "Guest activity discarded."
+    "guestActivityDiscarded": "Guest activity discarded.",
+    "noProvidersMatch": "None of your platforms has a movie with these filters. Widen the filters or turn off \"Only my platforms\"."
   },
   "common": {
     "dismiss": "Dismiss",

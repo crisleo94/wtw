@@ -36,7 +36,7 @@
           <mat-icon>theater_comedy</mat-icon>
         </div>
         <app-form (movieEvent)="recieveMovie($event)" (isLoadingEvent)="recieveIsLoading($event)"
-          (errorEvent)="recieveError()"></app-form>
+          (errorEvent)="recieveError($event)"></app-form>
       </div>
       <div class="content">
         @if (isLoading()) {

@@ -71,6 +71,28 @@ describe('AppComponent', () => {
     expect(fixture.componentInstance.movie()?.overview).toBe('Neo descubre la verdad');
   });
 
+  it('should explain when the chosen platforms have no movie', async () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.componentInstance.recieveError('errors.noProvidersMatch');
+    await fixture.whenStable();
+    expect((fixture.nativeElement as HTMLElement).querySelector('.message')?.textContent).toContain(
+      'Only my platforms'
+    );
+  });
+
+  it('should keep where to watch when the movie comes back in another language', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const httpTesting = TestBed.inject(HttpTestingController);
+    const watchProviders = { region: 'EC', link: null, flatrate: [], free: [], ads: [], rent: [], buy: [] };
+    const movie = { tmdbId: 603, title: 'The Matrix', genreIds: [], watchProviders } as unknown as Movie;
+    fixture.componentInstance.recieveMovie(movie);
+    TestBed.inject(LanguageStore).setLang('es');
+    httpTesting.match('/api/genres');
+    httpTesting.expectOne('/api/movies/603').flush({ ...movie, watchProviders: undefined, title: 'Matrix' });
+    expect(fixture.componentInstance.movie()?.title).toBe('Matrix');
+    expect(fixture.componentInstance.movie()?.watchProviders).toEqual(watchProviders);
+  });
+
   describe('header layout', () => {
     it('should show a round logo on the left of the centered title', async () => {
       const { header, title, logo, logoElement } = await measure('1280px');
