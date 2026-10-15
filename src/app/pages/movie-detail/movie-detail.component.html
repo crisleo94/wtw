@@ -1,0 +1,168 @@
+<article class="page" [attr.aria-busy]="status() === 'loading'">
+  <div class="toolbar">
+    <button mat-button type="button" class="back" (click)="back()">
+      <mat-icon>arrow_back</mat-icon>
+      {{ 'detail.back' | transloco }}
+    </button>
+  </div>
+
+  @switch (status()) {
+  @case ('loading') {
+  <app-detail-skeleton></app-detail-skeleton>
+  }
+  @case ('notFound') {
+  <div class="state" role="alert">
+    <mat-icon>movie_filter</mat-icon>
+    <h2>{{ 'detail.notFound' | transloco }}</h2>
+    <p>{{ 'detail.notFoundHint' | transloco }}</p>
+    <a mat-flat-button routerLink="/">{{ 'detail.goHome' | transloco }}</a>
+  </div>
+  }
+  @case ('error') {
+  <div class="state" role="alert">
+    <mat-icon>cloud_off</mat-icon>
+    <p>{{ 'detail.error' | transloco }}</p>
+    <button mat-flat-button type="button" (click)="retry()">{{ 'detail.retry' | transloco }}</button>
+  </div>
+  }
+  @case ('ready') {
+  @if (details(); as details) {
+  @let film = details.movie;
+  <section class="hero" [style.background-image]="backdrop()">
+    <div class="hero-inner">
+      <img class="poster" [src]="poster(film.posterPath)" [alt]="film.title" width="220" height="330" />
+      <div class="heading">
+        <h2 class="title">{{ film.title }}</h2>
+        @if (film.originalTitle && film.originalTitle !== film.title) {
+        <p class="original">{{ 'detail.originalTitle' | transloco: { title: film.originalTitle } }}</p>
+        }
+        <ul class="facts">
+          @if (year()) {
+          <li>{{ year() }}</li>
+          }
+          @if (runtime(); as runtime) {
+          <li>{{ runtime }}</li>
+          }
+          @if (details.certification) {
+          <li class="certification" [attr.aria-label]="'detail.certification' | transloco: { value: details.certification }">
+            {{ details.certification }}
+          </li>
+          }
+        </ul>
+        @if (film.genres.length) {
+        <ul class="genres">
+          @for (genre of film.genres; track genre.id) {
+          <li>{{ genre.name }}</li>
+          }
+        </ul>
+        }
+        @if (film.tagline) {
+        <p class="tagline">{{ film.tagline }}</p>
+        }
+
+        <div class="scores">
+          <div class="score">
+            <span class="score-label">{{ 'detail.tmdbScore' | transloco }}</span>
+            <span class="score-value">
+              <mat-icon aria-hidden="true">star</mat-icon>
+              {{ film.voteAverage.toFixed(1) }}<small>/10</small>
+            </span>
+            <span class="score-votes">{{ 'detail.votes' | transloco: { count: film.voteCount } }}</span>
+          </div>
+          <div class="score">
+            <span class="score-label">{{ 'rating.column' | transloco }}</span>
+            <app-star-rating
+              [value]="rating()"
+              [label]="'rating.labelFor' | transloco: { title: film.title }"
+              (rate)="rate($event)"
+            ></app-star-rating>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button
+            [matButton]="inWatchlist() ? 'tonal' : 'outlined'"
+            [attr.aria-pressed]="inWatchlist()"
+            (click)="toggleWatchlist()"
+          >
+            <mat-icon>{{ inWatchlist() ? 'bookmark' : 'bookmark_border' }}</mat-icon>
+            {{ (inWatchlist() ? 'card.inWatchlist' : 'card.watchlist') | transloco }}
+          </button>
+          <button
+            [matButton]="isWatched() ? 'tonal' : 'outlined'"
+            [attr.aria-pressed]="isWatched()"
+            (click)="toggleWatched()"
+          >
+            <mat-icon>{{ isWatched() ? 'check_circle' : 'visibility' }}</mat-icon>
+            {{ 'card.watched' | transloco }}
+          </button>
+          <button matButton="outlined" [matMenuTriggerFor]="listsMenu">
+            <mat-icon>playlist_add</mat-icon>
+            {{ 'card.addToList' | transloco }}
+          </button>
+          <mat-menu #listsMenu="matMenu">
+            @for (list of customLists(); track list.name) {
+            @if (inList(list)) {
+            <button mat-menu-item disabled>{{ 'panel.alreadyIn' | transloco: { name: list.name } }}</button>
+            } @else {
+            <button mat-menu-item (click)="addToList(list)">{{ list.name }}</button>
+            }
+            } @empty {
+            <button mat-menu-item disabled>{{ 'card.noLists' | transloco }}</button>
+            }
+          </mat-menu>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="body">
+    <section class="synopsis" aria-labelledby="detail-synopsis">
+      <h3 id="detail-synopsis">{{ 'detail.synopsis' | transloco }}</h3>
+      <p>{{ film.overview || ('detail.noSynopsis' | transloco) }}</p>
+    </section>
+
+    <aside class="side">
+      <app-where-to-watch [providers]="details.watchProviders"></app-where-to-watch>
+      <section class="links" aria-labelledby="detail-links">
+        <h3 id="detail-links">{{ 'detail.links' | transloco }}</h3>
+        <a [href]="'https://www.themoviedb.org/movie/' + film.tmdbId" target="_blank" rel="noopener">
+          {{ 'detail.tmdb' | transloco }}
+          <mat-icon aria-hidden="true">open_in_new</mat-icon>
+          <span class="visually-hidden">{{ 'watch.newTab' | transloco }}</span>
+        </a>
+        @if (details.externalIds.imdbId; as imdbId) {
+        <a [href]="'https://www.imdb.com/title/' + imdbId + '/'" target="_blank" rel="noopener">
+          {{ 'detail.imdb' | transloco }}
+          <mat-icon aria-hidden="true">open_in_new</mat-icon>
+          <span class="visually-hidden">{{ 'watch.newTab' | transloco }}</span>
+        </a>
+        }
+      </section>
+    </aside>
+
+    @if (details.cast.length || details.crew.length) {
+    <section class="people" aria-labelledby="detail-people">
+      <h3 id="detail-people">{{ 'detail.castAndCrew' | transloco }}</h3>
+      <app-movie-cast [cast]="details.cast" [crew]="details.crew"></app-movie-cast>
+    </section>
+    }
+
+    @if (details.trailer; as trailer) {
+    <section class="trailer-section" aria-labelledby="detail-trailer">
+      <h3 id="detail-trailer">{{ 'detail.trailer' | transloco }}</h3>
+      <app-trailer [trailer]="trailer"></app-trailer>
+    </section>
+    }
+
+    @if (details.recommendations.length) {
+    <section class="recommendations" aria-labelledby="detail-recommendations">
+      <h3 id="detail-recommendations">{{ 'detail.recommendations' | transloco }}</h3>
+      <app-movie-strip [movies]="details.recommendations" [label]="'detail.recommendationsList' | transloco"></app-movie-strip>
+    </section>
+    }
+  </div>
+  }
+  }
+  }
+</article>

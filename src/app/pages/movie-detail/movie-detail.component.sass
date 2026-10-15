@@ -1,0 +1,188 @@
+:host
+  display: block
+
+.page
+  max-width: 1200px
+  margin: 0 auto
+  padding: 0 16px 32px
+  box-sizing: border-box
+  color: var(--mat-sys-on-surface)
+
+.toolbar
+  padding: 8px 0
+
+h3
+  margin: 0 0 8px
+  font-size: 18px
+
+// Backdrop behind a surface gradient, so text keeps AA contrast in both themes.
+.hero
+  position: relative
+  border-radius: 16px
+  overflow: hidden
+  background-color: var(--mat-sys-surface-container)
+  background-size: cover
+  background-position: center top
+  &::before
+    content: ''
+    position: absolute
+    inset: 0
+    background: linear-gradient(90deg, var(--mat-sys-surface) 35%, color-mix(in srgb, var(--mat-sys-surface) 70%, transparent))
+    @media (max-width: 767.98px)
+      background: linear-gradient(180deg, color-mix(in srgb, var(--mat-sys-surface) 70%, transparent) 0, var(--mat-sys-surface) 260px)
+
+.hero-inner
+  position: relative
+  display: grid
+  grid-template-columns: 220px minmax(0, 1fr)
+  gap: 24px
+  padding: 24px
+  @media (max-width: 767.98px)
+    grid-template-columns: minmax(0, 1fr)
+    justify-items: center
+    gap: 16px
+    padding: 16px
+
+.poster
+  width: 220px
+  max-width: 60vw
+  height: auto
+  aspect-ratio: 2 / 3
+  object-fit: cover
+  border-radius: 12px
+  box-shadow: var(--mat-sys-level3)
+
+.heading
+  display: grid
+  align-content: start
+  gap: 10px
+  min-width: 0
+
+.title
+  margin: 0
+  font-size: clamp(24px, 4vw, 36px)
+  line-height: 1.15
+  overflow-wrap: anywhere
+
+.original, .tagline
+  margin: 0
+  color: var(--mat-sys-on-surface-variant)
+
+.tagline
+  font-style: italic
+
+.facts, .genres
+  list-style: none
+  margin: 0
+  padding: 0
+  display: flex
+  flex-wrap: wrap
+  align-items: center
+  gap: 6px 12px
+
+.facts li + li::before
+  content: '·'
+  margin-right: 12px
+  color: var(--mat-sys-on-surface-variant)
+
+.certification
+  padding: 0 6px
+  border: 1px solid currentColor
+  border-radius: 4px
+  font-size: 13px
+
+.genres
+  gap: 6px
+  li
+    padding: 4px 10px
+    border-radius: 8px
+    font-size: 13px
+    background: var(--mat-sys-secondary-container)
+    color: var(--mat-sys-on-secondary-container)
+
+.scores
+  display: flex
+  flex-wrap: wrap
+  gap: 12px 32px
+  align-items: flex-start
+
+.score
+  display: grid
+  gap: 2px
+
+.score-label
+  font-size: 12px
+  font-weight: 600
+  letter-spacing: .5px
+  text-transform: uppercase
+  color: var(--mat-sys-on-surface-variant)
+
+.score-value
+  display: inline-flex
+  align-items: center
+  gap: 4px
+  font-size: 22px
+  font-weight: 600
+  mat-icon
+    color: var(--mat-sys-primary)
+  small
+    font-size: 13px
+    font-weight: 400
+
+.score-votes
+  font-size: 12px
+  color: var(--mat-sys-on-surface-variant)
+
+.actions
+  display: flex
+  flex-wrap: wrap
+  gap: 8px
+
+// Two columns on desktop: the aside sits on the right next to the main sections.
+.body
+  display: grid
+  grid-template-columns: minmax(0, 1fr) 340px
+  align-items: start
+  gap: 24px 32px
+  margin-top: 24px
+  > section
+    grid-column: 1
+    min-width: 0
+  @media (max-width: 1023.98px)
+    grid-template-columns: minmax(0, 1fr)
+
+.side
+  grid-column: 2
+  grid-row: 1 / span 4
+  display: grid
+  gap: 16px
+  min-width: 0
+  @media (max-width: 1023.98px)
+    grid-column: 1
+    grid-row: auto
+
+.synopsis p
+  margin: 0
+  line-height: 1.6
+
+.links
+  display: grid
+  gap: 8px
+  a
+    display: inline-flex
+    align-items: center
+    gap: 4px
+    color: var(--mat-sys-primary)
+  mat-icon
+    width: 16px
+    height: 16px
+    font-size: 16px
+
+.state
+  display: grid
+  justify-items: center
+  gap: 8px
+  padding: 48px 16px
+  text-align: center
+  h2, p
+    margin: 0

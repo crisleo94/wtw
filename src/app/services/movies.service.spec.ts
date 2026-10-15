@@ -53,4 +53,16 @@ describe('MoviesService', () => {
     req.flush({ statusCode: 404, reason: 'no_providers_match' }, { status: 404, statusText: 'Not Found' });
     expect(error).toBeInstanceOf(NoProvidersMatchError);
   });
+
+  it('should ask for the details in the chosen country', () => {
+    const httpTesting = TestBed.inject(HttpTestingController);
+    service.getDetails(550, 'EC').subscribe();
+    const withRegion = httpTesting.expectOne((request) => request.url === '/api/movies/550/details');
+    expect(withRegion.request.params.get('region')).toBe('EC');
+    withRegion.flush({});
+    service.getDetails(550, null).subscribe();
+    const plain = httpTesting.expectOne((request) => request.url === '/api/movies/550/details');
+    expect(plain.request.params.keys()).toEqual([]);
+    plain.flush({});
+  });
 });

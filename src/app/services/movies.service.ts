@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { catchError, Observable, of, throwError } from 'rxjs';
 import { API_URL } from '../constants';
 import { MovieFilters } from '../interfaces/movie-filters.interface';
+import { MovieDetails } from '../interfaces/movie-details.interface';
 import { Movie } from '../interfaces/movie.interface';
 import { StreamingQuery } from '../interfaces/streaming.interface';
 
@@ -38,6 +39,12 @@ export class MoviesService {
   // Same movie in the active language (used after switching languages).
   getMovie(tmdbId: number): Observable<Movie> {
     return this.http.get<Movie>(`${API_URL}/movies/${tmdbId}`);
+  }
+
+  // Everything for the detail page; `region` adds "where to watch" in that country.
+  getDetails(tmdbId: number, region?: string | null): Observable<MovieDetails> {
+    const params: Record<string, string> = region ? { region } : {};
+    return this.http.get<MovieDetails>(`${API_URL}/movies/${tmdbId}/details`, { params });
   }
 
   private buildParams(filters: MovieFilters & StreamingQuery): HttpParams {

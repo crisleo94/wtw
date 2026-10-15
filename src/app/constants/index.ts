@@ -3,3 +3,5 @@ export { API_URL } from '../config/api-url';
 export const IMAGE_URL = 'https://image.tmdb.org/t/p/w500';
 export const THUMBNAIL_URL = 'https://image.tmdb.org/t/p/w92';
 export const PLACEHOLDER_IMG = 'assets/images/no-poster.svg';
+export const BACKDROP_URL = 'https://image.tmdb.org/t/p/w1280';
+export const PROFILE_URL = 'https://image.tmdb.org/t/p/w185';
