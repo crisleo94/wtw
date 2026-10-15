@@ -1,0 +1,31 @@
+@if (valid()) {
+<figure class="trailer">
+  <div class="frame">
+    @if (playing()) {
+    <iframe
+      [src]="embedUrl()"
+      [title]="'detail.trailerTitle' | transloco: { name: trailer().name }"
+      allow="autoplay; encrypted-media; picture-in-picture"
+      allowfullscreen
+      referrerpolicy="strict-origin-when-cross-origin"
+    ></iframe>
+    } @else {
+    <button
+      type="button"
+      class="play"
+      [attr.aria-label]="'detail.playTrailer' | transloco: { name: trailer().name }"
+      (click)="playing.set(true)"
+    >
+      <img [src]="thumbnail()" alt="" loading="lazy" />
+      <span class="play-icon" aria-hidden="true"><mat-icon>play_arrow</mat-icon></span>
+    </button>
+    }
+  </div>
+  <figcaption>
+    {{ trailer().name }}
+    @if (!playing()) {
+    <span class="privacy">· {{ 'detail.trailerPrivacy' | transloco }}</span>
+    }
+  </figcaption>
+</figure>
+}
