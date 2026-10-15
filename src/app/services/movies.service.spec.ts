@@ -6,7 +6,7 @@ import {
 import { TestBed } from '@angular/core/testing';
 
 import { Movie } from '../interfaces/movie.interface';
-import { MoviesService } from './movies.service';
+import { MoviesService, NoProvidersMatchError } from './movies.service';
 
 describe('MoviesService', () => {
   let service: MoviesService;
@@ -37,5 +37,32 @@ describe('MoviesService', () => {
     expect(req.request.params.has('votesMax')).toBeFalse();
     req.flush({ reason: 'no_results' }, { status: 404, statusText: 'Not Found' });
     expect(result).toBeNull();
+  });
+
+  it('should send the country, platforms and offer types', () => {
+    const httpTesting = TestBed.inject(HttpTestingController);
+    let error: unknown;
+    service
+      .generateMovie({ yearFrom: 1990 }, { region: 'EC', providers: [8, 337], monetization: ['flatrate', 'free', 'ads'] })
+      .subscribe({ error: (e) => (error = e) });
+
+    const req = httpTesting.expectOne((request) => request.url === '/api/movies/generate');
+    expect(req.request.params.get('region')).toBe('EC');
+    expect(req.request.params.get('providers')).toBe('8,337');
+    expect(req.request.params.get('monetization')).toBe('flatrate,free,ads');
+    req.flush({ statusCode: 404, reason: 'no_providers_match' }, { status: 404, statusText: 'Not Found' });
+    expect(error).toBeInstanceOf(NoProvidersMatchError);
+  });
+
+  it('should ask for the details in the chosen country', () => {
+    const httpTesting = TestBed.inject(HttpTestingController);
+    service.getDetails(550, 'EC').subscribe();
+    const withRegion = httpTesting.expectOne((request) => request.url === '/api/movies/550/details');
+    expect(withRegion.request.params.get('region')).toBe('EC');
+    withRegion.flush({});
+    service.getDetails(550, null).subscribe();
+    const plain = httpTesting.expectOne((request) => request.url === '/api/movies/550/details');
+    expect(plain.request.params.keys()).toEqual([]);
+    plain.flush({});
   });
 });

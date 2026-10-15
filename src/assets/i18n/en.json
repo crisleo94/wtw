@@ -1,6 +1,7 @@
 {
   "header": {
     "logo": "What to Watch logo",
+    "home": "Home",
     "title": "What to Watch? - Let's find out your next movie!",
     "yourAccount": "Your account and lists",
     "yourLists": "Your lists",
@@ -15,6 +16,81 @@
     "theme": "Theme",
     "light": "Light",
     "dark": "Dark"
+  },
+  "streaming": {
+    "section": "Streaming",
+    "countryMenu": "Country: {{name}}",
+    "chooseCountry": "Choose your country",
+    "platformsMenu": "My platforms ({{count}})",
+    "dialogTitle": "Country and platforms",
+    "country": "Country",
+    "countryNone": "Type to search",
+    "countryHint": "Countries with streaming data",
+    "countriesLoading": "Loading countries…",
+    "noCountryMatch": "No country matches",
+    "providersCleared": "Your platforms were cleared: they change from one country to another.",
+    "myPlatforms": "My platforms",
+    "selectedCount": "Selected: {{count}}",
+    "chooseCountryFirst": "Choose your country to see its platforms.",
+    "platformsLoading": "Loading platforms…",
+    "platformsFailed": "Couldn't load the platforms.",
+    "retry": "Try again",
+    "searchPlatforms": "Search platforms",
+    "noPlatformMatch": "No platform matches",
+    "maxPlatforms": "You can choose up to {{max}} platforms.",
+    "includeRentBuy": "Include rent and buy",
+    "includeRentBuyHint": "Otherwise only subscription, free and with ads count as yours.",
+    "attribution": "Streaming data:",
+    "save": "Save",
+    "saved": "Streaming settings saved",
+    "onlyMine": "Only my platforms",
+    "choosePlatforms": "Choose your platforms"
+  },
+  "watch": {
+    "title": "Where to watch in {{country}}",
+    "flatrate": "Subscription",
+    "free": "Free",
+    "ads": "With ads",
+    "rent": "Rent",
+    "buy": "Buy",
+    "yours": "Your platform",
+    "seeAll": "See all options",
+    "newTab": "(opens in a new tab)",
+    "notAvailable": "Not available for streaming in {{country}}.",
+    "noCountry": "Choose your country to see where to watch it.",
+    "mayVary": "Availability may vary."
+  },
+  "detail": {
+    "back": "Back",
+    "loading": "Loading movie…",
+    "notFound": "Movie not found",
+    "notFoundHint": "It may no longer be on TMDB.",
+    "goHome": "Go to the generator",
+    "error": "Couldn't load this movie.",
+    "retry": "Try again",
+    "runtime": "{{hours}} h {{minutes}} min",
+    "runtimeMinutes": "{{minutes}} min",
+    "certification": "Rated {{value}}",
+    "originalTitle": "Original title: {{title}}",
+    "synopsis": "Synopsis",
+    "noSynopsis": "No synopsis available.",
+    "tmdbScore": "TMDB score",
+    "votes": "{{count}} votes",
+    "castAndCrew": "Cast and crew",
+    "cast": "Cast, scroll sideways",
+    "directing": "Directed by",
+    "writing": "Written by",
+    "trailer": "Trailer",
+    "playTrailer": "Play trailer: {{name}}",
+    "trailerTitle": "Trailer: {{name}}",
+    "trailerPrivacy": "Loads from YouTube when you play it.",
+    "recommendations": "You may also like",
+    "recommendationsList": "Recommendations, scroll sideways",
+    "links": "More information",
+    "tmdb": "See on TMDB",
+    "imdb": "See on IMDb",
+    "open": "Details of {{title}}",
+    "details": "Details"
   },
   "form": {
     "releasedFrom": "Released from:",
@@ -158,7 +234,8 @@
     "invalidCredentials": "Invalid email or password.",
     "emailTaken": "This email is already registered. Try logging in instead.",
     "guestImportRejected": "Your guest activity could not be saved to your account. Discard it?",
-    "guestActivityDiscarded": "Guest activity discarded."
+    "guestActivityDiscarded": "Guest activity discarded.",
+    "noProvidersMatch": "None of your platforms has a movie with these filters. Widen the filters or turn off \"Only my platforms\"."
   },
   "common": {
     "dismiss": "Dismiss",
@@ -185,5 +262,8 @@
     "noDescription": "No synopsis available.",
     "showDescription": "{{title}}: show or hide the synopsis",
     "moreActions": "More actions for {{title}}"
+  },
+  "footer": {
+    "justwatch": "Streaming data provided by"
   }
 }

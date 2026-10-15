@@ -16,6 +16,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -44,7 +45,7 @@ import {
 
 export type WatchedFilter = 'all' | 'watched' | 'unwatched';
 
-interface PanelList {
+export interface PanelList {
   list: MovieList;
   key: string;
   items: MovieListItem[];
@@ -54,6 +55,7 @@ interface PanelList {
   selector: 'app-user-panel',
   imports: [
     FormsModule,
+    RouterLink,
     CdkDropListGroup,
     CdkDropList,
     CdkDrag,

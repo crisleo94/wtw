@@ -22,6 +22,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSliderModule } from '@angular/material/slider';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatIconModule } from '@angular/material/icon';
 import { debounceTime, Subject } from 'rxjs';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
@@ -30,8 +32,11 @@ import {
 } from '../../interfaces/movie-filters.interface';
 import { Movie } from '../../interfaces/movie.interface';
 import { GenresService } from '../../services/genres.service';
-import { MoviesService } from '../../services/movies.service';
+import { MoviesService, NoProvidersMatchError } from '../../services/movies.service';
+import { StreamingSettingsService } from '../../services/streaming-settings.service';
+import { GeneratorStore } from '../../stores/generator.store';
 import { LibraryStore } from '../../stores/library.store';
+import { PreferencesStore } from '../../stores/preferences.store';
 import { rangeValidator } from '../../validators/range.validator';
 
 export const MIN_YEAR = 1900;
@@ -49,6 +54,8 @@ export const DEFAULT_VOTES_MIN = 5000;
     MatSliderModule,
     MatButtonModule,
     MatButtonToggleModule,
+    MatIconModule,
+    MatSlideToggleModule,
     TranslocoPipe,
   ],
   templateUrl: './form.component.html',
@@ -59,6 +66,9 @@ export class FormComponent implements OnInit {
   private genreService = inject(GenresService);
   private movieService = inject(MoviesService);
   private library = inject(LibraryStore);
+  private streamingSettings = inject(StreamingSettingsService);
+  private generator = inject(GeneratorStore);
+  preferences = inject(PreferencesStore);
   private transloco = inject(TranslocoService);
   private destroyRef = inject(DestroyRef);
   private ratingBox = viewChild.required<ElementRef<HTMLElement>>('ratingBox');
@@ -70,7 +80,8 @@ export class FormComponent implements OnInit {
   debounceSubmit$ = new Subject<void>();
   movieEvent = output<Movie | null>();
   isLoadingEvent = output<boolean>();
-  errorEvent = output<void>();
+  // Translation key of the message to show instead of a movie.
+  errorEvent = output<string>();
 
   minYear = MIN_YEAR;
   currentYear = new Date().getFullYear();
@@ -103,6 +114,14 @@ export class FormComponent implements OnInit {
   );
 
   constructor() {
+    // Coming back from a movie detail shows the filters used before.
+    const saved = this.generator.filters();
+    if (saved) {
+      this.dataForm.patchValue({ ...saved, votesMax: saved.votesMax ?? null });
+    }
+    this.dataForm.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.generator.filters.set(this.buildFilters()));
     afterNextRender(() => this.watchSliderWidth());
     this.debounceSubmit$
       .pipe(debounceTime(200), takeUntilDestroyed())
@@ -153,7 +172,7 @@ export class FormComponent implements OnInit {
 
   generateMovies(): void {
     const filters = this.buildFilters();
-    this.movieService.generateMovie(filters).subscribe({
+    this.movieService.generateMovie(filters, this.preferences.generateQuery()).subscribe({
       next: (movie) => {
         if (movie) {
           this.library.recordGenerated(movie, filters);
@@ -164,15 +183,21 @@ export class FormComponent implements OnInit {
           this.onMovieSelected(movie);
         }, movie ? 1000 : 0);
       },
-      error: () => {
+      error: (error) => {
         this.isLoadingEvent.emit(false);
-        this.errorEvent.emit();
+        this.errorEvent.emit(
+          error instanceof NoProvidersMatchError ? 'errors.noProvidersMatch' : 'errors.fetchError'
+        );
       },
     });
   }
 
   getGenres(): void {
     this.genreService.getGenres().subscribe();
+  }
+
+  openStreamingSettings(): void {
+    this.streamingSettings.open().subscribe();
   }
 
   reset(): void {

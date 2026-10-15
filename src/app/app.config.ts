@@ -5,7 +5,11 @@ import {
   provideAppInitializer,
   provideZonelessChangeDetection,
 } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import {
+  provideRouter,
+  withComponentInputBinding,
+  withInMemoryScrolling,
+} from '@angular/router';
 
 import {
   provideHttpClient,
@@ -31,7 +35,12 @@ export function loadUser() {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
-    provideRouter(routes),
+    // New pages start at the top; Back restores the previous position.
+    provideRouter(
+      routes,
+      withComponentInputBinding(),
+      withInMemoryScrolling({ scrollPositionRestoration: 'enabled' })
+    ),
     provideHttpClient(withFetch(), withInterceptors([credentialsInterceptor, languageInterceptor, sessionExpiredInterceptor])),
     provideAppInitializer(loadUser),
     provideTransloco({

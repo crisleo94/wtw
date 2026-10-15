@@ -1,0 +1,45 @@
+@if (providers() || !region()) {
+<section class="where" [attr.aria-labelledby]="providers() ? uid + '-title' : null">
+  @if (providers()) {
+  <h3 [id]="uid + '-title'" class="title">{{ 'watch.title' | transloco: { country: country() } }}</h3>
+  @for (group of groups(); track group.type) {
+  <div class="group">
+    <span class="group-label" [id]="uid + '-' + group.type">{{ 'watch.' + group.type | transloco }}</span>
+    <ul class="chips" [attr.aria-labelledby]="uid + '-' + group.type">
+      @for (provider of group.items; track provider.id) {
+      <li class="chip" [class.mine]="provider.mine">
+        <img [src]="logo(provider)" alt="" width="28" height="28" loading="lazy" />
+        <span class="name">{{ provider.name }}</span>
+        @if (provider.mine) {
+        <mat-icon class="mine-icon" [matTooltip]="'watch.yours' | transloco" aria-hidden="true">check_circle</mat-icon>
+        <span class="visually-hidden">({{ 'watch.yours' | transloco }})</span>
+        }
+      </li>
+      }
+    </ul>
+  </div>
+  } @empty {
+  <p class="empty">{{ 'watch.notAvailable' | transloco: { country: country() } }}</p>
+  }
+  <div class="footer">
+    @if (providers()?.link; as link) {
+    <a class="see-all" [href]="link" target="_blank" rel="noopener">
+      {{ 'watch.seeAll' | transloco }}
+      <mat-icon aria-hidden="true">open_in_new</mat-icon>
+      <span class="visually-hidden">{{ 'watch.newTab' | transloco }}</span>
+    </a>
+    }
+    <span class="attribution">
+      {{ 'watch.mayVary' | transloco }} {{ 'streaming.attribution' | transloco }}
+      <a href="https://www.justwatch.com" target="_blank" rel="noopener">JustWatch</a>
+    </span>
+  </div>
+  } @else {
+  <p class="empty">{{ 'watch.noCountry' | transloco }}</p>
+  <button mat-button type="button" (click)="openSettings()">
+    <mat-icon>public</mat-icon>
+    {{ 'streaming.chooseCountry' | transloco }}
+  </button>
+  }
+</section>
+}

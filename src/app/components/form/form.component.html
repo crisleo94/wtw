@@ -116,6 +116,21 @@
     <mat-error>{{ 'form.votesRange' | transloco }}</mat-error>
     }
   </div>
+  <div class="only-mine">
+    @if (preferences.hasProviders()) {
+    <mat-slide-toggle
+      [checked]="preferences.onlyMine()"
+      (change)="preferences.setOnlyMine($event.checked)"
+    >
+      {{ 'streaming.onlyMine' | transloco }}
+    </mat-slide-toggle>
+    } @else {
+    <button mat-button type="button" class="choose-platforms" (click)="openStreamingSettings()">
+      <mat-icon>live_tv</mat-icon>
+      {{ 'streaming.choosePlatforms' | transloco }}
+    </button>
+    }
+  </div>
   <button
     mat-flat-button
     type="submit"

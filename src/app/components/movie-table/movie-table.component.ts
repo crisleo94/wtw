@@ -4,6 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltip, MatTooltipModule } from '@angular/material/tooltip';
+import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { THUMBNAIL_URL } from '../../constants';
 import { MovieList } from '../../interfaces/library.interface';
@@ -30,6 +31,7 @@ export interface MovieTableRow {
     MatMenuModule,
     MatTableModule,
     MatTooltipModule,
+    RouterLink,
     TranslocoPipe,
     StarRatingComponent,
   ],

@@ -1,3 +1,4 @@
+import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -31,6 +32,7 @@ describe('MovieCardComponent', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
+        provideRouter([]),
       ],
     })
     .compileComponents();
@@ -50,6 +52,22 @@ describe('MovieCardComponent', () => {
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('mat-card-title')?.textContent).toContain('Alien');
+    expect(compiled.querySelector('mat-card-title a')?.getAttribute('href')).toBe('/movie/1');
+  });
+
+  it('should show where to watch the generated movie', async () => {
+    const watchProviders = {
+      region: 'EC',
+      link: 'https://www.themoviedb.org/movie/1/watch?locale=EC',
+      flatrate: [{ id: 8, name: 'Netflix', logoPath: '/n.jpg' }],
+      free: [], ads: [], rent: [], buy: [],
+    };
+    const movie = { tmdbId: 1, title: 'Alien', genreIds: [], overview: '', watchProviders };
+    fixture.componentRef.setInput('movie', movie as unknown as Movie);
+    await fixture.whenStable();
+    const block = (fixture.nativeElement as HTMLElement).querySelector('app-where-to-watch')!;
+    expect(block.querySelector('h3')!.textContent).toContain('Where to watch in');
+    expect(block.querySelector('.chip')!.textContent).toContain('Netflix');
   });
 
   it('should toggle watchlist and watched state for a guest', async () => {

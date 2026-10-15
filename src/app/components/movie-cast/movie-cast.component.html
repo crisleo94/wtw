@@ -1,0 +1,25 @@
+<dl class="crew">
+  @if (directors().length) {
+  <div><dt>{{ 'detail.directing' | transloco }}</dt><dd>{{ directors().join(', ') }}</dd></div>
+  }
+  @if (writers().length) {
+  <div><dt>{{ 'detail.writing' | transloco }}</dt><dd>{{ writers().join(', ') }}</dd></div>
+  }
+</dl>
+@if (cast().length) {
+<ul class="h-scroll" tabindex="0" [attr.aria-label]="'detail.cast' | transloco">
+  @for (person of cast(); track person.id) {
+  <li class="person">
+    @if (profile(person.profilePath); as photo) {
+    <img [src]="photo" alt="" width="92" height="138" loading="lazy" />
+    } @else {
+    <span class="no-photo" aria-hidden="true"><mat-icon>person</mat-icon></span>
+    }
+    <span class="name">{{ person.name }}</span>
+    @if (person.character) {
+    <span class="character">{{ person.character }}</span>
+    }
+  </li>
+  }
+</ul>
+}

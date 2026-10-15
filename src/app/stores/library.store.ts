@@ -40,12 +40,13 @@ import { Movie } from '../interfaces/movie.interface';
 import { LibraryError } from '../utils/api-error';
 import { AuthStore } from './auth.store';
 import { LanguageStore } from './language.store';
+import { PreferencesStore } from './preferences.store';
 import { SessionStore, watchedOrder } from './session.store';
 
-export const HISTORY_PAGE_SIZE = 50;
-export const MAX_LISTS = 50;
-export const MAX_LIST_ITEMS = 500;
-export const MAX_WATCHED = 2000;
+const HISTORY_PAGE_SIZE = 50;
+const MAX_LISTS = 50;
+const MAX_LIST_ITEMS = 500;
+const MAX_WATCHED = 2000;
 const WATCHED_PAGE_SIZE = 20;
 
 // Facade over the user library: the API when logged in, the session otherwise.
@@ -56,6 +57,7 @@ export class LibraryStore {
   private http = inject(HttpClient);
   private authStore = inject(AuthStore);
   private session = inject(SessionStore);
+  private preferences = inject(PreferencesStore);
   private snackBar = inject(MatSnackBar);
   private transloco = inject(TranslocoService);
 
@@ -74,7 +76,6 @@ export class LibraryStore {
   private importInProgress = signal(false);
   private remoteLoaded = signal(false);
 
-  readonly importing = this.importInProgress.asReadonly();
   // False while a logged user's library is being imported or loaded.
   readonly ready = computed(
     () => !this.authStore.isLoggedIn() || this.remoteLoaded()
@@ -147,7 +148,10 @@ export class LibraryStore {
       untracked(() => {
         if (user) {
           this.remoteLoaded.set(false);
-          this.importSession().subscribe(() => this.reload());
+          this.importSession().subscribe(() => {
+            this.reload();
+            this.preferences.loadRemote();
+          });
         } else {
           this.clearRemote();
         }
@@ -375,7 +379,8 @@ export class LibraryStore {
   // Idempotent on the API. Network/5xx errors keep the session to retry on the next
   // login; a 4xx will not change by retrying, so the user is offered to discard it.
   importSession(): Observable<ImportSummary | null> {
-    if (this.session.isEmpty() || this.importInProgress()) {
+    const preferences = this.preferences.guestImport();
+    if ((this.session.isEmpty() && !preferences) || this.importInProgress()) {
       return of(null);
     }
     if (this.session.importRejected()) {
@@ -384,10 +389,14 @@ export class LibraryStore {
     }
     this.importInProgress.set(true);
     return this.http
-      .post<ImportSummary>(`${API_URL}/me/import`, toImportBody(this.session.data()))
+      .post<ImportSummary>(`${API_URL}/me/import`, {
+        ...toImportBody(this.session.data()),
+        ...(preferences ? { preferences } : {}),
+      })
       .pipe(
         tap(() => {
           this.session.clear();
+          this.preferences.clearGuest();
           this.notify(this.transloco.translate('errors.guestActivitySaved'));
         }),
         catchError((error) => {
@@ -543,6 +552,7 @@ export class LibraryStore {
       .onAction()
       .subscribe(() => {
         this.session.clear();
+        this.preferences.clearGuest();
         this.notify(this.transloco.translate('errors.guestActivityDiscarded'));
       });
   }

@@ -1,0 +1,26 @@
+<div class="container">
+  <div class="menu">
+    <div class="menu-icon">
+      <mat-icon>theater_comedy</mat-icon>
+    </div>
+    <app-form (movieEvent)="generator.showMovie($event)" (isLoadingEvent)="generator.isLoading.set($event)"
+      (errorEvent)="generator.showError($event)"></app-form>
+  </div>
+  <div class="content">
+    @if (generator.isLoading()) {
+    <div class="spinner-container">
+      <mat-spinner></mat-spinner>
+    </div>
+    } @else if (generator.message(); as message) {
+    <div class="message" role="status">
+      <mat-icon>movie_filter</mat-icon>
+      <p>{{ message | transloco }}</p>
+    </div>
+    } @else {
+    <app-movie-card [movie]="generator.movie()"></app-movie-card>
+    }
+  </div>
+</div>
+<div class="overview">
+  <app-movies-overview></app-movies-overview>
+</div>

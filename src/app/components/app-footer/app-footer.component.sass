@@ -1,0 +1,57 @@
+:host
+  display: block
+  margin-top: 32px
+
+.footer
+  display: grid
+  gap: 12px
+  justify-items: center
+  padding: 24px 16px 32px
+  border-top: 1px solid var(--mat-sys-outline-variant)
+  background: var(--mat-sys-surface-container)
+  color: var(--mat-sys-on-surface-variant)
+  font-size: 13px
+  text-align: center
+
+.credits
+  display: grid
+  gap: 6px
+  justify-items: center
+  max-width: 640px
+
+.tmdb
+  display: block
+  line-height: 0
+  border-radius: 4px
+  img
+    width: 154px
+    max-width: 100%
+    height: auto
+
+p
+  margin: 0
+
+a
+  color: var(--mat-sys-primary)
+  &:focus-visible
+    outline: 2px solid var(--mat-sys-primary)
+    outline-offset: 2px
+
+.signature
+  display: inline-flex
+  flex-wrap: wrap
+  justify-content: center
+  align-items: center
+  gap: 4px 6px
+  color: var(--mat-sys-on-surface)
+  font-weight: 600
+
+.heart
+  width: 18px
+  height: 18px
+  font-size: 18px
+  color: var(--mat-sys-error)
+
+.year
+  font-weight: 400
+  color: var(--mat-sys-on-surface-variant)

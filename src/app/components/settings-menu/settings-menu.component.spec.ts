@@ -1,4 +1,10 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { EMPTY } from 'rxjs';
+import { StreamingSettingsService } from '../../services/streaming-settings.service';
+import { PREFERENCES_KEY } from '../../stores/preferences.store';
+import { WatchCatalogStore } from '../../stores/watch-catalog.store';
 import {
   clearLanguagePreference,
   getTranslocoTestingModule,
@@ -15,6 +21,7 @@ describe('SettingsMenuComponent', () => {
     localStorage.setItem(THEME_KEY, 'light');
     await TestBed.configureTestingModule({
       imports: [SettingsMenuComponent, getTranslocoTestingModule()],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
     fixture = TestBed.createComponent(SettingsMenuComponent);
     await fixture.whenStable();
@@ -23,6 +30,7 @@ describe('SettingsMenuComponent', () => {
   afterEach(() => {
     clearLanguagePreference();
     localStorage.removeItem(THEME_KEY);
+    localStorage.removeItem(PREFERENCES_KEY);
     document.documentElement.style.colorScheme = '';
     document.documentElement.lang = 'en';
   });
@@ -64,5 +72,27 @@ describe('SettingsMenuComponent', () => {
     items().find((item) => item.textContent!.includes('Dark'))!.click();
     expect(TestBed.inject(ThemeStore).isDark()).toBeTrue();
     expect(localStorage.getItem(THEME_KEY)).toBe('dark');
+  });
+
+  it('should show the streaming country and platforms and open their dialog', async () => {
+    localStorage.setItem(PREFERENCES_KEY, JSON.stringify({ region: 'EC', providerIds: [8, 337], includeRentBuy: false }));
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({
+      imports: [SettingsMenuComponent, getTranslocoTestingModule()],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    }).compileComponents();
+    spyOn(TestBed.inject(WatchCatalogStore), 'regionName').and.returnValue('Ecuador');
+    const open = spyOn(TestBed.inject(StreamingSettingsService), 'open').and.returnValue(EMPTY);
+    fixture = TestBed.createComponent(SettingsMenuComponent);
+    await fixture.whenStable();
+    await openMenu();
+
+    const streaming = Array.from(document.querySelectorAll<HTMLButtonElement>('.streaming-item'));
+    expect(streaming.map((item) => item.textContent!.trim())).toEqual([
+      'publicCountry: Ecuador',
+      'live_tvMy platforms (2)',
+    ]);
+    streaming[1].click();
+    expect(open).toHaveBeenCalled();
   });
 });

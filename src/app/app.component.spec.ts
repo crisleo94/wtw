@@ -4,8 +4,8 @@ import {
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { AppComponent } from './app.component';
-import { Movie } from './interfaces/movie.interface';
 import { AuthStore } from './stores/auth.store';
 import { LanguageStore } from './stores/language.store';
 import { clearLanguagePreference, getTranslocoTestingModule } from './testing/transloco-testing';
@@ -20,6 +20,7 @@ describe('AppComponent', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
+        provideRouter([]),
       ],
     }).compileComponents();
   });
@@ -30,45 +31,26 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
+  it('should link the logo to the home page', async () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    await fixture.whenStable();
+    const link = (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>('a.logo')!;
+    expect(link.getAttribute('href')).toBe('/');
+    expect(link.getAttribute('aria-label')).toBe('Home');
+  });
+
+  it('should show the footer on every page', async () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    await fixture.whenStable();
+    const footer = (fixture.nativeElement as HTMLElement).querySelector('app-footer footer');
+    expect(footer?.textContent).toContain('Made by CodeScripters with love');
+  });
+
   it('should render title', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('h1')?.textContent).toContain('What to Watch?');
-  });
-
-  it('should show a friendly message when there are no results', async () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    fixture.componentInstance.recieveMovie(null);
-    await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.message')?.textContent).toContain(
-      'No movies match these filters'
-    );
-  });
-
-  it('should translate the message when the language changes', async () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    fixture.componentInstance.recieveMovie(null);
-    TestBed.inject(LanguageStore).setLang('es');
-    await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.message')?.textContent).not.toContain(
-      'No movies match these filters'
-    );
-  });
-
-  it('should reload the same movie in the new language', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const httpTesting = TestBed.inject(HttpTestingController);
-    const movie = { tmdbId: 603, title: 'The Matrix', genreIds: [] } as unknown as Movie;
-    fixture.componentInstance.recieveMovie(movie);
-
-    TestBed.inject(LanguageStore).setLang('es');
-    httpTesting.match('/api/genres');
-    httpTesting.expectOne('/api/movies/603').flush({ ...movie, overview: 'Neo descubre la verdad' });
-    httpTesting.expectNone('/api/movies/generate');
-    expect(fixture.componentInstance.movie()?.overview).toBe('Neo descubre la verdad');
   });
 
   describe('header layout', () => {

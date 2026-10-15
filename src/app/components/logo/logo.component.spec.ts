@@ -12,8 +12,7 @@ describe('LogoComponent', () => {
     await fixture.whenStable();
     const host = fixture.nativeElement as HTMLElement;
     const img = host.querySelector('img')!;
-    expect(img.getAttribute('src')).toBe('assets/images/wtwlogo-96.jpg');
-    expect(img.getAttribute('srcset')).toContain('wtwlogo-144.jpg 3x');
+    expect(img.getAttribute('src')).toBe('assets/images/logo.svg');
     expect(img.alt).toBe('What to Watch logo');
     expect(getComputedStyle(img).objectFit).toBe('cover');
     expect(getComputedStyle(host).borderRadius).toBe('50%');

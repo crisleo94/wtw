@@ -1,6 +1,7 @@
 {
   "header": {
     "logo": "Logo de What to Watch",
+    "home": "Inicio",
     "title": "What to Watch? - ¡Encontremos tu siguiente aventura!",
     "yourAccount": "Tu cuenta y tus listas",
     "yourLists": "Tus listas",
@@ -15,6 +16,81 @@
     "theme": "Tema",
     "light": "Claro",
     "dark": "Oscuro"
+  },
+  "streaming": {
+    "section": "Streaming",
+    "countryMenu": "País: {{name}}",
+    "chooseCountry": "Elige tu país",
+    "platformsMenu": "Mis plataformas ({{count}})",
+    "dialogTitle": "País y plataformas",
+    "country": "País",
+    "countryNone": "Escribe para buscar",
+    "countryHint": "Países con datos de streaming",
+    "countriesLoading": "Cargando países…",
+    "noCountryMatch": "Ningún país coincide",
+    "providersCleared": "Se vaciaron tus plataformas: cambian de un país a otro.",
+    "myPlatforms": "Mis plataformas",
+    "selectedCount": "Seleccionadas: {{count}}",
+    "chooseCountryFirst": "Elige tu país para ver sus plataformas.",
+    "platformsLoading": "Cargando plataformas…",
+    "platformsFailed": "No se pudieron cargar las plataformas.",
+    "retry": "Reintentar",
+    "searchPlatforms": "Buscar plataformas",
+    "noPlatformMatch": "Ninguna plataforma coincide",
+    "maxPlatforms": "Puedes elegir hasta {{max}} plataformas.",
+    "includeRentBuy": "Incluir alquiler y compra",
+    "includeRentBuyHint": "Si no, solo cuentan como tuyas las de suscripción, gratis y con anuncios.",
+    "attribution": "Datos de streaming:",
+    "save": "Guardar",
+    "saved": "Ajustes de streaming guardados",
+    "onlyMine": "Solo mis plataformas",
+    "choosePlatforms": "Elige tus plataformas"
+  },
+  "watch": {
+    "title": "Dónde ver en {{country}}",
+    "flatrate": "Suscripción",
+    "free": "Gratis",
+    "ads": "Con anuncios",
+    "rent": "Alquiler",
+    "buy": "Compra",
+    "yours": "Tu plataforma",
+    "seeAll": "Ver todas las opciones",
+    "newTab": "(se abre en una pestaña nueva)",
+    "notAvailable": "No disponible en streaming en {{country}}.",
+    "noCountry": "Elige tu país para ver dónde verla.",
+    "mayVary": "La disponibilidad puede variar."
+  },
+  "detail": {
+    "back": "Volver",
+    "loading": "Cargando película…",
+    "notFound": "Película no encontrada",
+    "notFoundHint": "Puede que ya no esté en TMDB.",
+    "goHome": "Ir al generador",
+    "error": "No se pudo cargar esta película.",
+    "retry": "Reintentar",
+    "runtime": "{{hours}} h {{minutes}} min",
+    "runtimeMinutes": "{{minutes}} min",
+    "certification": "Clasificación {{value}}",
+    "originalTitle": "Título original: {{title}}",
+    "synopsis": "Sinopsis",
+    "noSynopsis": "Sin sinopsis.",
+    "tmdbScore": "Puntuación TMDB",
+    "votes": "{{count}} votos",
+    "castAndCrew": "Reparto y equipo",
+    "cast": "Reparto, desplázate de lado",
+    "directing": "Dirección",
+    "writing": "Guion",
+    "trailer": "Tráiler",
+    "playTrailer": "Reproducir tráiler: {{name}}",
+    "trailerTitle": "Tráiler: {{name}}",
+    "trailerPrivacy": "Se carga desde YouTube al reproducirlo.",
+    "recommendations": "También te puede gustar",
+    "recommendationsList": "Recomendaciones, desplázate de lado",
+    "links": "Más información",
+    "tmdb": "Ver en TMDB",
+    "imdb": "Ver en IMDb",
+    "open": "Detalle de {{title}}",
+    "details": "Ver detalle"
   },
   "form": {
     "releasedFrom": "Lanzado desde:",
@@ -158,7 +234,8 @@
     "invalidCredentials": "Correo o contraseña incorrectos.",
     "emailTaken": "Este correo ya está registrado. Intenta iniciar sesión.",
     "guestImportRejected": "No pudimos guardar tu actividad de invitado en tu cuenta. ¿Quieres descartarla?",
-    "guestActivityDiscarded": "Actividad de invitado descartada."
+    "guestActivityDiscarded": "Actividad de invitado descartada.",
+    "noProvidersMatch": "Ninguna de tus plataformas tiene una película con estos filtros. Amplía los filtros o desactiva \"Solo mis plataformas\"."
   },
   "common": {
     "dismiss": "Cerrar",
@@ -185,5 +262,8 @@
     "noDescription": "Sin sinopsis disponible.",
     "showDescription": "{{title}}: mostrar u ocultar la sinopsis",
     "moreActions": "Más acciones para {{title}}"
+  },
+  "footer": {
+    "justwatch": "Datos de streaming proporcionados por"
   }
 }
