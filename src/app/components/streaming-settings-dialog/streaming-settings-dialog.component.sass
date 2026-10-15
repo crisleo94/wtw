@@ -1,0 +1,89 @@
+.content
+  display: grid
+  gap: 8px
+
+.country, .search
+  width: 100%
+
+.notice
+  display: flex
+  align-items: center
+  gap: 8px
+  margin: 0
+  padding: 8px 12px
+  border-radius: 8px
+  background: var(--mat-sys-secondary-container)
+  color: var(--mat-sys-on-secondary-container)
+
+.providers-header
+  display: flex
+  align-items: baseline
+  justify-content: space-between
+  gap: 8px
+  h3
+    margin: 8px 0
+
+.count, .hint, .attribution
+  color: var(--mat-sys-on-surface-variant)
+  font-size: 13px
+
+.hint
+  margin: 0
+
+.loading
+  display: flex
+  align-items: center
+  gap: 12px
+  padding: 8px 0
+
+.providers
+  // Fills the dialog with as many columns as fit; one or two on phones.
+  list-style: none
+  margin: 8px 0 0
+  padding: 0
+  display: grid
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr))
+  gap: 8px
+  max-height: 320px
+  overflow-y: auto
+
+.provider
+  min-width: 0
+  border: 1px solid var(--mat-sys-outline-variant)
+  border-radius: 8px
+  &.checked
+    border-color: var(--mat-sys-primary)
+    background: var(--mat-sys-primary-container)
+    color: var(--mat-sys-on-primary-container)
+  mat-checkbox
+    display: block
+    width: 100%
+
+.provider-label
+  display: flex
+  align-items: center
+  gap: 8px
+  min-width: 0
+  img
+    width: 32px
+    height: 32px
+    border-radius: 6px
+    flex-shrink: 0
+    object-fit: cover
+
+.provider-name
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+
+.rent-buy
+  margin-top: 8px
+
+.api-error
+  color: var(--mat-sys-error)
+  margin: 0
+
+.attribution
+  margin: 8px 0 0
+  a
+    color: var(--mat-sys-primary)

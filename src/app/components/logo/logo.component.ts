@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslocoService } from '@jsverse/transloco';
 
-// The WtW logo cut to a circle; 96/144px copies of the 2048px original keep it light.
+// The WtW logo (SVG) cut to a circle.
 @Component({
   selector: 'app-logo',
   template: `<img

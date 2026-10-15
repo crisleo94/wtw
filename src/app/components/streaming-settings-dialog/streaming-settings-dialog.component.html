@@ -1,0 +1,111 @@
+<h2 mat-dialog-title>{{ 'streaming.dialogTitle' | transloco }}</h2>
+<mat-dialog-content class="content">
+  <mat-form-field class="country">
+    <mat-label>{{ 'streaming.country' | transloco }}</mat-label>
+    <input
+      matInput
+      [formControl]="countryControl"
+      [matAutocomplete]="countries"
+      [placeholder]="'streaming.countryNone' | transloco"
+    />
+    <mat-icon matSuffix aria-hidden="true">public</mat-icon>
+    <mat-autocomplete
+      #countries="matAutocomplete"
+      [displayWith]="displayRegion"
+      (optionSelected)="selectRegion($event.option.value)"
+      (closed)="resetCountryInput()"
+    >
+      @for (region of filteredRegions(); track region.code) {
+      <mat-option [value]="region">{{ region.name }}</mat-option>
+      } @empty {
+      <mat-option disabled>{{ (catalog.loaded() ? 'streaming.noCountryMatch' : 'streaming.countriesLoading') | transloco }}</mat-option>
+      }
+    </mat-autocomplete>
+    <mat-hint>{{ 'streaming.countryHint' | transloco }}</mat-hint>
+  </mat-form-field>
+
+  @if (cleared()) {
+  <p class="notice" role="status">
+    <mat-icon aria-hidden="true">info</mat-icon>
+    {{ 'streaming.providersCleared' | transloco }}
+  </p>
+  }
+
+  <section class="providers-section" aria-labelledby="streaming-providers-title">
+    <div class="providers-header">
+      <h3 id="streaming-providers-title">{{ 'streaming.myPlatforms' | transloco }}</h3>
+      <span class="count" aria-live="polite">{{ 'streaming.selectedCount' | transloco: { count: selected().size } }}</span>
+    </div>
+
+    @switch (providers().status) {
+    @case ('idle') {
+    <p class="hint">{{ 'streaming.chooseCountryFirst' | transloco }}</p>
+    }
+    @case ('loading') {
+    <div class="loading" role="status">
+      <mat-spinner diameter="32"></mat-spinner>
+      <span>{{ 'streaming.platformsLoading' | transloco }}</span>
+    </div>
+    }
+    @case ('error') {
+    <div class="loading" role="alert">
+      <span>{{ 'streaming.platformsFailed' | transloco }}</span>
+      <button mat-button type="button" (click)="retry()">{{ 'streaming.retry' | transloco }}</button>
+    </div>
+    }
+    @case ('ready') {
+    <mat-form-field class="search" subscriptSizing="dynamic">
+      <mat-label>{{ 'streaming.searchPlatforms' | transloco }}</mat-label>
+      <input matInput type="search" [value]="query()" (input)="query.set($any($event.target).value)" />
+      <mat-icon matSuffix aria-hidden="true">search</mat-icon>
+    </mat-form-field>
+    @if (selected().size >= maxProviders) {
+    <p class="hint" role="status">{{ 'streaming.maxPlatforms' | transloco: { max: maxProviders } }}</p>
+    }
+    <ul class="providers">
+      @for (provider of filteredProviders(); track provider.id) {
+      <li class="provider" [class.checked]="selected().has(provider.id)">
+        <mat-checkbox
+          [checked]="selected().has(provider.id)"
+          [disabled]="!selected().has(provider.id) && selected().size >= maxProviders"
+          [aria-label]="provider.name"
+          (change)="toggle(provider, $event.checked)"
+        >
+          <span class="provider-label">
+            <img [src]="logo(provider)" alt="" width="40" height="40" loading="lazy" />
+            <span class="provider-name">{{ provider.name }}</span>
+          </span>
+        </mat-checkbox>
+      </li>
+      } @empty {
+      <li class="hint">{{ 'streaming.noPlatformMatch' | transloco }}</li>
+      }
+    </ul>
+    }
+    }
+  </section>
+
+  <mat-slide-toggle
+    class="rent-buy"
+    [checked]="includeRentBuy()"
+    (change)="includeRentBuy.set($event.checked)"
+  >
+    {{ 'streaming.includeRentBuy' | transloco }}
+  </mat-slide-toggle>
+  <p class="hint">{{ 'streaming.includeRentBuyHint' | transloco }}</p>
+
+  @if (error(); as message) {
+  <p class="api-error" role="alert">{{ message }}</p>
+  }
+
+  <p class="attribution">
+    {{ 'streaming.attribution' | transloco }}
+    <a href="https://www.justwatch.com" target="_blank" rel="noopener">JustWatch</a>
+  </p>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close type="button">{{ 'common.cancel' | transloco }}</button>
+  <button mat-flat-button type="button" [disabled]="saving()" (click)="save()">
+    {{ 'streaming.save' | transloco }}
+  </button>
+</mat-dialog-actions>
