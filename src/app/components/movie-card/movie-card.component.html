@@ -75,6 +75,7 @@
     <mat-card-content>
       <b>{{ 'card.synopsis' | transloco }} </b> {{ movie.overview }}
     </mat-card-content>
+    <app-where-to-watch class="where-to-watch" [providers]="movie.watchProviders"></app-where-to-watch>
   </div>
   <div>
     <img

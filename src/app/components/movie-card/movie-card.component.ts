@@ -15,6 +15,7 @@ import { MovieActionsService } from '../../services/movie-actions.service';
 import { LibraryStore } from '../../stores/library.store';
 import { posterUrl } from '../../utils/image-url';
 import { StarRatingComponent } from '../star-rating/star-rating.component';
+import { WhereToWatchComponent } from '../where-to-watch/where-to-watch.component';
 
 @Component({
   selector: 'app-movie-card',
@@ -29,6 +30,7 @@ import { StarRatingComponent } from '../star-rating/star-rating.component';
     MatTooltipModule,
     TranslocoPipe,
     StarRatingComponent,
+    WhereToWatchComponent,
   ],
   templateUrl: './movie-card.component.html',
   styleUrl: './movie-card.component.sass',

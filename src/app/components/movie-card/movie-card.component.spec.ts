@@ -52,6 +52,21 @@ describe('MovieCardComponent', () => {
     expect(compiled.querySelector('mat-card-title')?.textContent).toContain('Alien');
   });
 
+  it('should show where to watch the generated movie', async () => {
+    const watchProviders = {
+      region: 'EC',
+      link: 'https://www.themoviedb.org/movie/1/watch?locale=EC',
+      flatrate: [{ id: 8, name: 'Netflix', logoPath: '/n.jpg' }],
+      free: [], ads: [], rent: [], buy: [],
+    };
+    const movie = { tmdbId: 1, title: 'Alien', genreIds: [], overview: '', watchProviders };
+    fixture.componentRef.setInput('movie', movie as unknown as Movie);
+    await fixture.whenStable();
+    const block = (fixture.nativeElement as HTMLElement).querySelector('app-where-to-watch')!;
+    expect(block.querySelector('h3')!.textContent).toContain('Where to watch in');
+    expect(block.querySelector('.chip')!.textContent).toContain('Netflix');
+  });
+
   it('should toggle watchlist and watched state for a guest', async () => {
     const movie = { tmdbId: 9, title: 'Heat', genreIds: [], overview: '', posterPath: '/h.jpg' };
     TestBed.inject(AuthStore).continueAsGuest();
