@@ -44,8 +44,8 @@
           <li>{{ runtime }}</li>
           }
           @if (details.certification) {
-          <li class="certification" [attr.aria-label]="'detail.certification' | transloco: { value: details.certification }">
-            {{ details.certification }}
+          <li>
+            <span class="certification" [attr.aria-label]="'detail.certification' | transloco: { value: details.certification }">{{ details.certification }}</span>
           </li>
           }
         </ul>
