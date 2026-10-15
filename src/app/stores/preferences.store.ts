@@ -15,7 +15,7 @@ import { WatchCatalogStore } from './watch-catalog.store';
 export const PREFERENCES_KEY = 'wtw.preferences.v1';
 export const ONLY_MINE_KEY = 'wtw.onlyMyPlatforms.v1';
 
-export const defaultPreferences = (): StreamingPreferences => ({
+const defaultPreferences = (): StreamingPreferences => ({
   region: null,
   providerIds: [],
   includeRentBuy: false,
